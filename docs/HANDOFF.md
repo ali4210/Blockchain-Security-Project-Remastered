@@ -12,12 +12,14 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-001 — Kali Linux update |
-| Current thread | Not yet started |
+| Current task | P00-001 — Kali Linux update and baseline verification |
+| Current thread | P00-001 — Kali Linux Update and Baseline Verification |
 | Current branch | `main` |
-| Last verified commit | Not yet created |
-| Last GitLab pipeline | Not yet created |
-| Last updated | 2026-09-27 |
+| Last verified commit | `dc21e949e7e5e2088eb11f92dac77a998ffeecca` — pre-documentation base commit; P00-001 documentation commit pending |
+| Last GitLab pipeline | Pending — no P00-001 documentation-commit pipeline evidence provided |
+| Last GitHub post | Pending — no P00-001 documentation commit has been posted to `origin/main` |
+| Synchronization | Pre-documentation refs verified at `dc21e949e7e5e2088eb11f92dac77a998ffeecca`; post-documentation synchronization pending |
+| Last updated | 2026-09-28 |
 
 ## Project purpose
 
@@ -25,10 +27,10 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current implementation status
 
-- No implementation work has been verified yet.
-- Phase 0 is the active phase.
-- `docs/CHECKLIST.md` has been initialized as the main project ledger.
-- Start with `P00-001` and complete Phase 0 sequentially.
+- P00-001 Kali host-update and baseline validation has been performed with factual terminal evidence.
+- P00-001 remains 🟧 Implemented but needs verification until its documentation is committed locally, posted to GitLab, validated by applicable GitLab CI, posted to GitHub, and proven synchronized by matching local/GitLab/GitHub commit SHAs.
+- Phase 0 remains active and its completion gate is not ready.
+- Do not begin P00-002 until P00-001 documentation and required repository synchronization are factually verified.
 
 ## Architecture invariants — must not be violated
 
@@ -47,44 +49,109 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current task details
 
-### P00-001 — Update Kali Linux VM
+### P00-001 — Kali Linux update and baseline verification
 
 **Objective**
 
-Update the Kali Linux VM and record the factual result. Do not move to the next task until package-management state is clean and any errors are understood.
+Record factual Kali package-management and OS/kernel baseline evidence, then safely complete the documentation, local commit, GitLab post/CI verification, GitHub post, and three-way SHA synchronization workflow.
 
-**Expected work**
+**Scope completed**
 
-```bash
-sudo apt update
-sudo apt full-upgrade -y
-```
+- Package index refresh, full-upgrade verification, package-health checks, reboot-required check, and Kali OS/kernel baseline collection.
 
-**Expected documentation update**
+**Explicitly out of scope**
 
-Update the `P00-001` evidence entry in `docs/CHECKLIST.md` with:
+- Installing Node.js, Python tooling, Docker, Foundry, Hardhat, Slither, Mythril, Certora, DFIR tooling, Ollama, mTLS certificates, application code, or running `apt autoremove`.
 
-- Date completed
-- Commands run
-- Result or errors
-- Any notable reboot/kernel/toolchain note
-- Git commit hash after documentation is committed
+**Expected files**
+
+- `docs/CHECKLIST.md`
+- `docs/HANDOFF.md`
 
 **Acceptance criteria**
 
-- `apt update` completes successfully or any repository issue is explicitly documented.
-- Upgrade completes successfully or any held/broken package is documented and resolved/blocked.
-- No secrets, personal tokens, or private configuration are placed in the checklist.
+- [x] `sudo apt update` completed successfully.
+- [x] `sudo apt full-upgrade -y` completed successfully without package conflicts.
+- [x] `sudo apt --fix-broken install -y` completed without repair errors.
+- [x] `dpkg --audit` and `apt-mark showhold` produced no output.
+- [x] Reboot requirement was checked: `REBOOT_REQUIRED=no`.
+- [x] Kali OS and kernel baseline were captured.
+- [ ] Documentation diff is reviewed and committed locally.
+- [ ] The exact documentation commit is posted to GitLab `main`.
+- [ ] Applicable GitLab CI evidence is factually verified.
+- [ ] The same exact commit is posted to GitHub `origin/main`.
+- [ ] Local `main`, `gitlab/main`, and `origin/main` are proven to have identical SHAs.
 
-## Immediate task queue
+**Validation commands**
 
-1. `P00-001` — Update Kali Linux VM.
-2. `P00-002` — Install and verify Git, Node.js/npm, Python, pip, Docker, and Docker Compose.
-3. `P00-003` — Install and verify Foundry and Hardhat.
-4. `P00-004` — Install and verify Slither, Mythril, and Certora CLI/alternative.
-5. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
-6. `P00-005` to `P00-009` — Windows Ollama, mTLS proxy, bearer authorization, and authenticated Kali-to-Windows test.
-7. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+```bash
+git status
+git diff --check
+git diff -- docs/CHECKLIST.md docs/HANDOFF.md
+git status -sb
+git rev-parse --verify HEAD 2>&1 || true
+git log -1 --oneline 2>&1 || true
+git branch -avv
+git show-ref --head 2>&1 || true
+git remote -v
+```
+
+**Security constraints**
+
+- Do not record or expose passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data.
+- Do not remove packages with `apt autoremove` under P00-001.
+- Do not start P00-002 or unrelated Phase 0 tasks before P00-001 repository verification is complete.
+
+## Immediate next task
+
+### P00-001 — Kali Linux update and baseline verification
+
+**Scope**
+
+Review and commit the factual P00-001 documentation update; post the exact commit to GitLab `main`; wait for factual GitLab CI evidence where applicable; post the same commit to GitHub `origin/main`; then prove local/GitLab/GitHub SHA equality.
+
+**Expected files**
+
+- `docs/CHECKLIST.md`
+- `docs/HANDOFF.md`
+
+**Acceptance criteria**
+
+- Documentation reflects only factual P00-001 evidence.
+- Local documentation commit exists.
+- GitLab post/push and applicable GitLab CI are factually verified.
+- The same commit is posted to GitHub.
+- `main`, `gitlab/main`, and `origin/main` resolve to identical SHAs.
+
+**Validation commands**
+
+```bash
+git diff --check
+git diff -- docs/CHECKLIST.md docs/HANDOFF.md
+git log -1 --oneline
+git status
+```
+
+**Dependencies**
+
+- P00-001 package-management and baseline evidence has been captured.
+- Git HEAD/history output remains to be diagnosed because captured `git log -1 --oneline` output had no visible line.
+
+**Security constraints**
+
+- Stage only `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- Do not stage files under `docs/.backup/`.
+- Do not use force-push.
+- Do not begin P00-002 until P00-001 synchronization is factually verified.
+
+## Subsequent task queue
+
+1. `P00-002` — Install and verify Git, Node.js/npm, Python, pip, Docker, and Docker Compose.
+2. `P00-003` — Install and verify Foundry and Hardhat.
+3. `P00-004` — Install and verify Slither, Mythril, and Certora CLI/alternative.
+4. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
+5. `P00-005` to `P00-009` — Windows Ollama, mTLS proxy, bearer authorization, and authenticated Kali-to-Windows test.
+6. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 
