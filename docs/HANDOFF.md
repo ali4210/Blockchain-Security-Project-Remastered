@@ -232,3 +232,12 @@ Use this when a phase gate has passed:
 - Scope: Coursework/home-lab simulation; GitLab CE runs in a local Docker container.
 - Repository policy: GitLab is the private CI/CD remote. GitHub remains the existing repository remote.
 - Security note: No private SSH keys, passphrases, tokens, credentials, or host-specific access details are stored in this repository.
+
+## GitLab Runner and CI smoke-test baseline
+
+- Status: Verified.
+- CI runner: Project-scoped local Docker executor runner using the `soc-docker` tag.
+- Validation: The `runner_smoke_test` pipeline passed after validating repository checkout and required project-control files.
+- Scope: Coursework/home-lab bootstrap only. Runner hardening for Docker isolation, no privileged mode, and no host mounts remains planned for the DevSecOps phase.
+- Security note: Auto DevOps was disabled. Generic SAST, code-quality, container-scanning, secret-detection, and Semgrep jobs are intentionally deferred until the planned DevSecOps/security-gate phase.
+- Repository synchronization: Local `main`, GitLab `main`, and GitHub `main` were verified at the same commit before this baseline record.
