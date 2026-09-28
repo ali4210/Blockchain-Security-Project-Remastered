@@ -87,7 +87,7 @@ For every `✅ Complete` item, record:
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P00-001 | Update the Kali Linux VM. | 🟧 | Host update and baseline checks passed on 2026-09-28; documentation/Git synchronization pending. |
+| P00-001 | Update the Kali Linux VM. | ✅ | Verified 2026-09-28: Kali update/baseline evidence recorded; documentation commit `6e6d9baf744495039e0271a19f170cf40b29a639` synchronized across local, GitLab, and GitHub. |
 | P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ⬜ | — |
 | P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ⬜ | — |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ⬜ | — |
@@ -107,10 +107,9 @@ For every `✅ Complete` item, record:
 
 ### P00-001 — Kali update
 
-- **Status:** 🟧 Implemented but needs verification
-- **Scope completed:** Kali package-index refresh, full-upgrade verification, broken-package repair check, package audit, held-package check, reboot-required check, and OS/kernel baseline capture.
-- **Scope not completed:** Documentation commit, GitLab post/push, GitLab CI verification, GitHub post/push, and local/GitLab/GitHub three-way SHA synchronization.
-- **Files changed:** `docs/CHECKLIST.md`, `docs/HANDOFF.md` — documentation update pending local commit.
+- **Status:** ✅ Complete and verified
+- **Scope completed:** Kali package-index refresh, full-upgrade verification, broken-package repair check, package audit, held-package check, reboot-required check, OS/kernel baseline capture, documentation update, GitLab post/CI verification, GitHub post, and three-way commit-SHA synchronization.
+- **Files changed:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`.
 - **Validation commands:**
   ```bash
   sudo apt update
@@ -122,7 +121,9 @@ For every `✅ Complete` item, record:
   uname -a
   cat /etc/os-release
   git status
-  git log -1 --oneline
+  git rev-parse main
+  git rev-parse gitlab/main
+  git rev-parse origin/main
   ```
 - **Factual results:**
   - `sudo apt update` completed successfully; Kali Rolling, Docker Debian Bookworm, and GitHub CLI repositories refreshed; APT reported `All packages are up to date.`
@@ -133,17 +134,19 @@ For every `✅ Complete` item, record:
   - Reboot check result: `REBOOT_REQUIRED=no`.
   - OS baseline: Kali GNU/Linux Rolling `2026.3` (`kali-rolling`).
   - Kernel baseline: `7.1.5+kali-amd64`, Kali `7.1.5-1kali1`, dated `2026-07-29`.
-  - Git status before documentation changes: branch `main`, up to date with `gitlab/main`, working tree clean.
-  - Git HEAD/history diagnosis: `main`, `gitlab/main`, and `origin/main` were verified at pre-documentation commit `dc21e949e7e5e2088eb11f92dac77a998ffeecca`.
+  - Documentation/evidence commit: `6e6d9baf744495039e0271a19f170cf40b29a639`.
+  - GitLab documentation pipeline was reported as succeeded; pipeline ID/URL was not captured.
+  - GitHub post was completed.
+  - Synchronization verification succeeded: `main`, `gitlab/main`, and `origin/main` each resolved to `6e6d9baf744495039e0271a19f170cf40b29a639`.
   - APT reported unused auto-installed packages; `sudo apt autoremove` was intentionally not run because removal is outside P00-001 scope.
-- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-001 implementation thread. No task-specific CI job applies to OS package maintenance; the later documentation-commit pipeline remains unverified.
-- **Git commit:** Pending.
-- **GitLab post / CI:** Pending.
-- **GitHub post:** Pending.
-- **Synchronization:** Pending; local `main`, `gitlab/main`, and `origin/main` have not yet been proven to resolve to the same SHA.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-001 implementation thread; GitLab documentation pipeline reported as succeeded.
+- **Git commit:** `6e6d9baf744495039e0271a19f170cf40b29a639`.
+- **GitLab post / CI:** Posted to `gitlab/main`; pipeline reported succeeded.
+- **GitHub post:** Posted to `origin/main`.
+- **Synchronization:** Verified: `main == gitlab/main == origin/main == 6e6d9baf744495039e0271a19f170cf40b29a639`.
 - **Security checks:** No secrets, tokens, private keys, raw evidence, or unredacted compliance data were recorded. No unrelated tooling was installed and no packages were removed.
-- **Dependencies / limitations:** Git HEAD/history output must be diagnosed before the documentation commit. No coursework simulation applies to this host-maintenance task.
-- **Next recommended task:** Finish P00-001 documentation review, commit locally, post to GitLab, wait for factual GitLab CI evidence, post the same commit to GitHub, and verify three-way SHA synchronization.
+- **Dependencies / limitations:** No coursework simulation applies. GitLab pipeline ID/URL was not captured in the evidence record.
+- **Next recommended task:** P00-002 — Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali.
 
 ### P00-002 to P00-015 — evidence entries
 

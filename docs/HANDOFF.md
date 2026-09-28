@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-001 — Kali Linux update and baseline verification |
-| Current thread | P00-001 — Kali Linux Update and Baseline Verification |
+| Current task | P00-002 — Install and verify core Kali development prerequisites |
+| Current thread | P00-001 — Kali Linux Update and Baseline Verification complete |
 | Current branch | `main` |
-| Last verified commit | `dc21e949e7e5e2088eb11f92dac77a998ffeecca` — pre-documentation base commit; P00-001 documentation commit pending |
-| Last GitLab pipeline | Pending — no P00-001 documentation-commit pipeline evidence provided |
-| Last GitHub post | Pending — no P00-001 documentation commit has been posted to `origin/main` |
-| Synchronization | Pre-documentation refs verified at `dc21e949e7e5e2088eb11f92dac77a998ffeecca`; post-documentation synchronization pending |
+| Last verified commit | `6e6d9baf744495039e0271a19f170cf40b29a639` — P00-001 documentation/evidence record |
+| Last GitLab pipeline | Succeeded — `docs(phase-00): record Kali update baseline evidence` (pipeline ID/URL not captured) |
+| Last GitHub post | Verified — `origin/main` resolved to `6e6d9baf744495039e0271a19f170cf40b29a639` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `6e6d9baf744495039e0271a19f170cf40b29a639` |
 | Last updated | 2026-09-28 |
 
 ## Project purpose
@@ -27,10 +27,13 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current implementation status
 
-- P00-001 Kali host-update and baseline validation has been performed with factual terminal evidence.
-- P00-001 remains 🟧 Implemented but needs verification until its documentation is committed locally, posted to GitLab, validated by applicable GitLab CI, posted to GitHub, and proven synchronized by matching local/GitLab/GitHub commit SHAs.
+- **P00-001 — Kali Linux update and baseline verification:** ✅ Complete and verified.
+  - Package-management checks passed; reboot was not required; Kali Rolling 2026.3 and kernel `7.1.5+kali-amd64` were recorded.
+  - Documentation/evidence commit: `6e6d9baf744495039e0271a19f170cf40b29a639`.
+  - GitLab pipeline was reported as succeeded; GitHub post was completed.
+  - Synchronization was verified: `main == gitlab/main == origin/main == 6e6d9baf744495039e0271a19f170cf40b29a639`.
 - Phase 0 remains active and its completion gate is not ready.
-- Do not begin P00-002 until P00-001 documentation and required repository synchronization are factually verified.
+- P00-002 is the next smallest unblocked task.
 
 ## Architecture invariants — must not be violated
 
@@ -49,11 +52,11 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current task details
 
-### P00-001 — Kali Linux update and baseline verification
+### P00-002 — Install and verify core Kali development prerequisites
 
 **Objective**
 
-Record factual Kali package-management and OS/kernel baseline evidence, then safely complete the documentation, local commit, GitLab post/CI verification, GitHub post, and three-way SHA synchronization workflow.
+Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose. Install only any missing P00-002 prerequisites after reviewing factual terminal output; do not begin installation or validation in this P00-001 completion thread.
 
 **Scope completed**
 
@@ -104,11 +107,11 @@ git remote -v
 
 ## Immediate next task
 
-### P00-001 — Kali Linux update and baseline verification
+### P00-002 — Install and verify core Kali development prerequisites
 
 **Scope**
 
-Review and commit the factual P00-001 documentation update; post the exact commit to GitLab `main`; wait for factual GitLab CI evidence where applicable; post the same commit to GitHub `origin/main`; then prove local/GitLab/GitHub SHA equality.
+Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose. Install only missing prerequisites after factual version and package-state evidence is reviewed.
 
 **Expected files**
 
