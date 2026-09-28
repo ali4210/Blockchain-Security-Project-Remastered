@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat |
-| Current thread | P00-002 — Core Kali development prerequisite verification complete |
+| Current task | P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative |
+| Current thread | P00-003 — Foundry and Hardhat prerequisites complete and verified |
 | Current branch | `main` |
-| Last verified commit | `bd7d284c50debf43330504721dea77bb8252d804` — P00-002 core Kali prerequisites documentation/evidence |
-| Last GitLab pipeline | Passed — pipeline #12 for `bd7d284c50debf43330504721dea77bb8252d804` |
-| Last GitHub post | Verified — `origin/main` resolved to `bd7d284c50debf43330504721dea77bb8252d804` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `bd7d284c50debf43330504721dea77bb8252d804` |
+| Last verified commit | `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites` |
+| Last GitLab pipeline | Passed — Pipeline #13 for `473793554ceb7898b4b2165dfef401c47fa14d50` |
+| Last GitHub post | Verified — `origin/main` resolved to `473793554ceb7898b4b2165dfef401c47fa14d50` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `473793554ceb7898b4b2165dfef401c47fa14d50` |
 | Last updated | 2026-09-28 |
 
 ## Project purpose
@@ -33,9 +33,11 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Runbook/governance documentation commit synchronized at `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb`.
 - **P00-002 — Core Kali development prerequisites:** ✅ Complete and verified.
   - Verified Git `2.53.0`, Node.js `v24.19.0`, npm `12.0.2`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, Docker Compose `v5.5.1`, active Docker service, and current-user Docker access.
-  - npm was initially absent; package inspection confirmed `nodejs 24.19.0+dfsg+~cs24.13.3-1` was installed and npm was not installed. `sudo apt install npm` completed successfully.
-  - Post-install validation confirmed npm at `/usr/bin/npm`, no `dpkg --audit` or held-package output, and a successful non-privileged `docker run --rm hello-world` test.
-  - Documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` was pushed to GitLab and GitHub; GitLab pipeline #12 passed; `main == gitlab/main == origin/main == bd7d284c50debf43330504721dea77bb8252d804`.
+  - Documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` was pushed to GitLab and GitHub; GitLab Pipeline #12 passed; `main == gitlab/main == origin/main == bd7d284c50debf43330504721dea77bb8252d804`.
+- **P00-003 — Foundry and Hardhat prerequisites:** ✅ Complete and verified.
+  - Verified Foundry `forge`, `anvil`, and `cast` at `1.8.3`; a disposable local Foundry smoke project initialized and built successfully with Solc `0.8.37`; Cast conversion returned `1000000000000000000`; the disposable workspace was removed.
+  - Verified project-local Hardhat `2.29.1`; `package-lock.json` version 3 records root range `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
+  - Commit `473793554ceb7898b4b2165dfef401c47fa14d50` was pushed to GitLab; GitLab Pipeline #13 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == 473793554ceb7898b4b2165dfef401c47fa14d50`.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -55,127 +57,115 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current task details
 
-### P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat
+### P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative
 
 **Objective**
 
-Install only missing Foundry and Hardhat prerequisites, verify local command availability and safe functional behavior, record factual evidence, and complete the required documentation and GitLab-first synchronization workflow.
-
-**Local scope completed**
-
-- Installed Foundry using `foundryup`; `forge`, `anvil`, and `cast` each report version `1.8.3`, build commit `cae51ad458f6abb64852b7709eb784352429825d`.
-- Added a guarded user-local `~/.zshrc` PATH block for `$HOME/.config/.foundry/bin`; a fresh interactive zsh session resolved all required Foundry tools.
-- Initialized and built a disposable Foundry project only; the build compiled 23 files with Solc `0.8.37`, and `cast to-wei 1 ether` returned `1000000000000000000`.
-- Removed the exact temporary smoke workspace and verified it absent.
-- After approved dry-run review, ran `npm install --ignore-scripts --no-audit --no-fund`; npm added 227 packages and generated `package-lock.json`.
-- Verified local Hardhat `2.29.1` with `npx --no-install hardhat --version` and `./node_modules/.bin/hardhat --version`.
-- Confirmed lockfile version `3`, root Hardhat declaration `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
-- Confirmed `package.json` has no diff and `node_modules/` is ignored.
-
-**Pending completion workflow**
-
-- [ ] Review exact documentation and lockfile diff.
-- [ ] Commit only `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
-- [ ] Push the exact commit to GitLab `main`.
-- [ ] Wait for factual successful GitLab CI evidence.
-- [ ] Push the same commit to GitHub `origin/main`.
-- [ ] Fetch both remotes and prove `main == gitlab/main == origin/main`.
-
-**Explicitly out of scope**
-
-- Slither, Mythril, Certora, DFIR tools, Ollama, mTLS, Windows configuration, Docker Compose application-stack startup, application-code/configuration work, project test suites, scanners, persistent Anvil operation, RPC/wallet activity, privileged containers, host networking, host mounts, registry credentials, Docker secrets, and `apt autoremove`.
-
-**Expected tracked files**
-
-- `package-lock.json`
-- `docs/CHECKLIST.md`
-- `docs/HANDOFF.md`
-- `docs/RUNBOOK.md`
-
-**Validation commands actually run**
-
-```bash
-forge --version
-anvil --version
-cast --version
-forge init --no-git /tmp/p00-003-foundry-smoke.Bg7RMq
-forge build
-cast to-wei 1 ether
-npm install --dry-run --ignore-scripts --no-audit --no-fund
-npm install --ignore-scripts --no-audit --no-fund
-npm ls --depth=0
-npx --no-install hardhat --version
-./node_modules/.bin/hardhat --version
-zsh -ic 'forge --version; anvil --version; cast --version'
-```
-
-**Known warnings and limitations**
-
-- npm reported deprecation warnings for transitive `glob@10.5.0` and `uuid@8.3.2`; no update or audit was performed because remediation is outside P00-003 scope.
-- The Foundry smoke project is a 🔒 coursework/local toolchain simulation. No chain connection, wallet/key material, RPC endpoint, or persistent Anvil process was used.
-- The `~/.zshrc` PATH change is local user configuration outside Git.
-- P00-003 is `🟧 Implemented but needs verification` until its commit, GitLab CI, GitHub post, and three-way SHA synchronization are factually verified.
-
-**Security constraints**
-
-- Do not record or expose passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data.
-- Do not stage `node_modules/` or any file under `docs/.backup/`.
-- Do not use force-push.
-- Do not begin P00-004 until P00-003 synchronization is factually verified.
-
-## Immediate next task
-
-### P00-003 — Complete documentation, commit, CI gate, and synchronization
+Inspect the installed state of Slither, Mythril, and Certora CLI on Kali; install only prerequisites demonstrated to be missing; and, if Certora CLI cannot be used without an API key, document the approved API-key alternative without exposing any credential.
 
 **Scope**
 
-Review the P00-003 lockfile and documentation diff, commit only the approved files, push to GitLab `main`, wait for factual successful GitLab CI evidence, push the same commit to GitHub, and prove three-way SHA equality.
+- Verify command availability, versions, and safe help/version behavior.
+- Install only missing P00-004 tools after reviewing factual output.
+- If Certora requires credentials, document the API-key alternative and keep credentials outside Git, terminal captures, and project documents.
 
-**Expected files**
+**Explicitly out of scope**
 
-- `package-lock.json`
+- P00-005 and later tasks; Foundry/Hardhat reinstallation; project application code; contract scans against non-authorized targets; Docker application-stack startup; Windows/Ollama/mTLS work; credentials, tokens, keys, wallet material, raw evidence, and `apt autoremove`.
+
+**Expected files if state changes**
+
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md`
+- `docs/RUNBOOK.md` only if a P00-004 operational procedure is factually verified.
 
 **Acceptance criteria**
 
-- Local Foundry and Hardhat evidence is recorded factually.
-- The intended diff contains no project application code/configuration changes.
-- Only the four expected tracked paths are staged and committed.
-- GitLab receives the exact local commit and CI passes.
-- GitHub receives the same commit only after GitLab CI success.
-- `main`, `gitlab/main`, and `origin/main` resolve to the exact same SHA.
+- Slither and Mythril are installed and their version commands succeed, or a factual blocker is documented.
+- Certora CLI is installed and usable, or a credential-safe Certora API-key alternative is documented.
+- Only approved P00-004 installation actions occur.
+- Local validation, documentation, local commit, GitLab CI, GitHub post, and three-way SHA synchronization are recorded before P00-004 is marked complete.
 
-**Validation commands**
+**Initial read-only validation commands**
 
 ```bash
-git diff --check
-git diff -- package-lock.json docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
-git diff --cached --check
-git diff --cached
-git log -1 --oneline
+cd ~/Blockchain-Security-Project-Remastered
+
 git status
-git fetch gitlab
-git fetch origin
-git rev-parse main
-git rev-parse gitlab/main
-git rev-parse origin/main
+git log -1 --oneline
+
+command -v slither || true
+slither --version 2>&1 || true
+
+command -v myth || true
+myth version 2>&1 || true
+myth --version 2>&1 || true
+
+command -v certoraRun || true
+certoraRun --version 2>&1 || true
+```
+
+**Security constraints**
+
+- Never paste, print, commit, or request a Certora API key, token, password, private key, seed phrase, wallet material, or raw forensic evidence.
+- Use only authorized local fixtures or systems.
+- Do not run scans against external/public targets.
+- Do not run `apt autoremove`.
+- Never stage `docs/.backup/` or `node_modules/`.
+- Do not use force-push.
+
+## Immediate next task
+
+### P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative
+
+**Scope**
+
+Perform only the initial read-only P00-004 inspection, review the factual output, then install only missing P00-004 prerequisites or document the Certora API-key alternative safely.
+
+**Expected files**
+
+- `docs/CHECKLIST.md`
+- `docs/HANDOFF.md`
+- `docs/RUNBOOK.md` only if a new or changed P00-004 operational procedure is factually verified.
+
+**Acceptance criteria**
+
+- Availability/version status for Slither, Mythril, and Certora CLI is factually established.
+- Any installation is scoped to missing P00-004 tooling only.
+- No secrets, API keys, source-code changes, or out-of-scope operations occur.
+- P00-004 is not marked complete before local validation, documentation, GitLab CI, GitHub post, and SHA synchronization evidence exists.
+
+**Initial validation commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+git status
+git log -1 --oneline
+
+command -v slither || true
+slither --version 2>&1 || true
+
+command -v myth || true
+myth version 2>&1 || true
+myth --version 2>&1 || true
+
+command -v certoraRun || true
+certoraRun --version 2>&1 || true
 ```
 
 **Dependencies**
 
-- P00-002 is complete and synchronized at `bd7d284c50debf43330504721dea77bb8252d804`.
-- P00-003 local installation and validation evidence is present.
-- GitLab CI success, GitHub post, and synchronized SHA proof remain pending.
+- P00-002 and P00-003 are complete and synchronized.
+- Python, pip, Node.js/npm, and Docker baseline evidence exists from P00-002.
+- Foundry and project-local Hardhat are verified from P00-003.
 
 **Security constraints**
 
-- Stage only `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
-- Never stage `node_modules/` or files under `docs/.backup/`.
-- Do not use force-push.
-- Do not begin P00-004 before P00-003 synchronization evidence exists.
-- Do not add credentials, private keys, raw evidence, or unredacted compliance data to project documents.
+- Never expose or commit API keys, tokens, passwords, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data.
+- Use authorized local fixtures only; do not scan external/public targets.
+- Do not stage `docs/.backup/` or `node_modules/`.
+- Do not use force-push or `apt autoremove`.
 
 ## Subsequent task queue
 

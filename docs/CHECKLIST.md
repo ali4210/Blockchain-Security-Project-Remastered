@@ -89,7 +89,7 @@ For every `✅ Complete` item, record:
 |---|---|---|---|
 | P00-001 | Update the Kali Linux VM. | ✅ | Verified 2026-09-28: Kali update/baseline evidence recorded; documentation commit `6e6d9baf744495039e0271a19f170cf40b29a639` synchronized across local, GitLab, and GitHub. |
 | P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ✅ | Verified 2026-09-28: local prerequisite validation passed; documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` posted to GitLab and GitHub; GitLab pipeline #12 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
-| P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | 🟧 | Local Foundry/Hardhat installation and smoke validation passed 2026-09-28; documentation commit, GitLab CI, GitHub post, and three-way SHA synchronization pending. |
+| P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ✅ | Verified 2026-09-28: Foundry 1.8.3 and Hardhat 2.29.1 validated; commit `473793554ceb7898b4b2165dfef401c47fa14d50`; GitLab Pipeline #13 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ⬜ | — |
 | P00-005 | Install Ollama on Windows and pull the agreed local model set; record actual model names and versions. | ⬜ | — |
 | P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | ⬜ | — |
@@ -205,10 +205,10 @@ For every `✅ Complete` item, record:
 
 ### P00-003 — Foundry and Hardhat prerequisites
 
-- **Status:** 🟧 Implemented but needs verification.
+- **Status:** ✅ Complete and verified.
 - **Scope completed:** Installed Foundry through verified `foundryup`; verified `forge`, `anvil`, and `cast`; added a guarded user-local zsh PATH block for `/home/kali/.config/.foundry/bin`; installed only the repository-declared npm devDependencies after approved dry-run review; generated `package-lock.json`; and locally verified project-local Hardhat.
 - **Scope not completed:** P00-004 and later tasks; Slither, Mythril, Certora, DFIR tooling, Ollama, mTLS, Windows configuration, Docker Compose application startup, application-code/configuration work, project test suites, scanners, persistent Anvil operation, RPC/wallet activity, privileged containers, host networking, host mounts, registry credentials, Docker secrets, and `apt autoremove`.
-- **Files changed:** `package-lock.json`; pending documentation updates to `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. User-local `~/.zshrc` was updated outside the repository to persist the Foundry PATH.
+- **Files changed:** `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. User-local `~/.zshrc` was updated outside the repository to persist the Foundry PATH.
 - **Validation commands:**
   ```bash
   curl -L https://foundry.paradigm.xyz | bash
@@ -226,6 +226,13 @@ For every `✅ Complete` item, record:
   npx --no-install hardhat --version
   ./node_modules/.bin/hardhat --version
   zsh -ic 'forge --version; anvil --version; cast --version'
+  git push gitlab main
+  git push origin main
+  git fetch gitlab
+  git fetch origin
+  git rev-parse main
+  git rev-parse gitlab/main
+  git rev-parse origin/main
   ```
 - **Factual results:**
   - `foundryup 0.0.8` installed at `/home/kali/.config/.foundry/bin/foundryup`; installer output reported attestation and binary-integrity verification.
@@ -237,17 +244,21 @@ For every `✅ Complete` item, record:
   - Approved npm dry run resolved 227 packages. The real install used `--ignore-scripts --no-audit --no-fund` and added 227 packages.
   - `package-lock.json` reports lockfile version `3`, root Hardhat range `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
   - The local executable `node_modules/.bin/hardhat` exists; `npx --no-install hardhat --version` and the direct local binary each returned `2.29.1`.
-  - `package.json` had no diff; `node_modules/` is ignored; `package-lock.json` is intended to be tracked.
+  - `package.json` had no diff; `node_modules/` is ignored; `package-lock.json` is tracked.
   - npm emitted deprecation warnings for transitive `glob@10.5.0` and `uuid@8.3.2`; remediation/audit is deferred because it is outside P00-003 scope.
-- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-003 implementation thread. GitLab CI evidence: pending.
-- **Git commit:** Pending.
-- **GitLab post / CI:** Pending.
-- **GitHub post:** Pending.
-- **Synchronization:** Pending; do not claim `main == gitlab/main == origin/main` until fetched SHA evidence exists.
+  - Documentation/lockfile commit `473793554ceb7898b4b2165dfef401c47fa14d50` was pushed to `gitlab/main`.
+  - GitLab Pipeline #13 passed for commit `473793554ceb7898b4b2165dfef401c47fa14d50`.
+  - The same commit was pushed to `origin/main`.
+  - Fetched synchronization verification succeeded: `main`, `gitlab/main`, and `origin/main` each resolved to `473793554ceb7898b4b2165dfef401c47fa14d50`.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-003 implementation thread; GitLab Pipeline #13 passed.
+- **Git commit:** `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites`.
+- **GitLab post / CI:** Posted to `gitlab/main`; Pipeline #13 passed.
+- **GitHub post:** Posted to `origin/main`.
+- **Synchronization:** Verified: `main == gitlab/main == origin/main == 473793554ceb7898b4b2165dfef401c47fa14d50`.
 - **Security checks:** No passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data were recorded. No Docker containers, privileged mode, host networking, host mounts, registry credentials, Docker secrets, persistent Anvil listener, RPC endpoint, wallet/key operation, project test suite, scanner, or `apt autoremove` was used.
-- **Dependencies / limitations:** P00-002 unblocked P00-003. The Foundry smoke workspace is a 🔒 coursework/local toolchain simulation, not a production deployment or chain interaction. The user-local Foundry PATH configuration is outside Git. P00-003 remains incomplete until the documentation/lockfile commit, GitLab CI, GitHub post, and exact three-way SHA synchronization are evidenced.
-- **Runbook impact:** P00-003 runbook procedure pending addition with status `🟧 Implemented but needs verification`.
-- **Next recommended task:** Complete P00-003 documentation, local commit, GitLab-first CI gate, GitHub post, and SHA synchronization; only then begin P00-004.
+- **Dependencies / limitations:** P00-002 unblocked P00-003. The Foundry smoke workspace is a 🔒 coursework/local toolchain simulation, not a production deployment or chain interaction. The user-local Foundry PATH configuration is outside Git.
+- **Runbook impact:** P00-003 runbook procedure was added and locally validated; the procedure's original pending label is reconciled in this documentation update using factual commit, GitLab CI, GitHub post, and SHA evidence.
+- **Next recommended task:** P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative.
 
 ### P00-004 to P00-015 — evidence entries
 

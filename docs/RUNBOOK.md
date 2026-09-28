@@ -304,7 +304,7 @@ Stop and preserve sanitized output. Do not run `apt autoremove`, reinstall unrel
 
 ### P00-003 — Foundry and Hardhat prerequisites
 
-**Status:** 🟧 Implemented but needs verification
+**Status:** ✅ Verified
 
 **Purpose**
 
@@ -403,8 +403,11 @@ Stop, preserve sanitized output, and do not start unrelated tooling, project tes
 **Evidence and provenance**
 
 - Task: `P00-003`.
-- Evidence: sanitized Kali terminal output in the P00-003 implementation thread.
-- Local implementation and validation succeeded; project documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization are pending.
+- Evidence: sanitized Kali terminal output in the P00-003 implementation thread; GitLab Pipeline #13 passed.
+- Documentation/lockfile commit: `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites`.
+- GitLab post / CI: posted to `gitlab/main`; Pipeline #13 passed.
+- GitHub post: posted to `origin/main`.
+- Synchronization: verified `main == gitlab/main == origin/main == 473793554ceb7898b4b2165dfef401c47fa14d50`.
 - User-local `~/.zshrc` configuration is outside Git; repository-tracked P00-003 artifacts are `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 
 ### Future phases
