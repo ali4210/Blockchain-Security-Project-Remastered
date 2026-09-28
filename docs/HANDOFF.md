@@ -225,3 +225,10 @@ Use this when a phase gate has passed:
 - **Why it is unblocked:** [reason]
 - **Required inputs to attach in the next thread:** `docs/CHECKLIST.md`, this `docs/HANDOFF.md`, [relevant source/config files]
 ```
+
+## GitLab CI/CD remote baseline
+
+- Status: Local GitLab CE remote configured and SSH authentication verified.
+- Scope: Coursework/home-lab simulation; GitLab CE runs in a local Docker container.
+- Repository policy: GitLab is the private CI/CD remote. GitHub remains the existing repository remote.
+- Security note: No private SSH keys, passphrases, tokens, credentials, or host-specific access details are stored in this repository.
