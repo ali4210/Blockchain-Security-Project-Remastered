@@ -13,12 +13,12 @@
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
 | Current task | P00-002 — Install and verify core Kali development prerequisites |
-| Current thread | P00-001 — Kali Linux Update and Baseline Verification complete |
+| Current thread | P00-002 — Core Kali development prerequisite verification |
 | Current branch | `main` |
-| Last verified commit | `6e6d9baf744495039e0271a19f170cf40b29a639` — P00-001 documentation/evidence record |
-| Last GitLab pipeline | Succeeded — `docs(phase-00): record Kali update baseline evidence` (pipeline ID/URL not captured) |
-| Last GitHub post | Verified — `origin/main` resolved to `6e6d9baf744495039e0271a19f170cf40b29a639` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `6e6d9baf744495039e0271a19f170cf40b29a639` |
+| Last verified commit | `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb` — Runbook/governance documentation synchronized |
+| Last GitLab pipeline | Historical P00-001 documentation pipeline succeeded; P00-002 documentation pipeline pending |
+| Last GitHub post | Historical governance commit synchronized at `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb`; P00-002 documentation post pending |
+| Synchronization | Historical governance commit synchronized; P00-002 documentation commit not yet created |
 | Last updated | 2026-09-28 |
 
 ## Project purpose
@@ -29,11 +29,14 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 - **P00-001 — Kali Linux update and baseline verification:** ✅ Complete and verified.
   - Package-management checks passed; reboot was not required; Kali Rolling 2026.3 and kernel `7.1.5+kali-amd64` were recorded.
-  - Documentation/evidence commit: `6e6d9baf744495039e0271a19f170cf40b29a639`.
-  - GitLab pipeline was reported as succeeded; GitHub post was completed.
-  - Synchronization was verified: `main == gitlab/main == origin/main == 6e6d9baf744495039e0271a19f170cf40b29a639`.
+  - P00-001 final ledger commit synchronized at `833baea13e275066ed995c51429c43e02d0229cd`.
+  - Runbook/governance documentation commit synchronized at `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb`.
+- **P00-002 — Core Kali development prerequisites:** 🟧 Implemented but needs verification.
+  - Initial tool checks verified Git `2.53.0`, Node.js `v24.19.0`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, Docker Compose `v5.5.1`, active Docker service, and current-user Docker access.
+  - npm was initially absent. Package inspection confirmed `nodejs 24.19.0+dfsg+~cs24.13.3-1` was installed and npm was not installed; `sudo apt install npm` then completed successfully.
+  - Post-install validation confirmed npm `12.0.2` at `/usr/bin/npm`, no `dpkg --audit` or held-package output, and a successful non-privileged `docker run --rm hello-world` test.
+  - Required documentation update, local commit, GitLab post/CI verification, GitHub post, and three-way SHA synchronization remain pending.
 - Phase 0 remains active and its completion gate is not ready.
-- P00-002 is the next smallest unblocked task.
 
 ## Architecture invariants — must not be violated
 
@@ -56,29 +59,30 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 **Objective**
 
-Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose. Install only any missing P00-002 prerequisites after reviewing factual terminal output; do not begin installation or validation in this P00-001 completion thread.
+Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose; install only missing prerequisites after factual inspection; and complete the required documentation and repository synchronization workflow.
 
 **Scope completed**
 
-- Package index refresh, full-upgrade verification, package-health checks, reboot-required check, and Kali OS/kernel baseline collection.
+- Verified Git `2.53.0`, Node.js `v24.19.0`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, and Docker Compose `v5.5.1`.
+- Confirmed npm was not installed, then installed only `npm 12.0.2+ds1-2` using APT after reviewing package ownership and policy.
+- Verified package health: `dpkg --audit` and `apt-mark showhold` returned no output.
+- Verified Docker service health (`active`), non-root daemon access (`docker info`), and safe `docker run --rm hello-world` execution.
 
 **Explicitly out of scope**
 
-- Installing Node.js, Python tooling, Docker, Foundry, Hardhat, Slither, Mythril, Certora, DFIR tooling, Ollama, mTLS certificates, application code, or running `apt autoremove`.
+- Foundry, Hardhat, Slither, Mythril, Certora, DFIR tools, Ollama, mTLS certificates, Docker Compose application-stack startup, application code, privileged containers, host networking, host mounts, registry credentials, Docker secrets, and `apt autoremove`.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
+- `docs/RUNBOOK.md`
 
 **Acceptance criteria**
 
-- [x] `sudo apt update` completed successfully.
-- [x] `sudo apt full-upgrade -y` completed successfully without package conflicts.
-- [x] `sudo apt --fix-broken install -y` completed without repair errors.
-- [x] `dpkg --audit` and `apt-mark showhold` produced no output.
-- [x] Reboot requirement was checked: `REBOOT_REQUIRED=no`.
-- [x] Kali OS and kernel baseline were captured.
+- [x] Required tool versions are available: Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose.
+- [x] Docker service is active and current-user Docker access is verified.
+- [x] `docker run --rm hello-world` succeeds without prohibited Docker options.
 - [ ] Documentation diff is reviewed and committed locally.
 - [ ] The exact documentation commit is posted to GitLab `main`.
 - [ ] Applicable GitLab CI evidence is factually verified.
@@ -88,22 +92,29 @@ Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine
 **Validation commands**
 
 ```bash
-git status
+git --version
+node --version
+npm --version
+python3 --version
+python3 -m pip --version
+docker --version
+docker compose version
+systemctl is-active docker
+docker info
+docker run --rm hello-world
+dpkg --audit
+apt-mark showhold
 git diff --check
-git diff -- docs/CHECKLIST.md docs/HANDOFF.md
-git status -sb
-git rev-parse --verify HEAD 2>&1 || true
-git log -1 --oneline 2>&1 || true
-git branch -avv
-git show-ref --head 2>&1 || true
-git remote -v
+git diff -- docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
 ```
 
 **Security constraints**
 
 - Do not record or expose passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data.
-- Do not remove packages with `apt autoremove` under P00-001.
-- Do not start P00-002 or unrelated Phase 0 tasks before P00-001 repository verification is complete.
+- Do not use privileged containers, host networking, host mounts, registry credentials, or Docker secrets.
+- Do not run `apt autoremove`.
+- Stage only `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`; never stage `docs/.backup/`.
+- Do not use force-push.
 
 ## Immediate next task
 
@@ -111,41 +122,46 @@ git remote -v
 
 **Scope**
 
-Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose. Install only missing prerequisites after factual version and package-state evidence is reviewed.
+Complete only the P00-002 documentation review, local commit, GitLab-first push/CI gate, GitHub post, and three-way SHA synchronization for the already validated Kali prerequisites.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
+- `docs/RUNBOOK.md`
 
 **Acceptance criteria**
 
-- Documentation reflects only factual P00-001 evidence.
-- Local documentation commit exists.
-- GitLab post/push and applicable GitLab CI are factually verified.
-- The same commit is posted to GitHub.
-- `main`, `gitlab/main`, and `origin/main` resolve to identical SHAs.
+- Documentation contains only the factual P00-002 installation and validation evidence.
+- The documentation diff is reviewed and committed locally.
+- The exact commit is pushed to GitLab `main`.
+- Factual successful GitLab CI evidence is recorded where applicable.
+- The same commit is pushed to GitHub `origin/main`.
+- `main`, `gitlab/main`, and `origin/main` resolve to exactly the same SHA.
 
 **Validation commands**
 
 ```bash
 git diff --check
-git diff -- docs/CHECKLIST.md docs/HANDOFF.md
+git diff -- docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
+git diff --cached --check
+git diff --cached
 git log -1 --oneline
 git status
 ```
 
 **Dependencies**
 
-- P00-001 package-management and baseline evidence has been captured.
-- Git HEAD/history output remains to be diagnosed because captured `git log -1 --oneline` output had no visible line.
+- P00-001 final ledger commit `833baea13e275066ed995c51429c43e02d0229cd` and Runbook/governance documentation commit `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb` were reported synchronized.
+- P00-002 local prerequisite and Docker validations passed.
 
 **Security constraints**
 
-- Stage only `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- Stage only `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - Do not stage files under `docs/.backup/`.
 - Do not use force-push.
-- Do not begin P00-002 until P00-001 synchronization is factually verified.
+- Do not begin P00-003 until P00-002 synchronization is factually verified.
+- Do not add credentials, private keys, raw evidence, or unredacted compliance data to project documents.
 
 ## Subsequent task queue
 

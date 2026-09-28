@@ -186,6 +186,122 @@ cat /etc/os-release
 - OS/kernel information if relevant.
 - Git commit and GitLab CI result where applicable.
 
+### P00-002 — Core Kali development prerequisites
+
+**Status:** 🟧 Implemented but needs verification
+
+**Purpose**
+
+Verify the core Kali development prerequisites required by the project and install only a prerequisite demonstrated to be missing. This procedure validates Git, Node.js/npm, Python 3.11+, pip, Docker Engine, Docker Compose, Docker daemon health, and current-user Docker access.
+
+**Scope and limitations**
+
+- Verified on the local Kali GNU/Linux Rolling coursework environment only.
+- The procedure installed only the missing `npm` package after inspecting command resolution, package ownership, package state, and APT policy.
+- Docker Compose application-stack startup is not part of this procedure and remains deferred to P01-006.
+- Foundry, Hardhat, Slither, Mythril, Certora, DFIR tools, Ollama, mTLS, project dependency installation, and application code are out of scope.
+- Do not run `apt autoremove` under this procedure.
+
+**Preconditions**
+
+- Run from an authorized Kali session.
+- Run the inspection commands before package installation.
+- Review the APT transaction before accepting it; stop on unexpected removals, downgrades, conflicts, repository/key errors, or package-health failures.
+- Do not paste passwords, tokens, private keys, wallet material, raw forensic evidence, or unredacted compliance data into terminal captures or project documents.
+
+**Tested inspection commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+git --version
+node --version
+npm --version
+python3 --version
+python3 -m pip --version
+docker --version
+docker compose version
+systemctl is-active docker
+docker info
+docker run --rm hello-world
+
+command -v node
+command -v npm
+dpkg -S "$(command -v node)"
+dpkg-query -W -f='${binary:Package}\t${Version}\t${Status}\n' nodejs npm
+apt-cache policy nodejs npm
+dpkg --audit
+apt-mark showhold
+```
+
+**Tested targeted remediation**
+
+```bash
+sudo apt install npm
+```
+
+**Tested post-install validation**
+
+```bash
+npm --version
+node --version
+command -v npm
+dpkg-query -W -f='${binary:Package}\t${Version}\t${Status}\n' nodejs npm
+dpkg --audit
+apt-mark showhold
+
+git --version
+node --version
+npm --version
+python3 --version
+python3 -m pip --version
+docker --version
+docker compose version
+systemctl is-active docker
+docker info
+docker run --rm hello-world
+```
+
+**Observed P00-002 result**
+
+- Git: `2.53.0`.
+- Node.js: `v24.19.0`, provided by `nodejs 24.19.0+dfsg+~cs24.13.3-1`.
+- npm was initially not installed; `sudo apt install npm` completed successfully.
+- npm: `12.0.2`, installed as `npm 12.0.2+ds1-2` and available at `/usr/bin/npm`.
+- Python: `3.14.7`; pip: `26.1.2`.
+- Docker Engine: `29.8.1`; Docker Compose: `v5.5.1`.
+- Docker service: `active`.
+- `docker info` succeeded for the current user without `sudo`.
+- `docker run --rm hello-world` completed successfully without privileged mode, host networking, host mounts, registry credentials, or Docker secrets.
+- `dpkg --audit` and `apt-mark showhold` produced no output after installation.
+
+**Expected successful result**
+
+- Every required version command succeeds.
+- Python reports version 3.11 or newer.
+- `systemctl is-active docker` returns `active`.
+- `docker info` returns Docker server details for the current user.
+- `docker run --rm hello-world` prints its successful Docker message.
+- `dpkg --audit` and `apt-mark showhold` produce no output.
+- If npm is absent, APT reports successful installation and `npm --version` succeeds afterward.
+
+**Failure indicators and safe response**
+
+- A required command is absent after installation.
+- APT proposes unexpected removals, downgrades, conflicts, or reports repository/key errors.
+- `dpkg --audit` or `apt-mark showhold` returns output.
+- Docker is inactive, `docker info` fails, or the current user receives a Docker socket permission error.
+- The `hello-world` container fails.
+
+Stop and preserve sanitized output. Do not run `apt autoremove`, reinstall unrelated tools, start the application stack, use privileged containers, or change Docker networking/mount settings. Resolve only the smallest P00-002 blocker in a separately reviewed step.
+
+**Evidence and provenance**
+
+- Task: `P00-002`.
+- Evidence: sanitized Kali terminal output in the P00-002 implementation thread.
+- Documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization: pending at the time of this entry.
+- Coursework limitation: local development environment validation only; this does not establish production container or CI-runner hardening.
+
 ### Future phases
 
 For every completed phase or operational component, add:

@@ -50,10 +50,10 @@ For every `✅ Complete` item, record:
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-001 |
+| Current task | P00-002 — Install and verify core Kali development prerequisites |
 | Current branch | `main` |
-| Last verified commit | Not yet created |
-| Last updated | 2026-09-27 |
+| Last verified commit | `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb` — Runbook/governance documentation synchronized |
+| Last updated | 2026-09-28 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
 
 ---
@@ -88,7 +88,7 @@ For every `✅ Complete` item, record:
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P00-001 | Update the Kali Linux VM. | ✅ | Verified 2026-09-28: Kali update/baseline evidence recorded; documentation commit `6e6d9baf744495039e0271a19f170cf40b29a639` synchronized across local, GitLab, and GitHub. |
-| P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ⬜ | — |
+| P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | 🟧 | Local prerequisite validation passed 2026-09-28; npm `12.0.2+ds1-2` was installed after absence was verified. Documentation commit, GitLab CI, GitHub post, and three-way SHA verification are pending. |
 | P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ⬜ | — |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ⬜ | — |
 | P00-005 | Install Ollama on Windows and pull the agreed local model set; record actual model names and versions. | ⬜ | — |
@@ -148,7 +148,51 @@ For every `✅ Complete` item, record:
 - **Dependencies / limitations:** No coursework simulation applies. GitLab pipeline ID/URL was not captured in the evidence record.
 - **Next recommended task:** P00-002 — Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali.
 
-### P00-002 to P00-015 — evidence entries
+### P00-002 — Core Kali development prerequisites
+
+- **Status:** 🟧 Implemented but needs verification.
+- **Scope completed:** Verified Git, Node.js/npm, Python 3.11+, pip, Docker Engine, Docker Compose, Docker daemon health, and current-user Docker access. Installed only the missing `npm` package after reviewing command resolution, package ownership, APT policy, and package-health output.
+- **Scope not completed:** P00-003 and later Phase 0 tools; Docker Compose application-stack startup; application-code work; privileged containers; host networking; host mounts; registry credentials; Docker secrets; and `apt autoremove`.
+- **Files changed:** Pending documentation update: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`.
+- **Validation commands:**
+  ```bash
+  git --version
+  node --version
+  npm --version
+  python3 --version
+  python3 -m pip --version
+  docker --version
+  docker compose version
+  systemctl is-active docker
+  docker info
+  docker run --rm hello-world
+  command -v node
+  command -v npm
+  dpkg -S "$(command -v node)"
+  dpkg-query -W -f='${binary:Package}\t${Version}\t${Status}\n' nodejs npm
+  apt-cache policy nodejs npm
+  dpkg --audit
+  apt-mark showhold
+  ```
+- **Factual results:**
+  - Initial verification found Git `2.53.0`, Node.js `v24.19.0`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, and Docker Compose `v5.5.1`.
+  - Initial `npm --version` returned `zsh: command not found: npm`; `npm` package state was `unknown ok not-installed`.
+  - `/usr/bin/node` belongs to installed Kali package `nodejs 24.19.0+dfsg+~cs24.13.3-1`; APT candidate for npm was `12.0.2+ds1-2`.
+  - `sudo apt install npm` completed successfully. Post-install checks returned npm `12.0.2` at `/usr/bin/npm`; package state was `npm 12.0.2+ds1-2 install ok installed`.
+  - `dpkg --audit` and `apt-mark showhold` produced no output after installation.
+  - `systemctl is-active docker` returned `active`; `docker info` returned Docker client and server information without `sudo`.
+  - `docker run --rm hello-world` completed successfully without privileged mode, host networking, host mounts, or Docker secrets.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-002 implementation thread. GitLab CI evidence: pending.
+- **Git commit:** Pending.
+- **GitLab post / CI:** Pending.
+- **GitHub post:** Pending.
+- **Synchronization:** Pending; no P00-002 documentation commit exists yet.
+- **Security checks:** No passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data were recorded. No privileged containers, host networking, host mounts, registry credentials, Docker secrets, or `apt autoremove` were used.
+- **Dependencies / limitations:** P00-002 unblocks P00-003. Docker Compose application-stack startup remains explicitly deferred to P01-006. No coursework simulation applies to local prerequisite validation.
+- **Runbook impact:** Required; a P00-002 prerequisite-validation procedure was factually exercised and must be recorded before final task completion.
+- **Next recommended task after P00-002 synchronization:** P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat.
+
+### P00-003 to P00-015 — evidence entries
 
 > Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
 
