@@ -302,6 +302,111 @@ Stop and preserve sanitized output. Do not run `apt autoremove`, reinstall unrel
 - Documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization: pending at the time of this entry.
 - Coursework limitation: local development environment validation only; this does not establish production container or CI-runner hardening.
 
+### P00-003 — Foundry and Hardhat prerequisites
+
+**Status:** 🟧 Implemented but needs verification
+
+**Purpose**
+
+Install and validate the Foundry command-line tools (`forge`, `anvil`, and `cast`) and project-local Hardhat for the Kali coursework environment, while keeping project application work, networked chain activity, and later security tooling out of scope.
+
+**Scope and limitations**
+
+- Verified locally on Kali GNU/Linux Rolling only.
+- Foundry `1.8.3` was installed through `foundryup`; the toolchain lives under `$HOME/.config/.foundry/bin`.
+- Hardhat was installed as an existing project devDependency using npm; the generated `package-lock.json` is a tracked reproducibility artifact and `node_modules/` remains ignored.
+- A temporary Foundry project was used only as a 🔒 coursework/local toolchain smoke test. It is not a production deployment, chain connection, audit, or project test suite.
+- No persistent Anvil process, RPC endpoint, wallet material, private key, seed phrase, or Docker operation was used.
+- Do not use `npx --no-install hardhat --help` as the validation command in this repository: without a root Hardhat configuration, it entered an interactive project-creation wizard. Exit it without selecting an option.
+
+**Preconditions**
+
+- Run from the authorized Kali account in `~/Blockchain-Security-Project-Remastered`.
+- Node.js and npm must already be available from P00-002.
+- Inspect command availability and repository state before installation.
+- Obtain explicit scope approval before running project-local `npm install`.
+- Never paste credentials, tokens, private keys, wallet material, raw evidence, or unredacted compliance data into captures or project files.
+
+**Tested installation and persistence commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+curl -L [https://foundry.paradigm.xyz](https://foundry.paradigm.xyz) | bash
+
+export PATH="$PATH:/home/kali/.config/.foundry/bin"
+foundryup
+
+npm install --dry-run --ignore-scripts --no-audit --no-fund
+npm install --ignore-scripts --no-audit --no-fund
+```
+
+Foundry PATH persistence was added as a guarded user-local block in `~/.zshrc`, outside the project repository:
+
+```zsh
+# >>> foundry PATH (P00-003) >>>
+if [[ ":$PATH:" != *":$HOME/.config/.foundry/bin:"* ]]; then
+  export PATH="$HOME/.config/.foundry/bin:$PATH"
+fi
+# <<< foundry PATH (P00-003) <<<
+```
+
+**Tested validation commands**
+
+```bash
+forge --version
+anvil --version
+cast --version
+
+forge init --no-git /tmp/p00-003-foundry-smoke.Bg7RMq
+cd /tmp/p00-003-foundry-smoke.Bg7RMq
+forge build
+cast to-wei 1 ether
+
+cd ~/Blockchain-Security-Project-Remastered
+npm ls --depth=0
+npx --no-install hardhat --version
+./node_modules/.bin/hardhat --version
+zsh -ic 'forge --version; anvil --version; cast --version'
+```
+
+**Observed P00-003 result**
+
+- `foundryup 0.0.8` was installed at `/home/kali/.config/.foundry/bin/foundryup`; installer output reported attestation and binary-integrity verification.
+- `forge`, `anvil`, and `cast` each reported Foundry `1.8.3`, build commit `cae51ad458f6abb64852b7709eb784352429825d`.
+- A fresh interactive zsh session resolved all required Foundry commands through the guarded PATH block.
+- The temporary Foundry project initialized and built successfully; the build compiled 23 files with Solc `0.8.37`.
+- `cast to-wei 1 ether` returned `1000000000000000000`.
+- The exact temporary workspace was removed and its absence was verified.
+- npm added 227 packages using `--ignore-scripts --no-audit --no-fund`.
+- `package-lock.json` has lockfile version `3`; it records root Hardhat `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
+- `npx --no-install hardhat --version` and `./node_modules/.bin/hardhat --version` each returned `2.29.1`.
+- npm emitted deprecation warnings for transitive `glob@10.5.0` and `uuid@8.3.2`; remediation/audit is outside this task.
+
+**Expected successful result**
+
+- `forge --version`, `anvil --version`, and `cast --version` succeed from a fresh zsh session.
+- The local Hardhat binary exists and both local-only version commands return the same installed version.
+- `package.json` remains unchanged; `package-lock.json` exists; and `node_modules/` remains ignored.
+- Temporary smoke-test material is removed after validation.
+- No project source/configuration, Docker stack, persistent Anvil service, wallet/key material, or out-of-scope security tool is introduced.
+
+**Failure indicators and safe response**
+
+- Foundry bootstrap, attestation, integrity verification, download, extraction, or binary-version command fails.
+- npm reports dependency-resolution, integrity, registry/TLS, permission, or blocking Node-engine errors.
+- Hardhat local-only version validation fails or causes an unexpected package fetch.
+- A command opens a project-creation wizard or would create root-level configuration/files.
+
+Stop, preserve sanitized output, and do not start unrelated tooling, project tests, persistent services, scans, or package updates. Do not run `apt autoremove`. Resolve only the smallest documented blocker.
+
+**Evidence and provenance**
+
+- Task: `P00-003`.
+- Evidence: sanitized Kali terminal output in the P00-003 implementation thread.
+- Local implementation and validation succeeded; project documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization are pending.
+- User-local `~/.zshrc` configuration is outside Git; repository-tracked P00-003 artifacts are `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+
 ### Future phases
 
 For every completed phase or operational component, add:

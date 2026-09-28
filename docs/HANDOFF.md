@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-002 — Install and verify core Kali development prerequisites |
-| Current thread | P00-002 — Core Kali development prerequisite verification |
+| Current task | P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat |
+| Current thread | P00-002 — Core Kali development prerequisite verification complete |
 | Current branch | `main` |
-| Last verified commit | `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb` — Runbook/governance documentation synchronized |
-| Last GitLab pipeline | Historical P00-001 documentation pipeline succeeded; P00-002 documentation pipeline pending |
-| Last GitHub post | Historical governance commit synchronized at `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb`; P00-002 documentation post pending |
-| Synchronization | Historical governance commit synchronized; P00-002 documentation commit not yet created |
+| Last verified commit | `bd7d284c50debf43330504721dea77bb8252d804` — P00-002 core Kali prerequisites documentation/evidence |
+| Last GitLab pipeline | Passed — pipeline #12 for `bd7d284c50debf43330504721dea77bb8252d804` |
+| Last GitHub post | Verified — `origin/main` resolved to `bd7d284c50debf43330504721dea77bb8252d804` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `bd7d284c50debf43330504721dea77bb8252d804` |
 | Last updated | 2026-09-28 |
 
 ## Project purpose
@@ -31,11 +31,11 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Package-management checks passed; reboot was not required; Kali Rolling 2026.3 and kernel `7.1.5+kali-amd64` were recorded.
   - P00-001 final ledger commit synchronized at `833baea13e275066ed995c51429c43e02d0229cd`.
   - Runbook/governance documentation commit synchronized at `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb`.
-- **P00-002 — Core Kali development prerequisites:** 🟧 Implemented but needs verification.
-  - Initial tool checks verified Git `2.53.0`, Node.js `v24.19.0`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, Docker Compose `v5.5.1`, active Docker service, and current-user Docker access.
-  - npm was initially absent. Package inspection confirmed `nodejs 24.19.0+dfsg+~cs24.13.3-1` was installed and npm was not installed; `sudo apt install npm` then completed successfully.
-  - Post-install validation confirmed npm `12.0.2` at `/usr/bin/npm`, no `dpkg --audit` or held-package output, and a successful non-privileged `docker run --rm hello-world` test.
-  - Required documentation update, local commit, GitLab post/CI verification, GitHub post, and three-way SHA synchronization remain pending.
+- **P00-002 — Core Kali development prerequisites:** ✅ Complete and verified.
+  - Verified Git `2.53.0`, Node.js `v24.19.0`, npm `12.0.2`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, Docker Compose `v5.5.1`, active Docker service, and current-user Docker access.
+  - npm was initially absent; package inspection confirmed `nodejs 24.19.0+dfsg+~cs24.13.3-1` was installed and npm was not installed. `sudo apt install npm` completed successfully.
+  - Post-install validation confirmed npm at `/usr/bin/npm`, no `dpkg --audit` or held-package output, and a successful non-privileged `docker run --rm hello-world` test.
+  - Documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` was pushed to GitLab and GitHub; GitLab pipeline #12 passed; `main == gitlab/main == origin/main == bd7d284c50debf43330504721dea77bb8252d804`.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -55,112 +55,126 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current task details
 
-### P00-002 — Install and verify core Kali development prerequisites
+### P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat
 
 **Objective**
 
-Verify the installed state of Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose; install only missing prerequisites after factual inspection; and complete the required documentation and repository synchronization workflow.
+Install only missing Foundry and Hardhat prerequisites, verify local command availability and safe functional behavior, record factual evidence, and complete the required documentation and GitLab-first synchronization workflow.
 
-**Scope completed**
+**Local scope completed**
 
-- Verified Git `2.53.0`, Node.js `v24.19.0`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, and Docker Compose `v5.5.1`.
-- Confirmed npm was not installed, then installed only `npm 12.0.2+ds1-2` using APT after reviewing package ownership and policy.
-- Verified package health: `dpkg --audit` and `apt-mark showhold` returned no output.
-- Verified Docker service health (`active`), non-root daemon access (`docker info`), and safe `docker run --rm hello-world` execution.
+- Installed Foundry using `foundryup`; `forge`, `anvil`, and `cast` each report version `1.8.3`, build commit `cae51ad458f6abb64852b7709eb784352429825d`.
+- Added a guarded user-local `~/.zshrc` PATH block for `$HOME/.config/.foundry/bin`; a fresh interactive zsh session resolved all required Foundry tools.
+- Initialized and built a disposable Foundry project only; the build compiled 23 files with Solc `0.8.37`, and `cast to-wei 1 ether` returned `1000000000000000000`.
+- Removed the exact temporary smoke workspace and verified it absent.
+- After approved dry-run review, ran `npm install --ignore-scripts --no-audit --no-fund`; npm added 227 packages and generated `package-lock.json`.
+- Verified local Hardhat `2.29.1` with `npx --no-install hardhat --version` and `./node_modules/.bin/hardhat --version`.
+- Confirmed lockfile version `3`, root Hardhat declaration `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
+- Confirmed `package.json` has no diff and `node_modules/` is ignored.
+
+**Pending completion workflow**
+
+- [ ] Review exact documentation and lockfile diff.
+- [ ] Commit only `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- [ ] Push the exact commit to GitLab `main`.
+- [ ] Wait for factual successful GitLab CI evidence.
+- [ ] Push the same commit to GitHub `origin/main`.
+- [ ] Fetch both remotes and prove `main == gitlab/main == origin/main`.
 
 **Explicitly out of scope**
 
-- Foundry, Hardhat, Slither, Mythril, Certora, DFIR tools, Ollama, mTLS certificates, Docker Compose application-stack startup, application code, privileged containers, host networking, host mounts, registry credentials, Docker secrets, and `apt autoremove`.
+- Slither, Mythril, Certora, DFIR tools, Ollama, mTLS, Windows configuration, Docker Compose application-stack startup, application-code/configuration work, project test suites, scanners, persistent Anvil operation, RPC/wallet activity, privileged containers, host networking, host mounts, registry credentials, Docker secrets, and `apt autoremove`.
 
-**Expected files**
+**Expected tracked files**
 
+- `package-lock.json`
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
 - `docs/RUNBOOK.md`
 
-**Acceptance criteria**
-
-- [x] Required tool versions are available: Git, Node.js/npm, Python 3.11+, pip, Docker Engine, and Docker Compose.
-- [x] Docker service is active and current-user Docker access is verified.
-- [x] `docker run --rm hello-world` succeeds without prohibited Docker options.
-- [ ] Documentation diff is reviewed and committed locally.
-- [ ] The exact documentation commit is posted to GitLab `main`.
-- [ ] Applicable GitLab CI evidence is factually verified.
-- [ ] The same exact commit is posted to GitHub `origin/main`.
-- [ ] Local `main`, `gitlab/main`, and `origin/main` are proven to have identical SHAs.
-
-**Validation commands**
+**Validation commands actually run**
 
 ```bash
-git --version
-node --version
-npm --version
-python3 --version
-python3 -m pip --version
-docker --version
-docker compose version
-systemctl is-active docker
-docker info
-docker run --rm hello-world
-dpkg --audit
-apt-mark showhold
-git diff --check
-git diff -- docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
+forge --version
+anvil --version
+cast --version
+forge init --no-git /tmp/p00-003-foundry-smoke.Bg7RMq
+forge build
+cast to-wei 1 ether
+npm install --dry-run --ignore-scripts --no-audit --no-fund
+npm install --ignore-scripts --no-audit --no-fund
+npm ls --depth=0
+npx --no-install hardhat --version
+./node_modules/.bin/hardhat --version
+zsh -ic 'forge --version; anvil --version; cast --version'
 ```
+
+**Known warnings and limitations**
+
+- npm reported deprecation warnings for transitive `glob@10.5.0` and `uuid@8.3.2`; no update or audit was performed because remediation is outside P00-003 scope.
+- The Foundry smoke project is a 🔒 coursework/local toolchain simulation. No chain connection, wallet/key material, RPC endpoint, or persistent Anvil process was used.
+- The `~/.zshrc` PATH change is local user configuration outside Git.
+- P00-003 is `🟧 Implemented but needs verification` until its commit, GitLab CI, GitHub post, and three-way SHA synchronization are factually verified.
 
 **Security constraints**
 
 - Do not record or expose passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data.
-- Do not use privileged containers, host networking, host mounts, registry credentials, or Docker secrets.
-- Do not run `apt autoremove`.
-- Stage only `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`; never stage `docs/.backup/`.
+- Do not stage `node_modules/` or any file under `docs/.backup/`.
 - Do not use force-push.
+- Do not begin P00-004 until P00-003 synchronization is factually verified.
 
 ## Immediate next task
 
-### P00-002 — Install and verify core Kali development prerequisites
+### P00-003 — Complete documentation, commit, CI gate, and synchronization
 
 **Scope**
 
-Complete only the P00-002 documentation review, local commit, GitLab-first push/CI gate, GitHub post, and three-way SHA synchronization for the already validated Kali prerequisites.
+Review the P00-003 lockfile and documentation diff, commit only the approved files, push to GitLab `main`, wait for factual successful GitLab CI evidence, push the same commit to GitHub, and prove three-way SHA equality.
 
 **Expected files**
 
+- `package-lock.json`
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
 - `docs/RUNBOOK.md`
 
 **Acceptance criteria**
 
-- Documentation contains only the factual P00-002 installation and validation evidence.
-- The documentation diff is reviewed and committed locally.
-- The exact commit is pushed to GitLab `main`.
-- Factual successful GitLab CI evidence is recorded where applicable.
-- The same commit is pushed to GitHub `origin/main`.
-- `main`, `gitlab/main`, and `origin/main` resolve to exactly the same SHA.
+- Local Foundry and Hardhat evidence is recorded factually.
+- The intended diff contains no project application code/configuration changes.
+- Only the four expected tracked paths are staged and committed.
+- GitLab receives the exact local commit and CI passes.
+- GitHub receives the same commit only after GitLab CI success.
+- `main`, `gitlab/main`, and `origin/main` resolve to the exact same SHA.
 
 **Validation commands**
 
 ```bash
 git diff --check
-git diff -- docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
+git diff -- package-lock.json docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
 git diff --cached --check
 git diff --cached
 git log -1 --oneline
 git status
+git fetch gitlab
+git fetch origin
+git rev-parse main
+git rev-parse gitlab/main
+git rev-parse origin/main
 ```
 
 **Dependencies**
 
-- P00-001 final ledger commit `833baea13e275066ed995c51429c43e02d0229cd` and Runbook/governance documentation commit `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb` were reported synchronized.
-- P00-002 local prerequisite and Docker validations passed.
+- P00-002 is complete and synchronized at `bd7d284c50debf43330504721dea77bb8252d804`.
+- P00-003 local installation and validation evidence is present.
+- GitLab CI success, GitHub post, and synchronized SHA proof remain pending.
 
 **Security constraints**
 
-- Stage only `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
-- Do not stage files under `docs/.backup/`.
+- Stage only `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- Never stage `node_modules/` or files under `docs/.backup/`.
 - Do not use force-push.
-- Do not begin P00-003 until P00-002 synchronization is factually verified.
+- Do not begin P00-004 before P00-003 synchronization evidence exists.
 - Do not add credentials, private keys, raw evidence, or unredacted compliance data to project documents.
 
 ## Subsequent task queue

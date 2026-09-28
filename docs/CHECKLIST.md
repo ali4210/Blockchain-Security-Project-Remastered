@@ -88,8 +88,8 @@ For every `✅ Complete` item, record:
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P00-001 | Update the Kali Linux VM. | ✅ | Verified 2026-09-28: Kali update/baseline evidence recorded; documentation commit `6e6d9baf744495039e0271a19f170cf40b29a639` synchronized across local, GitLab, and GitHub. |
-| P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | 🟧 | Local prerequisite validation passed 2026-09-28; npm `12.0.2+ds1-2` was installed after absence was verified. Documentation commit, GitLab CI, GitHub post, and three-way SHA verification are pending. |
-| P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ⬜ | — |
+| P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ✅ | Verified 2026-09-28: local prerequisite validation passed; documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` posted to GitLab and GitHub; GitLab pipeline #12 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
+| P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | 🟧 | Local Foundry/Hardhat installation and smoke validation passed 2026-09-28; documentation commit, GitLab CI, GitHub post, and three-way SHA synchronization pending. |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ⬜ | — |
 | P00-005 | Install Ollama on Windows and pull the agreed local model set; record actual model names and versions. | ⬜ | — |
 | P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | ⬜ | — |
@@ -150,10 +150,10 @@ For every `✅ Complete` item, record:
 
 ### P00-002 — Core Kali development prerequisites
 
-- **Status:** 🟧 Implemented but needs verification.
+- **Status:** ✅ Complete and verified.
 - **Scope completed:** Verified Git, Node.js/npm, Python 3.11+, pip, Docker Engine, Docker Compose, Docker daemon health, and current-user Docker access. Installed only the missing `npm` package after reviewing command resolution, package ownership, APT policy, and package-health output.
 - **Scope not completed:** P00-003 and later Phase 0 tools; Docker Compose application-stack startup; application-code work; privileged containers; host networking; host mounts; registry credentials; Docker secrets; and `apt autoremove`.
-- **Files changed:** Pending documentation update: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`.
+- **Files changed:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`.
 - **Validation commands:**
   ```bash
   git --version
@@ -173,6 +173,13 @@ For every `✅ Complete` item, record:
   apt-cache policy nodejs npm
   dpkg --audit
   apt-mark showhold
+  git push gitlab main
+  git push origin main
+  git fetch gitlab
+  git fetch origin
+  git rev-parse main
+  git rev-parse gitlab/main
+  git rev-parse origin/main
   ```
 - **Factual results:**
   - Initial verification found Git `2.53.0`, Node.js `v24.19.0`, Python `3.14.7`, pip `26.1.2`, Docker Engine `29.8.1`, and Docker Compose `v5.5.1`.
@@ -182,17 +189,67 @@ For every `✅ Complete` item, record:
   - `dpkg --audit` and `apt-mark showhold` produced no output after installation.
   - `systemctl is-active docker` returned `active`; `docker info` returned Docker client and server information without `sudo`.
   - `docker run --rm hello-world` completed successfully without privileged mode, host networking, host mounts, or Docker secrets.
-- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-002 implementation thread. GitLab CI evidence: pending.
+  - Documentation/evidence commit: `bd7d284c50debf43330504721dea77bb8252d804`.
+  - GitLab pipeline #12 passed for the P00-002 documentation/evidence commit.
+  - GitHub post completed.
+  - Synchronization verification succeeded: `main`, `gitlab/main`, and `origin/main` each resolved to `bd7d284c50debf43330504721dea77bb8252d804`.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-002 implementation thread; GitLab pipeline #12 passed.
+- **Git commit:** `bd7d284c50debf43330504721dea77bb8252d804`.
+- **GitLab post / CI:** Posted to `gitlab/main`; pipeline #12 passed.
+- **GitHub post:** Posted to `origin/main`.
+- **Synchronization:** Verified: `main == gitlab/main == origin/main == bd7d284c50debf43330504721dea77bb8252d804`.
+- **Security checks:** No passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data were recorded. No privileged containers, host networking, host mounts, registry credentials, Docker secrets, or `apt autoremove` were used.
+- **Dependencies / limitations:** P00-002 unblocks P00-003. Docker Compose application-stack startup remains explicitly deferred to P01-006. No coursework simulation applies to local prerequisite validation.
+- **Runbook impact:** Updated in `bd7d284c50debf43330504721dea77bb8252d804` with the P00-002 prerequisite-validation procedure.
+- **Next recommended task:** P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat.
+
+### P00-003 — Foundry and Hardhat prerequisites
+
+- **Status:** 🟧 Implemented but needs verification.
+- **Scope completed:** Installed Foundry through verified `foundryup`; verified `forge`, `anvil`, and `cast`; added a guarded user-local zsh PATH block for `/home/kali/.config/.foundry/bin`; installed only the repository-declared npm devDependencies after approved dry-run review; generated `package-lock.json`; and locally verified project-local Hardhat.
+- **Scope not completed:** P00-004 and later tasks; Slither, Mythril, Certora, DFIR tooling, Ollama, mTLS, Windows configuration, Docker Compose application startup, application-code/configuration work, project test suites, scanners, persistent Anvil operation, RPC/wallet activity, privileged containers, host networking, host mounts, registry credentials, Docker secrets, and `apt autoremove`.
+- **Files changed:** `package-lock.json`; pending documentation updates to `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. User-local `~/.zshrc` was updated outside the repository to persist the Foundry PATH.
+- **Validation commands:**
+  ```bash
+  curl -L https://foundry.paradigm.xyz | bash
+  export PATH="$PATH:/home/kali/.config/.foundry/bin"
+  foundryup
+  forge --version
+  anvil --version
+  cast --version
+  forge init --no-git /tmp/p00-003-foundry-smoke.Bg7RMq
+  forge build
+  cast to-wei 1 ether
+  npm install --dry-run --ignore-scripts --no-audit --no-fund
+  npm install --ignore-scripts --no-audit --no-fund
+  npm ls --depth=0
+  npx --no-install hardhat --version
+  ./node_modules/.bin/hardhat --version
+  zsh -ic 'forge --version; anvil --version; cast --version'
+  ```
+- **Factual results:**
+  - `foundryup 0.0.8` installed at `/home/kali/.config/.foundry/bin/foundryup`; installer output reported attestation and binary-integrity verification.
+  - `foundryup` installed Foundry `v1.8.3`; installer output verified `forge`, `cast`, and `anvil`.
+  - `forge`, `anvil`, and `cast` each reported version `1.8.3`, build commit `cae51ad458f6abb64852b7709eb784352429825d`.
+  - A fresh interactive zsh session resolved the Foundry tools through the guarded `~/.zshrc` PATH block.
+  - A disposable Foundry project initialized without Git; `forge build` compiled 23 files with Solc `0.8.37`; `cast to-wei 1 ether` returned `1000000000000000000`.
+  - The disposable workspace `/tmp/p00-003-foundry-smoke.Bg7RMq` was removed and its absence was verified.
+  - Approved npm dry run resolved 227 packages. The real install used `--ignore-scripts --no-audit --no-fund` and added 227 packages.
+  - `package-lock.json` reports lockfile version `3`, root Hardhat range `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
+  - The local executable `node_modules/.bin/hardhat` exists; `npx --no-install hardhat --version` and the direct local binary each returned `2.29.1`.
+  - `package.json` had no diff; `node_modules/` is ignored; `package-lock.json` is intended to be tracked.
+  - npm emitted deprecation warnings for transitive `glob@10.5.0` and `uuid@8.3.2`; remediation/audit is deferred because it is outside P00-003 scope.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-003 implementation thread. GitLab CI evidence: pending.
 - **Git commit:** Pending.
 - **GitLab post / CI:** Pending.
 - **GitHub post:** Pending.
-- **Synchronization:** Pending; no P00-002 documentation commit exists yet.
-- **Security checks:** No passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data were recorded. No privileged containers, host networking, host mounts, registry credentials, Docker secrets, or `apt autoremove` were used.
-- **Dependencies / limitations:** P00-002 unblocks P00-003. Docker Compose application-stack startup remains explicitly deferred to P01-006. No coursework simulation applies to local prerequisite validation.
-- **Runbook impact:** Required; a P00-002 prerequisite-validation procedure was factually exercised and must be recorded before final task completion.
-- **Next recommended task after P00-002 synchronization:** P00-003 — Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat.
+- **Synchronization:** Pending; do not claim `main == gitlab/main == origin/main` until fetched SHA evidence exists.
+- **Security checks:** No passwords, tokens, private keys, mTLS keys, wallet material, raw evidence, or unredacted compliance data were recorded. No Docker containers, privileged mode, host networking, host mounts, registry credentials, Docker secrets, persistent Anvil listener, RPC endpoint, wallet/key operation, project test suite, scanner, or `apt autoremove` was used.
+- **Dependencies / limitations:** P00-002 unblocked P00-003. The Foundry smoke workspace is a 🔒 coursework/local toolchain simulation, not a production deployment or chain interaction. The user-local Foundry PATH configuration is outside Git. P00-003 remains incomplete until the documentation/lockfile commit, GitLab CI, GitHub post, and exact three-way SHA synchronization are evidenced.
+- **Runbook impact:** P00-003 runbook procedure pending addition with status `🟧 Implemented but needs verification`.
+- **Next recommended task:** Complete P00-003 documentation, local commit, GitLab-first CI gate, GitHub post, and SHA synchronization; only then begin P00-004.
 
-### P00-003 to P00-015 — evidence entries
+### P00-004 to P00-015 — evidence entries
 
 > Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
 
