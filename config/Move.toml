@@ -1,0 +1,4 @@
+# TODO(phase-2): declare package name, addresses, and dependencies
+[package]
+name = "MoveTargetPackage"
+version = "0.0.1"

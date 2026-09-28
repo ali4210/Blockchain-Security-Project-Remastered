@@ -1,0 +1,23 @@
+# TODO(phase-1/7): Hardened Live Deployment target (K8s is the eventual prod
+# target per the blueprint — this compose file is the local dev/skeleton
+# stand-in for Kali VM development before you wire up K8s + Vault KMS).
+version: "3.9"
+services:
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+  # TODO(phase-4): add sqlite volume mount / init
+  # TODO(phase-4): add mcp-middleware service
+  # TODO(phase-9): add opa service running config/opa/agent_policy.rego
+  # TODO(phase-10): evidence vault volume — read-only mount for sealed
+  #   evidence, separate service account from the agent/mcp services
+  # TODO(phase-10): add opa service running config/opa/forensics_policy.rego
+  #   (can be the same OPA container as phase-9, loaded with both policies)
+  # TODO(phase-11): consensus-monitor service — needs its own full/light
+  #   node connection or indexer feed; runs continuously, independent of
+  #   the CI pipeline
+  # TODO(phase-12): HSM/MPC stand-in services for local dev (e.g. an HSM
+  #   emulator container); never store real production keys here
+  # TODO(phase-13): compliance-screen service — reuses the Zone 5 evidence
+  #   vault's GraphSense integration on a schedule; add opa service loaded
+  #   with config/opa/compliance_policy.rego too

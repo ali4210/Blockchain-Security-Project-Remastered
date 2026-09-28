@@ -1,0 +1,14 @@
+# TODO(phase-1): pin real versions as each phase is implemented
+requests
+langgraph
+# slither-analyzer   # TODO(phase-3)
+# mythril            # TODO(phase-3)
+# volatility3        # TODO(phase-10) — mcp-tool-memory-forensics
+# plaso              # TODO(phase-10) — mcp-tool-timeline (log2timeline.py, psort.py)
+# pytsk3             # TODO(phase-10) — mcp-tool-host-forensics (Sleuth Kit bindings)
+# stix2              # TODO(phase-10) — IOC bundle export
+# web3                # TODO(phase-11) — mcp-tool-consensus-monitor, mcp-tool-onchain-forensics
+# shamir-mnemonic     # TODO(phase-12) — Shamir Secret Sharing for soc-operator key
+# python-pkcs11       # TODO(phase-12) — HSM client (or vendor SDK equivalent)
+# py-ecc / zksk       # TODO(phase-13) — zero-knowledge attestation primitives
+# tensorflow          # TODO(phase-13) — AML pattern detection (graph neural network)

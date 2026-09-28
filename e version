@@ -1,0 +1,23 @@
+[0;1;32m●[0m docker.service - Docker Application Container Engine
+     Loaded: loaded (]8;;file://Saleem/usr/lib/systemd/system/docker.service\/usr/lib/systemd/system/docker.service]8;;\; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Sun 2026-09-27 11:30:56 EDT; 1min 41s ago
+ Invocation: 4d9169747c4b468cb0ec13cefe276de7
+TriggeredBy: [0;1;32m●[0m docker.socket
+       Docs: ]8;;https://docs.docker.com\https://docs.docker.com]8;;\
+   Main PID: 46039 (dockerd)
+      Tasks: 14
+     Memory: 32.1M (peak: 43.4M)
+        CPU: 632ms
+     CGroup: /system.slice/docker.service
+             └─[0;38:5:245m46039 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock[0m
+
+Sep 27 11:30:55 Saleem dockerd[46039]: time="2026-09-27T11:30:55.328907045-04:00" level=info msg="Restoring containers: start."
+Sep 27 11:30:55 Saleem dockerd[46039]: time="2026-09-27T11:30:55.376601741-04:00" level=info msg="Deleting nftables IPv4 rules" error="running nft: /dev/stdin:1:17-30: Error: Could not process rule: No such file or directory\ndelete table ip docker-bridges\n                ^^^^^^^^^^^^^^\n exit status 1"
+Sep 27 11:30:55 Saleem dockerd[46039]: time="2026-09-27T11:30:55.404562858-04:00" level=info msg="Deleting nftables IPv6 rules" error="running nft: /dev/stdin:1:18-31: Error: Could not process rule: No such file or directory\ndelete table ip6 docker-bridges\n                 ^^^^^^^^^^^^^^\n exit status 1"
+Sep 27 11:30:56 Saleem dockerd[46039]: time="2026-09-27T11:30:56.355801281-04:00" level=info msg="Loading containers: done."
+Sep 27 11:30:56 Saleem dockerd[46039]: time="2026-09-27T11:30:56.365237221-04:00" level=info msg="Docker daemon" commit=464cd50 containerd-snapshotter=true storage-driver=overlayfs version=29.8.1
+Sep 27 11:30:56 Saleem dockerd[46039]: time="2026-09-27T11:30:56.365326547-04:00" level=info msg="Initializing buildkit"
+Sep 27 11:30:56 Saleem dockerd[46039]: time="2026-09-27T11:30:56.444308801-04:00" level=info msg="Completed buildkit initialization"
+Sep 27 11:30:56 Saleem dockerd[46039]: time="2026-09-27T11:30:56.449303118-04:00" level=info msg="Daemon has completed initialization"
+Sep 27 11:30:56 Saleem dockerd[46039]: time="2026-09-27T11:30:56.449655243-04:00" level=info msg="API listen on /run/docker.sock"
+Sep 27 11:30:56 Saleem systemd[1]: Started docker.service - Docker Application Container Engine.

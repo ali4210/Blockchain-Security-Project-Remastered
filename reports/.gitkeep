@@ -1,0 +1,4 @@
+TODO(phase-14): generated reports land here (reports/project-status-<timestamp>.html
+and reports/latest.html). This directory should be .gitignore'd or otherwise
+kept out of the public mirror by default — it is an internal artifact, not
+auto-published. Sharing externally goes through the Zone 4 HITL egress gateway.

@@ -1,0 +1,16 @@
+{
+  "name": "blockchain-security-soc-skeleton",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "ingest": "echo TODO(phase-2)",
+    "normalize": "echo TODO(phase-4)",
+    "enrich": "echo TODO(phase-4)",
+    "report": "tsx scripts/aggregate-status.mts && tsx scripts/generate-html-report.mts"
+  },
+  "devDependencies": {
+    "hardhat": "^2.22.0",
+    "typescript": "^5.5.0",
+    "tsx": "^4.0.0"
+  }
+}

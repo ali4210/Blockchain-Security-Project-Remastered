@@ -1,0 +1,3 @@
+TODO(phase-12): add at least one sample wallet contract (a small multi-sig
+or account-abstraction wallet) here with a deliberately planted
+wallet-class bug (e.g. missing nonce check) for demo purposes.
