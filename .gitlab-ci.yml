@@ -7,11 +7,11 @@ runner_smoke_test:
   tags:
     - soc-docker
   script:
-    - echo "GitLab Docker runner is online"
-    - echo "Project: ${CI_PROJECT_PATH}"
-    - echo "Commit: ${CI_COMMIT_SHA}"
-    - echo "Branch: ${CI_COMMIT_REF_NAME}"
-    - test -f README.md
-    - test -f docs/CHECKLIST.md
-    - test -f docs/HANDOFF.md
-    - uname -a
+    - 'echo "GitLab Docker runner is online"'
+    - 'echo "Project: ${CI_PROJECT_PATH}"'
+    - 'echo "Commit: ${CI_COMMIT_SHA}"'
+    - 'echo "Branch: ${CI_COMMIT_REF_NAME}"'
+    - 'test -f README.md'
+    - 'test -f docs/CHECKLIST.md'
+    - 'test -f docs/HANDOFF.md'
+    - 'uname -a'
