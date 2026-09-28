@@ -1,0 +1,55 @@
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
+secrets/
+certs/private/
+keys/
+tokens/
+*.token
+
+# Evidence and sensitive security artifacts
+evidence/
+vault/
+forensics.db
+*.pcap
+*.pcapng
+*.raw
+*.mem
+*.dmp
+*.E01
+*.ewf
+reports/
+artifacts/
+
+# Node / Python / build output
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+dist/
+build/
+coverage/
+.pytest_cache/
+.mypy_cache/
+
+# Local runtime files
+*.log
+*.sqlite
+*.sqlite3
+*.db
+redis-data/
+elasticsearch-data/
+prometheus-data/
+
+# IDE / operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
