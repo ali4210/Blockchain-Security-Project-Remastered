@@ -13,12 +13,12 @@
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
 | Current task | P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative |
-| Current thread | P00-003 — Foundry and Hardhat prerequisites complete and verified |
+| Current thread | P00-004 — local installation and safe validation complete; documentation and repository synchronization pending |
 | Current branch | `main` |
 | Last verified commit | `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites` |
-| Last GitLab pipeline | Passed — Pipeline #13 for `473793554ceb7898b4b2165dfef401c47fa14d50` |
-| Last GitHub post | Verified — `origin/main` resolved to `473793554ceb7898b4b2165dfef401c47fa14d50` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `473793554ceb7898b4b2165dfef401c47fa14d50` |
+| Last GitLab pipeline | Passed — Pipeline #13 for `473793554ceb7898b4b2165dfef401c47fa14d50`; P00-004 documentation pipeline pending |
+| Last GitHub post | Verified — `origin/main` resolved to `473793554ceb7898b4b2165dfef401c47fa14d50`; P00-004 documentation post pending |
+| Synchronization | Verified only through `473793554ceb7898b4b2165dfef401c47fa14d50`; P00-004 documentation synchronization pending |
 | Last updated | 2026-09-28 |
 
 ## Project purpose
@@ -38,6 +38,11 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Verified Foundry `forge`, `anvil`, and `cast` at `1.8.3`; a disposable local Foundry smoke project initialized and built successfully with Solc `0.8.37`; Cast conversion returned `1000000000000000000`; the disposable workspace was removed.
   - Verified project-local Hardhat `2.29.1`; `package-lock.json` version 3 records root range `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
   - Commit `473793554ceb7898b4b2165dfef401c47fa14d50` was pushed to GitLab; GitLab Pipeline #13 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == 473793554ceb7898b4b2165dfef401c47fa14d50`.
+- **P00-004 — Smart-contract security tooling prerequisites:** 🟧 Implemented but needs verification.
+  - Initial read-only inspection confirmed Slither, Mythril, and Certora CLI were absent. Slither `0.11.6` and Certora CLI `8.19.2` were then installed through isolated pipx environments; `slither --version` and `certoraRun --version` succeeded, and Certora local help rendered.
+  - Mythril was pulled as `mythril/myth:latest` with digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff`; a hardened local container (`--network none`, `--read-only`, tmpfs-only writable paths, `--cap-drop ALL`, `no-new-privileges`) returned `Mythril version v0.24.8` and rendered help. No source, bytecode, RPC target, contract scan, or symbolic analysis was run.
+  - `CERTORAKEY_STATUS=not_set`; no key was requested, printed, persisted, or committed. Full Certora proof execution remains intentionally deferred until an authorized operator manages a personal access key outside Git, project files, and captured output.
+  - Repository checks before and after validation showed no tracked project diff; only intentional untracked `docs/.backup/` remained. Documentation review, local commit, GitLab CI, GitHub post, and three-way SHA verification are pending.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -120,52 +125,56 @@ certoraRun --version 2>&1 || true
 
 **Scope**
 
-Perform only the initial read-only P00-004 inspection, review the factual output, then install only missing P00-004 prerequisites or document the Certora API-key alternative safely.
+Complete only the P00-004 documentation review, local commit, GitLab-first post/CI gate, GitHub post, and three-way SHA verification for the already validated local tooling state. Do not begin P00-005 or any scan, proof, source/configuration change, Docker Compose startup, Windows/Ollama/mTLS work, or credential setup.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md` only if a new or changed P00-004 operational procedure is factually verified.
+- `docs/RUNBOOK.md`
 
 **Acceptance criteria**
 
-- Availability/version status for Slither, Mythril, and Certora CLI is factually established.
-- Any installation is scoped to missing P00-004 tooling only.
-- No secrets, API keys, source-code changes, or out-of-scope operations occur.
-- P00-004 is not marked complete before local validation, documentation, GitLab CI, GitHub post, and SHA synchronization evidence exists.
+- P00-004 local evidence is accurately documented: Slither `0.11.6`; Mythril `v0.24.8` from the hardened local image; Certora CLI `8.19.2`; and `CERTORAKEY_STATUS=not_set` with no secret disclosure.
+- Documentation diff is reviewed and contains only the three intended files.
+- A local commit exists with the P00-004 documentation updates.
+- The exact commit is pushed to GitLab `main`; factual GitLab CI success is recorded.
+- Only after GitLab CI passes, the same commit is pushed to GitHub `origin/main`.
+- `main`, `gitlab/main`, and `origin/main` are fetched and proven to resolve to the same SHA before P00-004 is marked complete.
 
-**Initial validation commands**
+**Validation commands**
 
 ```bash
-cd ~/Blockchain-Security-Project-Remastered
-
 git status
+git diff --check
+git diff -- docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
+git diff --cached --check
+git diff --cached
+git push gitlab main
+# Stop and wait for factual GitLab CI success.
+git push origin main
+git fetch gitlab
+git fetch origin
+git rev-parse main
+git rev-parse gitlab/main
+git rev-parse origin/main
 git log -1 --oneline
-
-command -v slither || true
-slither --version 2>&1 || true
-
-command -v myth || true
-myth version 2>&1 || true
-myth --version 2>&1 || true
-
-command -v certoraRun || true
-certoraRun --version 2>&1 || true
+git status
 ```
 
 **Dependencies**
 
-- P00-002 and P00-003 are complete and synchronized.
-- Python, pip, Node.js/npm, and Docker baseline evidence exists from P00-002.
-- Foundry and project-local Hardhat are verified from P00-003.
+- P00-002 and P00-003 are documented complete and synchronized.
+- P00-004 local tool validation is complete: Slither, Mythril, and Certora CLI version/help evidence is available.
+- The P00-004 documentation update must be committed before CI and remote synchronization can be evaluated.
 
 **Security constraints**
 
-- Never expose or commit API keys, tokens, passwords, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data.
-- Use authorized local fixtures only; do not scan external/public targets.
+- Never expose, request, print, store, or commit Certora API keys, tokens, passwords, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data.
+- Do not run Slither scans, Mythril analysis, Certora proofs, or target external/public systems.
 - Do not stage `docs/.backup/` or `node_modules/`.
 - Do not use force-push or `apt autoremove`.
+- Preserve the hardened Mythril runtime boundary if a future authorized local validation is needed: no network, no host mounts, read-only root filesystem, tmpfs-only writable paths, no Linux capabilities, and no-new-privileges.
 
 ## Subsequent task queue
 

@@ -410,6 +410,122 @@ Stop, preserve sanitized output, and do not start unrelated tooling, project tes
 - Synchronization: verified `main == gitlab/main == origin/main == 473793554ceb7898b4b2165dfef401c47fa14d50`.
 - User-local `~/.zshrc` configuration is outside Git; repository-tracked P00-003 artifacts are `package-lock.json`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 
+### P00-004 — Slither, Mythril, and Certora CLI prerequisites
+
+**Status:** ✅ Verified
+
+**Purpose**
+
+Install and safely validate the local smart-contract security tooling required for later authorized coursework analysis: Slither, Mythril, and Certora CLI. This procedure validates installation, command availability, version/help behavior, and a credential-safe Certora state only. It does not run contract scans, symbolic analysis, or formal proofs.
+
+**Scope and limitations**
+
+- Verified on the local Kali GNU/Linux Rolling coursework environment only.
+- Slither `0.11.6` and Certora CLI `8.19.2` are isolated in pipx-managed environments under `$HOME/.local/share/pipx/venvs`, with apps exposed under `$HOME/.local/bin`.
+- Mythril runs from local Docker image `mythril/myth:latest`, validated at image digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff`.
+- Mythril is containerized because the host Python is `3.14.7`, while the published Mythril pip support range used for this task did not cover that host version.
+- Certora CLI installation and local help/version validation do not establish proof execution. Actual prover use requires an authorized personal access key; do not request, print, store, or commit the key.
+- No project source/configuration files, package manifests, lockfiles, Docker Compose services, persistent chains, external/public targets, RPC connections, or scans are part of this procedure.
+
+**Preconditions**
+
+- Run as the authorized Kali user from `~/Blockchain-Security-Project-Remastered`.
+- P00-002 Docker and Python/pip baseline is available.
+- `pipx` and Docker are available to the current user.
+- `$HOME/.local/bin` is present on `PATH` for pipx-exposed applications.
+- Review command availability before installation.
+- Never paste credentials, API keys, tokens, passwords, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data into terminal captures or repository files.
+
+**Tested read-only inspection**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+command -v slither || true
+slither --version 2>&1 || true
+
+command -v myth || true
+myth version 2>&1 || true
+myth --version 2>&1 || true
+
+command -v certoraRun || true
+certoraRun --version 2>&1 || true
+
+python3 --version 2>&1 || true
+python3 -m pip --version 2>&1 || true
+python3 -m pip show slither-analyzer mythril certora-cli 2>&1 || true
+
+command -v pipx || true
+pipx --version 2>&1 || true
+docker --version 2>&1 || true
+docker image inspect mythril/myth:latest 2>&1 || true
+```
+
+**Tested installation commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+pipx install slither-analyzer==0.11.6
+pipx install certora-cli==8.19.2
+docker pull mythril/myth:latest
+```
+
+**Tested safe validation commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+slither --version
+certoraRun --version
+certoraRun --help
+
+if test -n "${CERTORAKEY-}"; then
+  echo 'CERTORAKEY_STATUS=set (value intentionally not displayed)'
+else
+  echo 'CERTORAKEY_STATUS=not_set'
+fi
+
+docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,size=64m   --tmpfs /home/mythril/.solcx:rw,noexec,nosuid,size=64m   --cap-drop ALL   --security-opt no-new-privileges   mythril/myth:latest   myth version
+
+docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,size=64m   --tmpfs /home/mythril/.solcx:rw,noexec,nosuid,size=64m   --cap-drop ALL   --security-opt no-new-privileges   mythril/myth:latest   myth --help
+```
+
+**Observed result**
+
+- Initial inspection found no Slither, Mythril, or Certora CLI command and no corresponding host pip package metadata.
+- `pipx 1.15.0` installed Slither `0.11.6` and Certora CLI `8.19.2` using Python `3.14.7`.
+- `slither --version` returned `0.11.6`.
+- `certoraRun --version` returned `certora-cli 8.19.2`; `certoraRun --help` rendered local CLI help.
+- `docker pull mythril/myth:latest` completed; image inspection returned digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff`.
+- The hardened Mythril container returned `Mythril version v0.24.8`; help rendered. Matplotlib issued a non-fatal temporary-cache warning under the permitted `/tmp` tmpfs.
+- `CERTORAKEY_STATUS=not_set` was recorded without displaying any credential value. No Certora proof request was attempted.
+- Repository boundary checks before and after validation showed no tracked project diff; `docs/.backup/` remained intentional untracked local recovery material.
+
+**Expected successful result**
+
+- `slither --version` reports the installed Slither version.
+- `certoraRun --version` and `certoraRun --help` return local CLI output without a proof target or credential.
+- Hardened Mythril version/help commands return output while retaining no network, no host mounts, no host Docker socket, a read-only root filesystem, tmpfs-only writable paths, no Linux capabilities, and no-new-privileges.
+- No tracked project file changes occur from tool installation or validation.
+- Certora proof execution is explicitly deferred when no authorized personal access key is configured outside Git and captured output.
+
+**Failure indicators and safe response**
+
+- A pipx install fails, an exposed command is absent from `PATH`, or a version/help command fails.
+- Docker cannot pull or inspect the image, or the hardened Mythril command fails.
+- Mythril reports cache-path write errors under a read-only root filesystem. Use only the documented disposable tmpfs mount for `/home/mythril/.solcx`; do not mount the repository or home directory, enable networking, add privileges, or weaken unrelated container controls.
+- Certora indicates missing credentials for a proof request. Do not request or expose a key. Record that proof execution is deferred and keep any operator-managed credential outside Git, project files, terminal captures, and documentation.
+- Stop on unexpected project-file changes; preserve sanitized output and resolve only the smallest P00-004 issue. Do not run a contract scan, proof, external-target test, Docker Compose stack, or `apt autoremove`.
+
+**Evidence and provenance**
+
+- Task: `P00-004`.
+- Evidence: sanitized Kali terminal output from the P00-004 implementation thread.
+- Verified tool versions: Slither `0.11.6`; Mythril `v0.24.8`; Certora CLI `8.19.2`.
+- Coursework limitation: local prerequisite validation only. Tool installation and help/version checks are not a contract audit, proof, production deployment, or authorization to scan any target.
+- Repository-tracked documentation artifacts: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Pipx environments and the Docker image are user-local/runtime state and are outside Git.
+
 ### Future phases
 
 For every completed phase or operational component, add:

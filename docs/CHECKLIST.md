@@ -50,9 +50,9 @@ For every `✅ Complete` item, record:
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-002 — Install and verify core Kali development prerequisites |
+| Current task | P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative |
 | Current branch | `main` |
-| Last verified commit | `1e8620d9ad46d15d9ff47b2c33d1cd0fd5663dcb` — Runbook/governance documentation synchronized |
+| Last verified commit | `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites` |
 | Last updated | 2026-09-28 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
 
@@ -90,7 +90,7 @@ For every `✅ Complete` item, record:
 | P00-001 | Update the Kali Linux VM. | ✅ | Verified 2026-09-28: Kali update/baseline evidence recorded; documentation commit `6e6d9baf744495039e0271a19f170cf40b29a639` synchronized across local, GitLab, and GitHub. |
 | P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ✅ | Verified 2026-09-28: local prerequisite validation passed; documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` posted to GitLab and GitHub; GitLab pipeline #12 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ✅ | Verified 2026-09-28: Foundry 1.8.3 and Hardhat 2.29.1 validated; commit `473793554ceb7898b4b2165dfef401c47fa14d50`; GitLab Pipeline #13 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
-| P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ⬜ | — |
+| P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | 🟧 | Local validation 2026-09-28: Slither 0.11.6 and Certora CLI 8.19.2 installed through pipx; Mythril v0.24.8 validated from `mythril/myth:latest` digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff` using a hardened no-network container. Documentation commit, GitLab CI, GitHub post, and three-way SHA verification pending. |
 | P00-005 | Install Ollama on Windows and pull the agreed local model set; record actual model names and versions. | ⬜ | — |
 | P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | ⬜ | — |
 | P00-007 | Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS. | ⬜ | — |
@@ -260,7 +260,53 @@ For every `✅ Complete` item, record:
 - **Runbook impact:** P00-003 runbook procedure was added and locally validated; the procedure's original pending label is reconciled in this documentation update using factual commit, GitLab CI, GitHub post, and SHA evidence.
 - **Next recommended task:** P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative.
 
-### P00-004 to P00-015 — evidence entries
+### P00-004 — Smart-contract security tooling prerequisites
+
+- **Status:** 🟧 Implemented but needs verification.
+- **Scope completed:** Read-only tool-state inspection; isolated installation of Slither and Certora CLI through pipx; pull and hardened local validation of the Mythril Docker image; safe version/help validation only; and a credential-safe Certora API-key alternative check.
+- **Scope not completed:** Contract scanning, symbolic analysis, formal proof execution, public/external target interaction, Certora API-key configuration, application-code/configuration changes, Docker Compose startup, Windows/Ollama/mTLS work, and `apt autoremove`.
+- **Files changed:** Documentation updates are pending review and commit. No application source, configuration, dependency manifest, or lockfile changed during local tool installation/validation.
+- **Validation commands:**
+  ```bash
+  command -v slither || true
+  slither --version 2>&1 || true
+  command -v myth || true
+  myth version 2>&1 || true
+  myth --version 2>&1 || true
+  command -v certoraRun || true
+  certoraRun --version 2>&1 || true
+  python3 --version 2>&1 || true
+  python3 -m pip --version 2>&1 || true
+  python3 -m pip show slither-analyzer mythril certora-cli 2>&1 || true
+  pipx install slither-analyzer==0.11.6
+  pipx install certora-cli==8.19.2
+  docker pull mythril/myth:latest
+  slither --version
+  certoraRun --version
+  certoraRun --help
+  docker run --rm --network none --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /home/mythril/.solcx:rw,noexec,nosuid,size=64m --cap-drop ALL --security-opt no-new-privileges mythril/myth:latest myth version
+  docker run --rm --network none --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /home/mythril/.solcx:rw,noexec,nosuid,size=64m --cap-drop ALL --security-opt no-new-privileges mythril/myth:latest myth --help
+  ```
+- **Factual results:**
+  - Initial inspection found no `slither`, `myth`, or `certoraRun` command and no installed `slither-analyzer`, `mythril`, or `certora-cli` pip package metadata.
+  - Python was `3.14.7`; pip was `26.1.2`; pipx was `1.15.0`.
+  - `pipx install slither-analyzer==0.11.6` completed; `/home/kali/.local/bin/slither` resolved through the isolated pipx environment; `slither --version` returned `0.11.6`.
+  - `pipx install certora-cli==8.19.2` completed; `/home/kali/.local/bin/certoraRun` resolved through the isolated pipx environment; `certoraRun --version` returned `certora-cli 8.19.2`; local help rendered.
+  - `docker pull mythril/myth:latest` completed. Local image inspection reported digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff`.
+  - A hardened no-network, read-only Mythril container with disposable tmpfs mounts returned `Mythril version v0.24.8`; `myth --help` rendered. Matplotlib emitted a non-fatal temporary-cache warning under the permitted `/tmp` tmpfs.
+  - Certora environment inspection reported `CERTORAKEY_STATUS=not_set`; no key value was requested, printed, stored, or committed, and no proof execution was attempted.
+  - Repository boundary checks before and after installation/validation showed only intentional untracked `docs/.backup/`; no tracked project diff was produced.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-004 implementation thread. GitLab CI evidence is pending the documentation commit.
+- **Git commit:** Pending.
+- **GitLab post / CI:** Pending.
+- **GitHub post:** Pending.
+- **Synchronization:** Pending.
+- **Security checks:** No contract scan, target address, bytecode, source input, RPC request, proof execution, API key, token, password, private key, seed phrase, wallet material, raw evidence, privileged container, host mount, host network, Docker socket mount, or `apt autoremove` was used. Mythril validation used `--network none`, `--read-only`, tmpfs-only writable paths, `--cap-drop ALL`, and `no-new-privileges`.
+- **Dependencies / limitations:** P00-002 and P00-003 were documented complete before this task. Certora CLI is locally installed, but actual prover execution requires an authorized personal access key managed outside Git, project files, terminal captures, and this documentation; `CERTORAKEY` was not set during validation. Mythril runs through a local Docker image because its supported pip range does not cover the host Python 3.14 environment.
+- **Runbook impact:** Required; a verified P00-004 procedure is being added for the isolated installation and safe version/help validation workflow.
+- **Next recommended task:** Complete the P00-004 documentation review, commit, GitLab CI gate, GitHub post, and three-way SHA verification before selecting another task.
+
+### P00-005 to P00-015 — evidence entries
 
 > Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
 
@@ -276,7 +322,7 @@ For every `✅ Complete` item, record:
 ## P00-GATE — Phase 0 completion gate
 
 - [ ] `forge --version` succeeds.
-- [ ] `slither --version` succeeds.
+- [x] `slither --version` succeeds.
 - [ ] `vol --help` succeeds.
 - [ ] `fls -V` succeeds.
 - [ ] An authenticated mTLS `curl` from Kali reaches the Windows Ollama proxy.
