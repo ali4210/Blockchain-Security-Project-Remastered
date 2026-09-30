@@ -15,10 +15,10 @@
 | Current task | P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434 |
 | Current thread | P00-005 complete and synchronized; P00-006 selected by authoritative Phase 0 order |
 | Current branch | `main` |
-| Last verified commit | `afb049f37ad850f67c3dbc534a892b69634f5a1c` — `docs(phase-00): record P00-005 Ollama model validation` |
-| Last GitLab pipeline | Passed — Pipeline #18 for `afb049f37ad850f67c3dbc534a892b69634f5a1c` |
-| Last GitHub post | Verified — `origin/main` resolved to `afb049f37ad850f67c3dbc534a892b69634f5a1c` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `afb049f37ad850f67c3dbc534a892b69634f5a1c` |
+| Last verified commit | `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` — `docs(phase-00): verify P00-005 completion` |
+| Last GitLab pipeline | Passed — Pipeline #19 for `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
+| Last GitHub post | Verified — `origin/main` resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
 | Last updated | 2026-09-30 |
 
 ## Project purpose
@@ -43,6 +43,12 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Mythril `v0.24.8` was validated from `mythril/myth:latest` digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff` in a hardened no-network, read-only container with tmpfs-only writable paths, dropped capabilities, and no-new-privileges. No source, bytecode, RPC target, contract scan, symbolic analysis, or formal proof was run.
   - `CERTORAKEY_STATUS=not_set`; no key was requested, printed, persisted, or committed. Full Certora proof execution remains intentionally deferred until an authorized operator manages a personal access key outside Git, project files, and captured output.
   - Documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` was posted to GitLab; GitLab Pipeline #15 passed. The same commit was posted to GitHub; `main == gitlab/main == origin/main == 3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`.
+- **P00-005 — Ollama local-model prerequisite:** ✅ Complete and verified.
+  - Ollama `0.34.4` was already installed; five initial local model tags and factual metadata were inspected before any model-state change.
+  - With explicit approval, redundant `deepseek-r1:32b` was removed; post-removal validation retained `deepseek-r1:32b-stable`.
+  - Final approved local set: `qwen2.5-coder:32b`, `deepseek-r1:32b-stable`, `qwen3.5:9b`, and `qwen3:32b`.
+  - Documentation/evidence commit `afb049f37ad850f67c3dbc534a892b69634f5a1c` passed GitLab Pipeline #18 and was synchronized to GitHub.
+  - Final verification commit `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` passed GitLab Pipeline #19; `main == gitlab/main == origin/main == 7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6`.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -164,8 +170,8 @@ After P00-005 documentation, commit, CI, GitHub post, and three-way SHA synchron
 
 ## Subsequent task queue
 
-1. `P00-005` — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions.
-2. `P00-006` to `P00-009` — Bind Ollama locally, configure the reverse proxy, mTLS, bearer authorization, and authenticated Kali-to-Windows test.
+1. `P00-006` — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434.
+2. `P00-007` to `P00-009` — Generate mTLS credentials, require bearer authorization at the reverse proxy, and verify authenticated Kali-to-Windows connectivity.
 3. `P00-010` — Create the private GitLab project / remote; define GitLab CI/CD as the implementation source of truth.
 4. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
 5. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
