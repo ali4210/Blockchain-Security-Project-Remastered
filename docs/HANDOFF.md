@@ -12,14 +12,14 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative |
-| Current thread | P00-004 — local installation and safe validation complete; documentation and repository synchronization pending |
+| Current task | P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign |
+| Current thread | P00-004 — final completion reconciliation ready for commit |
 | Current branch | `main` |
-| Last verified commit | `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites` |
-| Last GitLab pipeline | Passed — Pipeline #13 for `473793554ceb7898b4b2165dfef401c47fa14d50`; P00-004 documentation pipeline pending |
-| Last GitHub post | Verified — `origin/main` resolved to `473793554ceb7898b4b2165dfef401c47fa14d50`; P00-004 documentation post pending |
-| Synchronization | Verified only through `473793554ceb7898b4b2165dfef401c47fa14d50`; P00-004 documentation synchronization pending |
-| Last updated | 2026-09-28 |
+| Last verified commit | `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` — `docs(phase-00): record smart-contract security tooling validation` |
+| Last GitLab pipeline | Passed — Pipeline #15 for `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` |
+| Last GitHub post | Verified — `origin/main` resolved to `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` |
+| Last updated | 2026-09-30 |
 
 ## Project purpose
 
@@ -38,11 +38,11 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Verified Foundry `forge`, `anvil`, and `cast` at `1.8.3`; a disposable local Foundry smoke project initialized and built successfully with Solc `0.8.37`; Cast conversion returned `1000000000000000000`; the disposable workspace was removed.
   - Verified project-local Hardhat `2.29.1`; `package-lock.json` version 3 records root range `^2.22.0`, resolved Hardhat `2.29.1`, TypeScript `5.9.3`, and tsx `4.23.15`.
   - Commit `473793554ceb7898b4b2165dfef401c47fa14d50` was pushed to GitLab; GitLab Pipeline #13 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == 473793554ceb7898b4b2165dfef401c47fa14d50`.
-- **P00-004 — Smart-contract security tooling prerequisites:** 🟧 Implemented but needs verification.
-  - Initial read-only inspection confirmed Slither, Mythril, and Certora CLI were absent. Slither `0.11.6` and Certora CLI `8.19.2` were then installed through isolated pipx environments; `slither --version` and `certoraRun --version` succeeded, and Certora local help rendered.
-  - Mythril was pulled as `mythril/myth:latest` with digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff`; a hardened local container (`--network none`, `--read-only`, tmpfs-only writable paths, `--cap-drop ALL`, `no-new-privileges`) returned `Mythril version v0.24.8` and rendered help. No source, bytecode, RPC target, contract scan, or symbolic analysis was run.
+- **P00-004 — Smart-contract security tooling prerequisites:** ✅ Complete and verified.
+  - Slither `0.11.6` and Certora CLI `8.19.2` were installed through isolated pipx environments; `slither --version`, `certoraRun --version`, and Certora local help succeeded.
+  - Mythril `v0.24.8` was validated from `mythril/myth:latest` digest `sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff` in a hardened no-network, read-only container with tmpfs-only writable paths, dropped capabilities, and no-new-privileges. No source, bytecode, RPC target, contract scan, symbolic analysis, or formal proof was run.
   - `CERTORAKEY_STATUS=not_set`; no key was requested, printed, persisted, or committed. Full Certora proof execution remains intentionally deferred until an authorized operator manages a personal access key outside Git, project files, and captured output.
-  - Repository checks before and after validation showed no tracked project diff; only intentional untracked `docs/.backup/` remained. Documentation review, local commit, GitLab CI, GitHub post, and three-way SHA verification are pending.
+  - Documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` was posted to GitLab; GitLab Pipeline #15 passed. The same commit was posted to GitHub; `main == gitlab/main == origin/main == 3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -121,60 +121,74 @@ certoraRun --version 2>&1 || true
 
 ## Immediate next task
 
-### P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative
+### P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign
 
 **Scope**
 
-Complete only the P00-004 documentation review, local commit, GitLab-first post/CI gate, GitHub post, and three-way SHA verification for the already validated local tooling state. Do not begin P00-005 or any scan, proof, source/configuration change, Docker Compose startup, Windows/Ollama/mTLS work, or credential setup.
+Perform only initial read-only inspection of the listed DFIR tooling, package state, available versions, and relevant system capabilities. Install only a tool proven missing after factual review. Do not acquire evidence, open real forensic images, start services, create an evidence vault, generate signing keys, or begin P00-013 through P00-015.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md`
+- `docs/RUNBOOK.md` only if a P00-012 operational procedure is factually validated.
 
 **Acceptance criteria**
 
-- P00-004 local evidence is accurately documented: Slither `0.11.6`; Mythril `v0.24.8` from the hardened local image; Certora CLI `8.19.2`; and `CERTORAKEY_STATUS=not_set` with no secret disclosure.
-- Documentation diff is reviewed and contains only the three intended files.
-- A local commit exists with the P00-004 documentation updates.
-- The exact commit is pushed to GitLab `main`; factual GitLab CI success is recorded.
-- Only after GitLab CI passes, the same commit is pushed to GitHub `origin/main`.
-- `main`, `gitlab/main`, and `origin/main` are fetched and proven to resolve to the same SHA before P00-004 is marked complete.
+- Availability/version state for the listed DFIR tools is factually established.
+- Any installation is limited to missing P00-012 tooling after read-only review.
+- No evidence acquisition, raw forensic-data handling, private-key generation, application-code change, or out-of-scope task occurs.
+- P00-012 is not marked complete before local validation, documentation, local commit, GitLab CI, GitHub post, and three-way SHA synchronization evidence exists.
 
-**Validation commands**
+**Initial validation commands**
 
 ```bash
+cd ~/Blockchain-Security-Project-Remastered
+
 git status
-git diff --check
-git diff -- docs/CHECKLIST.md docs/HANDOFF.md docs/RUNBOOK.md
-git diff --cached --check
-git diff --cached
-git push gitlab main
-# Stop and wait for factual GitLab CI success.
-git push origin main
-git fetch gitlab
-git fetch origin
-git rev-parse main
-git rev-parse gitlab/main
-git rev-parse origin/main
 git log -1 --oneline
-git status
+
+command -v fls || true
+fls -V 2>&1 || true
+command -v vol || true
+vol --help 2>&1 || true
+command -v log2timeline.py || true
+log2timeline.py --version 2>&1 || true
+command -v dc3dd || true
+dc3dd --version 2>&1 || true
+command -v ewfinfo || true
+ewfinfo -V 2>&1 || true
+command -v yara || true
+yara --version 2>&1 || true
+command -v tshark || true
+tshark --version 2>&1 || true
+command -v tcpdump || true
+tcpdump --version 2>&1 || true
+command -v zeek || true
+zeek --version 2>&1 || true
+command -v gpg || true
+gpg --version 2>&1 || true
+command -v minisign || true
+minisign -v 2>&1 || true
+
+dpkg-query -W -f='${binary:Package}\t${Version}\t${Status}\n' \
+  sleuthkit volatility3 plaso dc3dd libewf-tools yara tshark tcpdump zeek gnupg minisign \
+  2>&1 || true
 ```
 
 **Dependencies**
 
-- P00-002 and P00-003 are documented complete and synchronized.
-- P00-004 local tool validation is complete: Slither, Mythril, and Certora CLI version/help evidence is available.
-- The P00-004 documentation update must be committed before CI and remote synchronization can be evaluated.
+- P00-001 and P00-002 are complete and synchronized.
+- P00-004 is complete and verified through documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`; the final reconciliation commit remains pending.
+- No evidence-vault or signing-key prerequisite is assumed until later P00 tasks are completed.
 
 **Security constraints**
 
-- Never expose, request, print, store, or commit Certora API keys, tokens, passwords, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data.
-- Do not run Slither scans, Mythril analysis, Certora proofs, or target external/public systems.
-- Do not stage `docs/.backup/` or `node_modules/`.
+- Never acquire, mount, alter, upload, or process real forensic evidence or untrusted disk/memory images in this task.
+- Never generate, print, export, commit, or share private signing-key material.
+- Do not stage `docs/.backup/`, raw forensic evidence, evidence-vault contents, or `node_modules/`.
 - Do not use force-push or `apt autoremove`.
-- Preserve the hardened Mythril runtime boundary if a future authorized local validation is needed: no network, no host mounts, read-only root filesystem, tmpfs-only writable paths, no Linux capabilities, and no-new-privileges.
+- Do not start Docker Compose, Zeek services, Autopsy GUI, or unrelated services.
 
 ## Subsequent task queue
 
