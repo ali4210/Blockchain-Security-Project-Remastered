@@ -304,7 +304,7 @@ For every `✅ Complete` item, record:
 - **Security checks:** No contract scan, target address, bytecode, source input, RPC request, proof execution, API key, token, password, private key, seed phrase, wallet material, raw evidence, privileged container, host mount, host network, Docker socket mount, or `apt autoremove` was used. Mythril validation used `--network none`, `--read-only`, tmpfs-only writable paths, `--cap-drop ALL`, and `no-new-privileges`.
 - **Dependencies / limitations:** P00-002 and P00-003 were documented complete before this task. Certora CLI is locally installed, but actual prover execution requires an authorized personal access key managed outside Git, project files, terminal captures, and this documentation; `CERTORAKEY` was not set during validation. Mythril runs through a local Docker image because its supported pip range does not cover the host Python 3.14 environment.
 - **Runbook impact:** Updated and verified in `docs/RUNBOOK.md` with the P00-004 isolated installation and safe version/help validation procedure.
-- **Next recommended task:** P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign.
+- **Next recommended task:** P00-005 — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions.
 
 ### P00-005 to P00-015 — evidence entries
 

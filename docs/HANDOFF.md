@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign |
-| Current thread | P00-004 — final completion reconciliation ready for commit |
+| Current task | P00-005 — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions |
+| Current thread | P00-004 completion reconciliation synchronized; P00-005 selected by authoritative Phase 0 order |
 | Current branch | `main` |
-| Last verified commit | `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` — `docs(phase-00): record smart-contract security tooling validation` |
-| Last GitLab pipeline | Passed — Pipeline #15 for `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` |
-| Last GitHub post | Verified — `origin/main` resolved to `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba` |
+| Last verified commit | `da59c188b93c2234c250d02fb72643a8a2073051` — `docs(phase-00): reconcile P00-004 verification evidence` |
+| Last GitLab pipeline | Passed — Pipeline #16 for `da59c188b93c2234c250d02fb72643a8a2073051` |
+| Last GitHub post | Verified — `origin/main` resolved to `da59c188b93c2234c250d02fb72643a8a2073051` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `da59c188b93c2234c250d02fb72643a8a2073051` |
 | Last updated | 2026-09-30 |
 
 ## Project purpose
@@ -121,82 +121,84 @@ certoraRun --version 2>&1 || true
 
 ## Immediate next task
 
-### P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign
+### P00-005 — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions
 
 **Scope**
 
-Perform only initial read-only inspection of the listed DFIR tooling, package state, available versions, and relevant system capabilities. Install only a tool proven missing after factual review. Do not acquire evidence, open real forensic images, start services, create an evidence vault, generate signing keys, or begin P00-013 through P00-015.
+Perform only a read-only inspection of the authorized Windows AI-inference host to establish whether Ollama is installed, its version, service/process state, configured listening behavior, and currently available local models. Do not install or pull anything until the inspection output is reviewed. If Ollama is proven absent, install only Ollama. If the agreed model set is not yet specified, document the factual blocker rather than selecting or pulling models by assumption.
+
+**Explicitly out of scope**
+
+- P00-006 through P00-009: loopback binding, reverse proxy, LAN exposure controls, mTLS, bearer authentication, and Kali-to-Windows connectivity testing.
+- Windows firewall changes, port changes, remote exposure, reverse-proxy configuration, certificate/key generation, credentials, tokens, and API keys.
+- Project source/configuration changes, Docker Compose startup, P00-012 installation, raw forensic evidence, private signing keys, and `apt autoremove`.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md` only if a P00-012 operational procedure is factually validated.
+- `docs/RUNBOOK.md` only if a P00-005 operational procedure is factually validated.
 
 **Acceptance criteria**
 
-- Availability/version state for the listed DFIR tools is factually established.
-- Any installation is limited to missing P00-012 tooling after read-only review.
-- No evidence acquisition, raw forensic-data handling, private-key generation, application-code change, or out-of-scope task occurs.
-- P00-012 is not marked complete before local validation, documentation, local commit, GitLab CI, GitHub post, and three-way SHA synchronization evidence exists.
+- Ollama installed-state and version are factually established on the authorized Windows host.
+- Existing local model names and model metadata are recorded factually.
+- No installation or model pull occurs before read-only output is reviewed.
+- Any installation/pull is limited to an approved, explicitly named model set and is validated afterward.
+- P00-005 is not marked complete before local validation, documentation, local commit, GitLab CI, GitHub post, and three-way SHA synchronization evidence exists.
 
-**Initial validation commands**
+**Initial Windows PowerShell inspection**
 
-```bash
-cd ~/Blockchain-Security-Project-Remastered
+```powershell
+$ErrorActionPreference = 'Continue'
 
-git status
-git log -1 --oneline
+Write-Host "`n=== Ollama command availability ==="
+Get-Command ollama -ErrorAction SilentlyContinue | Format-List *
 
-command -v fls || true
-fls -V 2>&1 || true
-command -v vol || true
-vol --help 2>&1 || true
-command -v log2timeline.py || true
-log2timeline.py --version 2>&1 || true
-command -v dc3dd || true
-dc3dd --version 2>&1 || true
-command -v ewfinfo || true
-ewfinfo -V 2>&1 || true
-command -v yara || true
-yara --version 2>&1 || true
-command -v tshark || true
-tshark --version 2>&1 || true
-command -v tcpdump || true
-tcpdump --version 2>&1 || true
-command -v zeek || true
-zeek --version 2>&1 || true
-command -v gpg || true
-gpg --version 2>&1 || true
-command -v minisign || true
-minisign -v 2>&1 || true
+Write-Host "`n=== Ollama version ==="
+ollama --version
 
-dpkg-query -W -f='${binary:Package}\t${Version}\t${Status}\n' \
-  sleuthkit volatility3 plaso dc3dd libewf-tools yara tshark tcpdump zeek gnupg minisign \
-  2>&1 || true
+Write-Host "`n=== Ollama process state ==="
+Get-Process ollama -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, Path, StartTime
+
+Write-Host "`n=== Ollama service state ==="
+Get-Service -Name ollama -ErrorAction SilentlyContinue | Format-List Name, Status, StartType
+
+Write-Host "`n=== Existing local models ==="
+ollama list
+
+Write-Host "`n=== Relevant environment variables; values withheld ==="
+'OLLAMA_HOST', 'OLLAMA_MODELS', 'OLLAMA_ORIGINS' | ForEach-Object {
+  $value = [Environment]::GetEnvironmentVariable($_, 'User')
+  if ($null -ne $value -and $value -ne '') {
+    "$_=set (value intentionally not displayed)"
+  } else {
+    "$_=not_set"
+  }
+}
 ```
 
 **Dependencies**
 
-- P00-001 and P00-002 are complete and synchronized.
-- P00-004 is complete and verified through documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`; the final reconciliation commit remains pending.
-- No evidence-vault or signing-key prerequisite is assumed until later P00 tasks are completed.
+- P00-001 through P00-004 are complete and synchronized.
+- The Windows AI-inference host is available and authorized for local coursework setup.
+- The exact approved local model set must be specified before any model download; do not infer model names, sizes, or quantizations.
 
 **Security constraints**
 
-- Never acquire, mount, alter, upload, or process real forensic evidence or untrusted disk/memory images in this task.
-- Never generate, print, export, commit, or share private signing-key material.
-- Do not stage `docs/.backup/`, raw forensic evidence, evidence-vault contents, or `node_modules/`.
+- Do not expose Ollama on the LAN or configure a reverse proxy in this task.
+- Do not reveal, request, print, store, or commit passwords, tokens, API keys, private keys, certificates, seed phrases, wallet material, raw evidence, or unredacted compliance data.
+- Do not install unapproved models or use remote model endpoints.
+- Do not stage `docs/.backup/`, `node_modules/`, model files, or Windows-local runtime data.
 - Do not use force-push or `apt autoremove`.
-- Do not start Docker Compose, Zeek services, Autopsy GUI, or unrelated services.
 
 ## Subsequent task queue
 
-1. `P00-002` — Install and verify Git, Node.js/npm, Python, pip, Docker, and Docker Compose.
-2. `P00-003` — Install and verify Foundry and Hardhat.
-3. `P00-004` — Install and verify Slither, Mythril, and Certora CLI/alternative.
-4. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
-5. `P00-005` to `P00-009` — Windows Ollama, mTLS proxy, bearer authorization, and authenticated Kali-to-Windows test.
+1. `P00-005` — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions.
+2. `P00-006` to `P00-009` — Bind Ollama locally, configure the reverse proxy, mTLS, bearer authorization, and authenticated Kali-to-Windows test.
+3. `P00-010` — Create the private GitLab project / remote; define GitLab CI/CD as the implementation source of truth.
+4. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
+5. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
 6. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
