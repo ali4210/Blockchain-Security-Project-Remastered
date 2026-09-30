@@ -92,7 +92,7 @@ For every `✅ Complete` item, record:
 | P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ✅ | Verified 2026-09-28: local prerequisite validation passed; documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` posted to GitLab and GitHub; GitLab pipeline #12 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ✅ | Verified 2026-09-28: Foundry 1.8.3 and Hardhat 2.29.1 validated; commit `473793554ceb7898b4b2165dfef401c47fa14d50`; GitLab Pipeline #13 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ✅ | Verified 2026-09-30: Slither 0.11.6, Mythril v0.24.8, and Certora CLI 8.19.2 validated. Documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`; GitLab Pipeline #15 passed; the same commit was posted to GitHub; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
-| P00-005 | Install Ollama on Windows and record the approved local model set. | 🟧 | Windows-side implementation and local validation complete 2026-09-30; documentation/commit/CI/GitHub/SHA closeout pending. |
+| P00-005 | Install Ollama on Windows and record the approved local model set. | ✅ | Verified 2026-09-30: Ollama 0.34.4 and final four-model local set validated; redundant `deepseek-r1:32b` removed; documentation commit `afb049f37ad850f67c3dbc534a892b69634f5a1c`; GitLab Pipeline #18 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | ⬜ | — |
 | P00-007 | Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS. | ⬜ | — |
 | P00-008 | Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN. | ⬜ | — |
@@ -309,10 +309,10 @@ For every `✅ Complete` item, record:
 
 ### P00-005 — Ollama local-model prerequisite
 
-- **Status:** 🟧 Implemented but needs verification.
-- **Scope completed:** Read-only inspection of the authorized Windows AI-inference host; factual Ollama installed-state, process/startup state, local listener/API availability, local model inventory, and per-model metadata capture; explicit removal of the redundant `deepseek-r1:32b` tag after approval; and post-removal validation of the retained stable DeepSeek tag and final model inventory.
+- **Status:** ✅ Complete and verified.
+- **Scope completed:** Read-only inspection of the authorized Windows AI-inference host; factual Ollama installed-state, process/startup state, local listener/API availability, local model inventory, and per-model metadata capture; explicit removal of the redundant `deepseek-r1:32b` tag after approval; post-removal validation of the retained stable DeepSeek tag and final model inventory; documentation update; local commit; GitLab-first post; GitLab CI verification; GitHub post; and three-way SHA synchronization.
 - **Scope not completed:** P00-006 through P00-009 controls: loopback binding, port changes, reverse proxy, firewall changes, LAN exposure controls, mTLS, bearer authorization, and Kali-to-Windows connectivity testing. No Ollama installation or model pull was required or performed.
-- **Files changed:** Pending documentation closeout: `docs/CHECKLIST.md` and `docs/HANDOFF.md` only. `docs/.backup/` is untracked local recovery material and must not be staged or committed.
+- **Files changed:** `docs/CHECKLIST.md` and `docs/HANDOFF.md` in documentation commit `afb049f37ad850f67c3dbc534a892b69634f5a1c`. `docs/.backup/` remains untracked local recovery material and was not staged or committed.
 - **Validation commands:**
   ```powershell
   ollama --version
@@ -335,8 +335,11 @@ For every `✅ Complete` item, record:
   - After explicit approval, `ollama rm deepseek-r1:32b` returned `deleted 'deepseek-r1:32b'`.
   - Final retained approved local model set: `qwen2.5-coder:32b` (19 GB), `deepseek-r1:32b-stable` (19 GB), `qwen3.5:9b` (6.6 GB), and `qwen3:32b` (20 GB).
   - Post-removal `ollama show deepseek-r1:32b-stable` succeeded; `ollama show deepseek-r1:32b` returned `Error: model 'deepseek-r1:32b' not found`.
-- **Evidence path / CI job:** Sanitized Windows PowerShell evidence in the P00-005 implementation thread. Documentation commit, GitLab CI, GitHub post, and three-way SHA synchronization are pending.
-- **Git commit:** Pending.
+- **Evidence path / CI job:** Sanitized Windows PowerShell evidence in the P00-005 implementation thread; GitLab Pipeline #18 passed for `afb049f37ad850f67c3dbc534a892b69634f5a1c`.
+- **Git commit:** `afb049f37ad850f67c3dbc534a892b69634f5a1c` — `docs(phase-00): record P00-005 Ollama model validation`.
+- **GitLab post / CI:** Posted to `gitlab/main`; GitLab Pipeline #18 passed.
+- **GitHub post:** Posted to `origin/main`.
+- **Synchronization:** Verified: `main == gitlab/main == origin/main == afb049f37ad850f67c3dbc534a892b69634f5a1c`.
 - **Security checks:** No passwords, tokens, API keys, private keys, certificates, seed phrases, wallet material, raw evidence, or unredacted compliance data were recorded. No firewall, listener, port, environment-variable, startup/service, proxy, mTLS, bearer-authentication, network-exposure, remote-model-endpoint, project-source, or Docker Compose change occurred.
 - **Dependencies / limitations:** P00-001 through P00-004 were complete before this task. The four retained tags are local prerequisite inventory only; model output remains a hypothesis rather than evidence. P00-006 through P00-009 remain required before any Kali-to-Windows inference bridge can be used.
 - **Runbook impact:** Not updated in this correction-limited closeout; the current allowed tracked-file scope is `docs/CHECKLIST.md` and `docs/HANDOFF.md` only.

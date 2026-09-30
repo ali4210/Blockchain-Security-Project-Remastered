@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-005 — Install Ollama on Windows and record the approved local model set |
-| Current thread | P00-005 Windows validation and model-inventory cleanup complete; documentation/Git/CI closeout pending |
+| Current task | P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434 |
+| Current thread | P00-005 complete and synchronized; P00-006 selected by authoritative Phase 0 order |
 | Current branch | `main` |
-| Last verified commit | `a909fbe571833f95eb39d6d9ca39e484e39cd838` — `docs(phase-00): correct next task to P00-005` |
-| Last GitLab pipeline | Passed — Pipeline #17 for `a909fbe571833f95eb39d6d9ca39e484e39cd838` |
-| Last GitHub post | Verified — `origin/main` resolved to `a909fbe571833f95eb39d6d9ca39e484e39cd838` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `a909fbe571833f95eb39d6d9ca39e484e39cd838` before the pending P00-005 documentation closeout |
+| Last verified commit | `afb049f37ad850f67c3dbc534a892b69634f5a1c` — `docs(phase-00): record P00-005 Ollama model validation` |
+| Last GitLab pipeline | Passed — Pipeline #18 for `afb049f37ad850f67c3dbc534a892b69634f5a1c` |
+| Last GitHub post | Verified — `origin/main` resolved to `afb049f37ad850f67c3dbc534a892b69634f5a1c` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `afb049f37ad850f67c3dbc534a892b69634f5a1c` |
 | Last updated | 2026-09-30 |
 
 ## Project purpose
@@ -70,7 +70,7 @@ Establish the factual Windows Ollama installed state and local-model inventory, 
 
 **Status**
 
-🟧 Implemented but needs verification. Windows-side validation is complete; documentation review, local commit, GitLab CI, GitHub post, and three-way SHA synchronization remain required before this task can be marked `✅ Complete and verified`.
+✅ Complete and verified. The P00-005 documentation commit `afb049f37ad850f67c3dbc534a892b69634f5a1c` was posted to GitLab, GitLab Pipeline #18 passed, the same commit was posted to GitHub, and `main`, `gitlab/main`, and `origin/main` were verified at the same SHA.
 
 **Scope completed**
 
@@ -100,7 +100,7 @@ Establish the factual Windows Ollama installed state and local-model inventory, 
 - [x] Existing local model tags and factual metadata recorded.
 - [x] No installation or model pull occurred before inspection output review.
 - [x] The final retained model set was explicitly approved; the only model-state change was deletion of the approved redundant `deepseek-r1:32b` tag, followed by validation.
-- [ ] Documentation commit, GitLab CI success, GitHub post, and three-way SHA synchronization recorded.
+- [x] Documentation commit, GitLab CI success, GitHub post, and three-way SHA synchronization recorded: `afb049f37ad850f67c3dbc534a892b69634f5a1c`; GitLab Pipeline #18 passed; `main == gitlab/main == origin/main`.
 
 **Validation evidence**
 
