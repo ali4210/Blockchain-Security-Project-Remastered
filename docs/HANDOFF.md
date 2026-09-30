@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-005 — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions |
-| Current thread | P00-004 completion reconciliation synchronized; P00-005 selected by authoritative Phase 0 order |
+| Current task | P00-005 — Install Ollama on Windows and record the approved local model set |
+| Current thread | P00-005 Windows validation and model-inventory cleanup complete; documentation/Git/CI closeout pending |
 | Current branch | `main` |
-| Last verified commit | `da59c188b93c2234c250d02fb72643a8a2073051` — `docs(phase-00): reconcile P00-004 verification evidence` |
-| Last GitLab pipeline | Passed — Pipeline #16 for `da59c188b93c2234c250d02fb72643a8a2073051` |
-| Last GitHub post | Verified — `origin/main` resolved to `da59c188b93c2234c250d02fb72643a8a2073051` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `da59c188b93c2234c250d02fb72643a8a2073051` |
+| Last verified commit | `a909fbe571833f95eb39d6d9ca39e484e39cd838` — `docs(phase-00): correct next task to P00-005` |
+| Last GitLab pipeline | Passed — Pipeline #17 for `a909fbe571833f95eb39d6d9ca39e484e39cd838` |
+| Last GitHub post | Verified — `origin/main` resolved to `a909fbe571833f95eb39d6d9ca39e484e39cd838` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `a909fbe571833f95eb39d6d9ca39e484e39cd838` before the pending P00-005 documentation closeout |
 | Last updated | 2026-09-30 |
 
 ## Project purpose
@@ -62,135 +62,105 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current task details
 
-### P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative
+### P00-005 — Install Ollama on Windows and record the approved local model set
 
 **Objective**
 
-Inspect the installed state of Slither, Mythril, and Certora CLI on Kali; install only prerequisites demonstrated to be missing; and, if Certora CLI cannot be used without an API key, document the approved API-key alternative without exposing any credential.
+Establish the factual Windows Ollama installed state and local-model inventory, approve and retain the required local model set, remove only the explicitly approved redundant model tag, and validate the resulting local inventory without beginning transport-bridge or network-hardening work.
 
-**Scope**
+**Status**
 
-- Verify command availability, versions, and safe help/version behavior.
-- Install only missing P00-004 tools after reviewing factual output.
-- If Certora requires credentials, document the API-key alternative and keep credentials outside Git, terminal captures, and project documents.
+🟧 Implemented but needs verification. Windows-side validation is complete; documentation review, local commit, GitLab CI, GitHub post, and three-way SHA synchronization remain required before this task can be marked `✅ Complete and verified`.
+
+**Scope completed**
+
+- Verified that Ollama was already installed at `C:\Users\User\AppData\Local\Programs\Ollama\ollama.exe`; CLI version was `0.34.4`.
+- Recorded running-process state, current-user Startup-folder reference, local listener/API availability, effective relevant environment-variable presence, and existing local model inventory through read-only inspection.
+- Captured local metadata for the five initial model tags before a state-changing model operation.
+- Removed only the explicitly approved redundant tag, `deepseek-r1:32b`, using `ollama rm deepseek-r1:32b`.
+- Validated that `deepseek-r1:32b-stable` remains available and that `deepseek-r1:32b` is absent.
+- Recorded the approved final retained set: `qwen2.5-coder:32b`, `deepseek-r1:32b-stable`, `qwen3.5:9b`, and `qwen3:32b`.
 
 **Explicitly out of scope**
 
-- P00-005 and later tasks; Foundry/Hardhat reinstallation; project application code; contract scans against non-authorized targets; Docker application-stack startup; Windows/Ollama/mTLS work; credentials, tokens, keys, wallet material, raw evidence, and `apt autoremove`.
+- P00-006 through P00-009: Ollama loopback binding, port changes, reverse proxy, firewall controls, LAN exposure, mTLS, bearer authorization, and Kali-to-Windows connectivity testing.
+- Windows firewall, `OLLAMA_*` environment-variable, startup/service, listener, proxy, certificate, credential, token, API-key, or remote-model-endpoint changes.
+- Project source/configuration changes, Docker Compose startup, P00-012 installation, raw evidence, private signing keys, and `apt autoremove`.
 
-**Expected files if state changes**
+**Expected tracked files for closeout**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md` only if a P00-004 operational procedure is factually verified.
 
-**Acceptance criteria**
+`docs/.backup/` remains untracked local recovery material and must not be staged or committed. `docs/RUNBOOK.md` is not changed in this correction-limited closeout.
 
-- Slither and Mythril are installed and their version commands succeed, or a factual blocker is documented.
-- Certora CLI is installed and usable, or a credential-safe Certora API-key alternative is documented.
-- Only approved P00-004 installation actions occur.
-- Local validation, documentation, local commit, GitLab CI, GitHub post, and three-way SHA synchronization are recorded before P00-004 is marked complete.
+**Acceptance criteria reconciliation**
 
-**Initial read-only validation commands**
+- [x] Ollama installed state and version factually established on the authorized Windows host.
+- [x] Existing local model tags and factual metadata recorded.
+- [x] No installation or model pull occurred before inspection output review.
+- [x] The final retained model set was explicitly approved; the only model-state change was deletion of the approved redundant `deepseek-r1:32b` tag, followed by validation.
+- [ ] Documentation commit, GitLab CI success, GitHub post, and three-way SHA synchronization recorded.
 
-```bash
-cd ~/Blockchain-Security-Project-Remastered
+**Validation evidence**
 
-git status
-git log -1 --oneline
-
-command -v slither || true
-slither --version 2>&1 || true
-
-command -v myth || true
-myth version 2>&1 || true
-myth --version 2>&1 || true
-
-command -v certoraRun || true
-certoraRun --version 2>&1 || true
+```powershell
+ollama --version
+ollama list
+ollama show deepseek-r1:32b
+ollama show qwen2.5-coder:32b
+ollama show deepseek-r1:32b-stable
+ollama show qwen3.5:9b
+ollama show qwen3:32b
+ollama rm deepseek-r1:32b
+ollama list
+ollama show deepseek-r1:32b-stable
+ollama show deepseek-r1:32b
 ```
+
+Factual results: Ollama version `0.34.4` was already installed; the initial five-model inventory was inspected; removal returned `deleted 'deepseek-r1:32b'`; the final inventory contains four approved tags; retained `deepseek-r1:32b-stable` metadata rendered successfully; removed `deepseek-r1:32b` returned `Error: model 'deepseek-r1:32b' not found`.
 
 **Security constraints**
 
-- Never paste, print, commit, or request a Certora API key, token, password, private key, seed phrase, wallet material, or raw forensic evidence.
-- Use only authorized local fixtures or systems.
-- Do not run scans against external/public targets.
-- Do not run `apt autoremove`.
-- Never stage `docs/.backup/` or `node_modules/`.
+- Do not expose Ollama directly to the LAN in P00-005.
+- Do not reveal, request, store, or commit passwords, tokens, API keys, certificates, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data.
+- Do not stage `docs/.backup/`, model files, Windows-local runtime state, or `node_modules/`.
 - Do not use force-push.
 
 ## Immediate next task
 
-### P00-005 — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions
+### P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434
 
 **Scope**
 
-Perform only a read-only inspection of the authorized Windows AI-inference host to establish whether Ollama is installed, its version, service/process state, configured listening behavior, and currently available local models. Do not install or pull anything until the inspection output is reviewed. If Ollama is proven absent, install only Ollama. If the agreed model set is not yet specified, document the factual blocker rather than selecting or pulling models by assumption.
-
-**Explicitly out of scope**
-
-- P00-006 through P00-009: loopback binding, reverse proxy, LAN exposure controls, mTLS, bearer authentication, and Kali-to-Windows connectivity testing.
-- Windows firewall changes, port changes, remote exposure, reverse-proxy configuration, certificate/key generation, credentials, tokens, and API keys.
-- Project source/configuration changes, Docker Compose startup, P00-012 installation, raw forensic evidence, private signing keys, and `apt autoremove`.
+After P00-005 documentation, commit, CI, GitHub post, and three-way SHA synchronization are completed, change Ollama from its currently observed direct listener behavior to a loopback/non-default local binding and configure the reverse proxy on the authorized private interface at port `11434`. Establish factual local health checks without beginning mTLS, bearer-token, or Kali-to-Windows authenticated connectivity testing.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md` only if a P00-005 operational procedure is factually validated.
+- `docs/RUNBOOK.md` if and only if the Windows/Ollama binding and reverse-proxy procedure is factually executed and validated.
 
 **Acceptance criteria**
 
-- Ollama installed-state and version are factually established on the authorized Windows host.
-- Existing local model names and model metadata are recorded factually.
-- No installation or model pull occurs before read-only output is reviewed.
-- Any installation/pull is limited to an approved, explicitly named model set and is validated afterward.
-- P00-005 is not marked complete before local validation, documentation, local commit, GitLab CI, GitHub post, and three-way SHA synchronization evidence exists.
-
-**Initial Windows PowerShell inspection**
-
-```powershell
-$ErrorActionPreference = 'Continue'
-
-Write-Host "`n=== Ollama command availability ==="
-Get-Command ollama -ErrorAction SilentlyContinue | Format-List *
-
-Write-Host "`n=== Ollama version ==="
-ollama --version
-
-Write-Host "`n=== Ollama process state ==="
-Get-Process ollama -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, Path, StartTime
-
-Write-Host "`n=== Ollama service state ==="
-Get-Service -Name ollama -ErrorAction SilentlyContinue | Format-List Name, Status, StartType
-
-Write-Host "`n=== Existing local models ==="
-ollama list
-
-Write-Host "`n=== Relevant environment variables; values withheld ==="
-'OLLAMA_HOST', 'OLLAMA_MODELS', 'OLLAMA_ORIGINS' | ForEach-Object {
-  $value = [Environment]::GetEnvironmentVariable($_, 'User')
-  if ($null -ne $value -and $value -ne '') {
-    "$_=set (value intentionally not displayed)"
-  } else {
-    "$_=not_set"
-  }
-}
-```
+- [ ] Ollama no longer directly listens on the LAN/private interface.
+- [ ] Ollama is bound only to the selected loopback/non-default local endpoint.
+- [ ] The reverse proxy is the only authorized private-interface listener at port `11434`.
+- [ ] Local health checks validate the intended proxy-to-Ollama path.
+- [ ] No mTLS, bearer token, or Kali-to-Windows cross-host validation is claimed before P00-007 through P00-009.
 
 **Dependencies**
 
-- P00-001 through P00-004 are complete and synchronized.
-- The Windows AI-inference host is available and authorized for local coursework setup.
-- The exact approved local model set must be specified before any model download; do not infer model names, sizes, or quantizations.
+- P00-005 must first be committed, pass GitLab CI, be posted to GitHub, and be proven synchronized across `main`, `gitlab/main`, and `origin/main`.
+- The authorized Windows inference host remains available.
+- The exact approved reverse-proxy implementation and binding values must be reviewed before any state-changing configuration action.
 
 **Security constraints**
 
-- Do not expose Ollama on the LAN or configure a reverse proxy in this task.
-- Do not reveal, request, print, store, or commit passwords, tokens, API keys, private keys, certificates, seed phrases, wallet material, raw evidence, or unredacted compliance data.
-- Do not install unapproved models or use remote model endpoints.
-- Do not stage `docs/.backup/`, `node_modules/`, model files, or Windows-local runtime data.
-- Do not use force-push or `apt autoremove`.
+- Treat listener, environment-variable, firewall, proxy, startup, and service changes as separately approved state-changing work.
+- Do not expose Ollama directly to the LAN.
+- Do not generate or store mTLS private keys, bearer tokens, or other credentials in this task.
+- Do not start P00-007, P00-008, or P00-009 activities while P00-006 is active.
 
 ## Subsequent task queue
 

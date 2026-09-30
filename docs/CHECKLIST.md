@@ -50,10 +50,11 @@ For every `✅ Complete` item, record:
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-004 — Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative |
+| Current task | P00-005 — Install Ollama on Windows and record the approved local model set |
 | Current branch | `main` |
-| Last verified commit | `473793554ceb7898b4b2165dfef401c47fa14d50` — `chore(phase-00): install Foundry and Hardhat prerequisites` |
-| Last updated | 2026-09-28 |
+| Last verified commit | `a909fbe571833f95eb39d6d9ca39e484e39cd838` — `docs(phase-00): correct next task to P00-005` |
+| Last GitLab pipeline | Passed — Pipeline #17 for `a909fbe571833f95eb39d6d9ca39e484e39cd838` |
+| Last updated | 2026-09-30 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
 
 ---
@@ -91,7 +92,7 @@ For every `✅ Complete` item, record:
 | P00-002 | Install and verify Git, Node.js/npm, Python 3.11+, pip, Docker, and Docker Compose on Kali. | ✅ | Verified 2026-09-28: local prerequisite validation passed; documentation/evidence commit `bd7d284c50debf43330504721dea77bb8252d804` posted to GitLab and GitHub; GitLab pipeline #12 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ✅ | Verified 2026-09-28: Foundry 1.8.3 and Hardhat 2.29.1 validated; commit `473793554ceb7898b4b2165dfef401c47fa14d50`; GitLab Pipeline #13 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ✅ | Verified 2026-09-30: Slither 0.11.6, Mythril v0.24.8, and Certora CLI 8.19.2 validated. Documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`; GitLab Pipeline #15 passed; the same commit was posted to GitHub; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
-| P00-005 | Install Ollama on Windows and pull the agreed local model set; record actual model names and versions. | ⬜ | — |
+| P00-005 | Install Ollama on Windows and record the approved local model set. | 🟧 | Windows-side implementation and local validation complete 2026-09-30; documentation/commit/CI/GitHub/SHA closeout pending. |
 | P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | ⬜ | — |
 | P00-007 | Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS. | ⬜ | — |
 | P00-008 | Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN. | ⬜ | — |
@@ -306,7 +307,42 @@ For every `✅ Complete` item, record:
 - **Runbook impact:** Updated and verified in `docs/RUNBOOK.md` with the P00-004 isolated installation and safe version/help validation procedure.
 - **Next recommended task:** P00-005 — Install Ollama on Windows and pull the agreed local model set; record actual model names and versions.
 
-### P00-005 to P00-015 — evidence entries
+### P00-005 — Ollama local-model prerequisite
+
+- **Status:** 🟧 Implemented but needs verification.
+- **Scope completed:** Read-only inspection of the authorized Windows AI-inference host; factual Ollama installed-state, process/startup state, local listener/API availability, local model inventory, and per-model metadata capture; explicit removal of the redundant `deepseek-r1:32b` tag after approval; and post-removal validation of the retained stable DeepSeek tag and final model inventory.
+- **Scope not completed:** P00-006 through P00-009 controls: loopback binding, port changes, reverse proxy, firewall changes, LAN exposure controls, mTLS, bearer authorization, and Kali-to-Windows connectivity testing. No Ollama installation or model pull was required or performed.
+- **Files changed:** Pending documentation closeout: `docs/CHECKLIST.md` and `docs/HANDOFF.md` only. `docs/.backup/` is untracked local recovery material and must not be staged or committed.
+- **Validation commands:**
+  ```powershell
+  ollama --version
+  ollama list
+  ollama show deepseek-r1:32b
+  ollama show qwen2.5-coder:32b
+  ollama show deepseek-r1:32b-stable
+  ollama show qwen3.5:9b
+  ollama show qwen3:32b
+  ollama rm deepseek-r1:32b
+  ollama list
+  ollama show deepseek-r1:32b-stable
+  ollama show deepseek-r1:32b
+  ```
+- **Factual results:**
+  - Ollama was already installed at `C:\Users\User\AppData\Local\Programs\Ollama\ollama.exe`; `ollama --version` returned `0.34.4`. No installation occurred.
+  - Read-only discovery recorded a running `ollama.exe` process, current-user Startup-folder reference, a successful loopback `GET http://127.0.0.1:11434/api/tags` response, and no observed non-loopback established API connection at inspection time.
+  - Initial local inventory contained five tags: `deepseek-r1:32b`, `qwen2.5-coder:32b`, `deepseek-r1:32b-stable`, `qwen3.5:9b`, and `qwen3:32b`.
+  - Per-model metadata was captured before removal. `deepseek-r1:32b` and `deepseek-r1:32b-stable` each reported Qwen2 architecture, 32.8B parameters, 131072 context length, 5120 embedding length, and `Q4_K_M` quantization; the stable tag included a `num_ctx 4096` override.
+  - After explicit approval, `ollama rm deepseek-r1:32b` returned `deleted 'deepseek-r1:32b'`.
+  - Final retained approved local model set: `qwen2.5-coder:32b` (19 GB), `deepseek-r1:32b-stable` (19 GB), `qwen3.5:9b` (6.6 GB), and `qwen3:32b` (20 GB).
+  - Post-removal `ollama show deepseek-r1:32b-stable` succeeded; `ollama show deepseek-r1:32b` returned `Error: model 'deepseek-r1:32b' not found`.
+- **Evidence path / CI job:** Sanitized Windows PowerShell evidence in the P00-005 implementation thread. Documentation commit, GitLab CI, GitHub post, and three-way SHA synchronization are pending.
+- **Git commit:** Pending.
+- **Security checks:** No passwords, tokens, API keys, private keys, certificates, seed phrases, wallet material, raw evidence, or unredacted compliance data were recorded. No firewall, listener, port, environment-variable, startup/service, proxy, mTLS, bearer-authentication, network-exposure, remote-model-endpoint, project-source, or Docker Compose change occurred.
+- **Dependencies / limitations:** P00-001 through P00-004 were complete before this task. The four retained tags are local prerequisite inventory only; model output remains a hypothesis rather than evidence. P00-006 through P00-009 remain required before any Kali-to-Windows inference bridge can be used.
+- **Runbook impact:** Not updated in this correction-limited closeout; the current allowed tracked-file scope is `docs/CHECKLIST.md` and `docs/HANDOFF.md` only.
+- **Next recommended task:** P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434.
+
+### P00-006 to P00-015 — evidence entries
 
 > Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
 
@@ -317,7 +353,7 @@ For every `✅ Complete` item, record:
 - **Result:**
 - **Evidence path / CI job:**
 - **Commit:**
-- **Notes / simulation / limitation:**
+- **Notes / simulation / limitation:
 
 ## P00-GATE — Phase 0 completion gate
 
