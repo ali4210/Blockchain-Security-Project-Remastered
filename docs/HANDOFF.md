@@ -12,25 +12,25 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434 |
-| Current thread | P00-006 implemented and locally validated; documentation, commit, CI, and synchronization pending |
+| Current task | P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS |
+| Current thread | P00-006 complete and verified; P00-007 selected by authoritative Phase 0 order |
 | Current branch | `main` |
-| Last verified commit | `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` — `docs(phase-00): verify P00-005 completion` |
-| Last GitLab pipeline | Passed — Pipeline #19 for `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
-| Last GitHub post | Verified — `origin/main` resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` before P00-006 documentation |
+| Last verified commit | `f9856ed4c181cb6740e7f26043e96a54d3ec0853` — `docs(phase-00): record P00-006 proxy validation` |
+| Last GitLab pipeline | Passed — Pipeline #20 for `f9856ed4c181cb6740e7f26043e96a54d3ec0853` |
+| Last GitHub post | Verified — `origin/main` resolved to `f9856ed4c181cb6740e7f26043e96a54d3ec0853` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `f9856ed4c181cb6740e7f26043e96a54d3ec0853` |
 | Last updated | 2026-10-01 |
 
 ## Completed since previous handoff
 
-- **P00-006:** 🟧 Implemented and locally validated on the authorized Windows inference host; repository closeout is pending.
-- Ollama was run as a normal-user foreground process and bound solely to `127.0.0.1:11435`; direct `GET /api/tags` returned four models.
-- Caddy 2.11.4 was validated and run as a normal-user foreground reverse proxy. Its administration endpoint was disabled and its only listener was `192.168.0.189:11434`; it reverse-proxied to `127.0.0.1:11435`.
+- **P00-006:** ✅ Complete and verified.
+- Ollama was validated as a normal-user foreground process bound solely to `127.0.0.1:11435`; direct `GET /api/tags` returned four models.
+- Caddy 2.11.4 was validated as a normal-user foreground reverse proxy with administration disabled and its only listener at `192.168.0.189:11434`; it reverse-proxied to `127.0.0.1:11435`.
 - Local proxy `GET /api/tags` succeeded and returned four models.
 - Docker/Open WebUI was not started or changed. No firewall rule, mTLS material, bearer token, Kali-to-Windows connectivity test, or secret-handling work occurred.
-- Files pending documentation update: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- Files changed: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - Validation evidence: sanitized Windows PowerShell listener tables, Caddy validation output, direct backend health, and proxy health in the P00-006 implementation thread.
-- Commit / GitLab CI / GitHub post / three-way SHA synchronization: pending.
+- Documentation/evidence commit: `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; GitLab Pipeline #20 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == f9856ed4c181cb6740e7f26043e96a54d3ec0853`.
 - Limitation: the validated Ollama and Caddy processes are normal-user foreground processes; they are not persistent services and stop when their respective terminal sessions end.
 
 ## Project purpose
@@ -174,7 +174,7 @@ Exact commands must be established from the actual certificate tool available on
 **Dependencies**
 
 - P00-006 implementation and local proxy validation are complete.
-- P00-006 documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization remain required before P00-007 begins.
+- P00-006 documentation commit `f9856ed4c181cb6740e7f26043e96a54d3ec0853`, GitLab Pipeline #20, GitHub post, and three-way SHA synchronization are verified.
 
 **Security constraints**
 

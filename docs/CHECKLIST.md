@@ -93,7 +93,7 @@ For every `✅ Complete` item, record:
 | P00-003 | Install and verify Foundry (`forge`, `anvil`, `cast`) and Hardhat. | ✅ | Verified 2026-09-28: Foundry 1.8.3 and Hardhat 2.29.1 validated; commit `473793554ceb7898b4b2165dfef401c47fa14d50`; GitLab Pipeline #13 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-004 | Install and verify Slither, Mythril, and Certora CLI, or document the Certora API-key alternative. | ✅ | Verified 2026-09-30: Slither 0.11.6, Mythril v0.24.8, and Certora CLI 8.19.2 validated. Documentation commit `3a3e2f936200e5324165304b7ac5ffbb3b6f31ba`; GitLab Pipeline #15 passed; the same commit was posted to GitHub; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-005 | Install Ollama on Windows and record the approved local model set. | ✅ | Verified 2026-09-30: Ollama 0.34.4 and final four-model local set validated; redundant `deepseek-r1:32b` removed; documentation commit `afb049f37ad850f67c3dbc534a892b69634f5a1c`; GitLab Pipeline #18 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
-| P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | 🟧 | Local Windows validation completed 2026-10-01; documentation commit, GitLab CI, GitHub post, and three-way synchronization pending. |
+| P00-006 | Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434. | ✅ | Verified 2026-10-01: loopback backend and private-interface proxy validated; documentation commit `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; GitLab Pipeline #20 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-007 | Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS. | ⬜ | — |
 | P00-008 | Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN. | ⬜ | — |
 | P00-009 | Verify Kali can make an authenticated mTLS request to the Windows Ollama proxy. | ⬜ | — |
@@ -347,7 +347,7 @@ For every `✅ Complete` item, record:
 
 ### P00-006 — Loopback Ollama binding and private-interface reverse proxy
 
-- **Status:** 🟧 Implemented but needs verification.
+- **Status:** ✅ Complete and verified.
 - **Scope completed:** On the authorized Windows inference host, ran Ollama as a normal-user foreground process bound only to `127.0.0.1:11435`. Configured and ran Caddy as a normal-user foreground reverse proxy bound only to the approved private interface at port `11434`, forwarding to `127.0.0.1:11435`. Caddy administration was disabled for the validated process.
 - **Scope not completed:** Persistent Windows service or startup configuration, Windows Firewall changes, Docker Desktop/Open WebUI startup or configuration, mTLS private CA/certificates, bearer-token authorization, Kali-to-Windows cross-host testing, and internet exposure.
 - **Files changed:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Host-local proxy configuration remains untracked runtime configuration.
@@ -359,14 +359,14 @@ For every `✅ Complete` item, record:
   Invoke-RestMethod http://192.168.0.189:11434/api/tags
   ```
 - **Factual results:** Ollama listener inspection showed exactly `127.0.0.1:11435`; direct backend health returned four models. Caddy validation returned `Valid configuration`; Caddy listener inspection showed exactly `192.168.0.189:11434`; Caddy administration was disabled. Local proxy health succeeded and proxied `/api/tags` returned four models.
-- **Evidence path / CI job:** Sanitized Windows PowerShell evidence in the P00-006 implementation thread. GitLab CI evidence pending the documentation commit.
-- **Git commit:** Pending documentation commit.
-- **GitLab post / CI:** Pending.
-- **GitHub post:** Pending.
-- **Synchronization:** Pending.
+- **Evidence path / CI job:** Sanitized Windows PowerShell evidence in the P00-006 implementation thread; GitLab Pipeline #20 passed for the documentation/evidence commit.
+- **Git commit:** `f9856ed4c181cb6740e7f26043e96a54d3ec0853` — `docs(phase-00): record P00-006 proxy validation`.
+- **GitLab post / CI:** Posted to `gitlab/main`; GitLab Pipeline #20 passed.
+- **GitHub post:** Posted to `origin/main`.
+- **Synchronization:** Verified: `main == gitlab/main == origin/main == f9856ed4c181cb6740e7f26043e96a54d3ec0853`.
 - **Security checks:** No Docker/Open WebUI startup, firewall change, mTLS material, bearer token, Kali cross-host request, model pull/removal, secret, private key, certificate, credential, raw evidence, or unredacted compliance data was created, printed, or committed.
 - **Dependencies / limitations:** P00-005 supplied the approved four-model inventory. The validated arrangement uses normal-user foreground processes and is not persistent across terminal closure, logoff, or restart. Plain HTTP is intentionally temporary; P00-007 and P00-008 add mTLS and bearer authorization before P00-009 cross-host validation.
-- **Runbook impact:** Required. A verified Windows Ollama/Caddy startup, validation, shutdown, and troubleshooting procedure is recorded in `docs/RUNBOOK.md`.
+- **Runbook impact:** Updated in `docs/RUNBOOK.md` with the verified Windows Ollama/Caddy startup, validation, shutdown, and troubleshooting procedure.
 - **Next recommended task:** P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS.
 
 ### P00-007 to P00-015 — evidence entries

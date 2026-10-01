@@ -528,7 +528,7 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 
 ## P00-006 — Windows Ollama loopback backend and Caddy private-interface proxy
 
-**Status:** 🟧 Implemented but needs verification
+**Status:** ✅ Verified
 
 **Purpose:** Run the authorized Windows Ollama backend only on a loopback, non-default endpoint and present the API only through a Caddy reverse proxy bound to the approved private interface.
 
@@ -602,7 +602,7 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 - Task: `P00-006`.
 - Evidence: sanitized Windows PowerShell listener tables, Caddy validation output, direct backend health, and proxy health in the P00-006 implementation thread.
 - Factual local validation: four direct models and four proxied models.
-- Documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization are pending this update.
+- Documentation/evidence commit: `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; GitLab Pipeline #20 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == f9856ed4c181cb6740e7f26043e96a54d3ec0853`.
 
 ### Future phases
 
