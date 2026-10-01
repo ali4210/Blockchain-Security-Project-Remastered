@@ -12,25 +12,26 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS |
-| Current thread | P00-007 implementation and static validation completed; documentation commit, GitLab CI, GitHub post, and synchronization verification pending |
+| Current task | P00-008 — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN |
+| Current thread | P00-007 complete and verified; P00-008 selected by authoritative Phase 0 order |
 | Current branch | `main` |
-| Last verified commit | `ab774ab2f41131310108b854203dce234ea25624` — `docs(phase-00): verify P00-006 completion` |
-| Last GitLab pipeline | Last known passed evidence: Pipeline #20 for `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; P00-007 documentation pipeline pending |
-| Last GitHub post | Verified at `ab774ab2f41131310108b854203dce234ea25624` before P00-007 documentation update |
-| Synchronization | Pre-documentation verified — `main`, `gitlab/main`, and `origin/main` all resolved to `ab774ab2f41131310108b854203dce234ea25624` |
+| Last verified commit | `3eb7d51225622833d7813d64bb9dd343ad8e3f62` — `docs(phase-00): record P00-007 mTLS static validation` |
+| Last GitLab pipeline | Passed — Pipeline #23 for `3eb7d51225622833d7813d64bb9dd343ad8e3f62` |
+| Last GitHub post | Verified — `origin/main` resolved to `3eb7d51225622833d7813d64bb9dd343ad8e3f62` |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `3eb7d51225622833d7813d64bb9dd343ad8e3f62` |
 | Last updated | 2026-10-01 |
 
 ## Completed since previous handoff
 
-- **P00-007:** 🟧 Implementation and static validation completed; documentation commit, GitLab CI, GitHub post, and three-way synchronization verification are pending.
+- **P00-007:** ✅ Complete and verified.
 - A private coursework CA, Windows proxy server certificate, and Kali client certificate were created in protected host-local storage outside Git.
 - Kali CA self-verification, client certificate chain/client-purpose validation, and client private-key/certificate matching succeeded.
 - The Windows server certificate chained to the private CA for server purpose, contained the approved private-interface IP in its subject alternative name, and matched its private key.
 - Kali time synchronization was restored and verified active before final certificate checks.
 - The Windows-local Caddy configuration requires and verifies client certificates against the private CA, uses the private-CA-issued server certificate/key, disables the Caddy administration API and automatic HTTPS, and reverse-proxies only to the loopback backend.
 - Caddy static validation returned `Valid configuration`; Caddy recognized the TLS client-authentication policy. No Caddy/Ollama process was started and no listener, live mTLS handshake, bearer-token request, or Kali-to-Windows inference request was made.
-- Files pending documentation commit: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Host-local PKI and Caddy configuration remain outside Git.
+- Files changed: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Host-local PKI and Caddy configuration remain outside Git.
+- Documentation/evidence commit: `3eb7d51225622833d7813d64bb9dd343ad8e3f62`; GitLab Pipeline #23 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == 3eb7d51225622833d7813d64bb9dd343ad8e3f62`.
 - Security boundary: no private key, certificate body, password, token, or other secret-bearing output is recorded in tracked documentation. The CA private key is not referenced by Caddy.
 - Limitation: Caddy reported that `trusted_ca_cert_file` is deprecated and the Caddyfile is not formatted; neither warning prevented static validation. Any syntax migration or formatting-only change is deferred to separate review.
 
@@ -99,7 +100,7 @@ Generate and protect a private coursework CA, issue a Windows proxy server certi
 
 **Status**
 
-🟧 Implemented and statically validated on 2026-10-01. Local certificate and configuration validation succeeded; documentation commit, GitLab CI, GitHub post, and three-way synchronization verification remain pending before this task can be marked `✅ Complete and verified`.
+✅ Complete and verified on 2026-10-01. Local certificate and configuration validation succeeded; documentation commit `3eb7d51225622833d7813d64bb9dd343ad8e3f62` was posted to GitLab and GitHub, GitLab Pipeline #23 passed, and `main == gitlab/main == origin/main == 3eb7d51225622833d7813d64bb9dd343ad8e3f62`.
 
 **Scope**
 
@@ -161,7 +162,7 @@ Exact commands must be selected only after identifying the actual certificate to
 
 **Validation commands:** Select only after inspecting the installed Caddy version and current host-local configuration. Record only sanitized factual command results. Do not make a Kali-to-Windows inference request under P00-008.
 
-**Dependencies:** P00-007 implementation/static validation is complete; its documentation commit and repository synchronization are pending. P00-006 loopback/backend separation remains mandatory.
+**Dependencies:** P00-007 is complete and verified at `3eb7d51225622833d7813d64bb9dd343ad8e3f62`; GitLab Pipeline #23 passed; `main == gitlab/main == origin/main`. P00-006 loopback/backend separation remains mandatory.
 
 **Security constraints:** Do not expose bearer tokens, private keys, certificate material, passwords, or raw secret-bearing output. Do not start Docker/Open WebUI, change Windows Firewall policy, expose Ollama on the LAN, or perform P00-009 authenticated cross-host inference. Do not use force-push.
 

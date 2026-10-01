@@ -606,7 +606,7 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 
 ## P00-007 — Private PKI and Caddy mTLS static validation
 
-**Status:** 🟧 Implemented but needs verification
+**Status:** ✅ Verified
 
 **Purpose:** Create a private coursework certificate authority, issue a Windows proxy server certificate and a Kali client certificate in host-local protected storage, and configure Caddy to require and verify a client certificate before reverse-proxying to the loopback-only Ollama backend.
 
@@ -679,7 +679,10 @@ A warning that the legacy trusted-CA-file field is deprecated or that the Caddyf
 - Task: `P00-007`.
 - Evidence: sanitized Kali and Windows terminal output in the P00-007 implementation thread.
 - Factual validation: CA/client/server certificate validation, key/certificate match checks, protected-storage permission/ACL checks, Kali NTP synchronization verification, repository secret-boundary scan, and Caddy static validation.
-- Documentation commit, GitLab CI result, GitHub post, and three-way SHA synchronization: pending at the time of this runbook update.
+- Documentation/evidence commit: `3eb7d51225622833d7813d64bb9dd343ad8e3f62` — `docs(phase-00): record P00-007 mTLS static validation`.
+- GitLab post / CI: posted to `gitlab/main`; GitLab Pipeline #23 passed.
+- GitHub post: posted to `origin/main`.
+- Synchronization: verified `main == gitlab/main == origin/main == 3eb7d51225622833d7813d64bb9dd343ad8e3f62`.
 
 ### Future phases
 
