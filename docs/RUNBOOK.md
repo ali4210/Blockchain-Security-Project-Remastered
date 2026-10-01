@@ -604,6 +604,83 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 - Factual local validation: four direct models and four proxied models.
 - Documentation/evidence commit: `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; GitLab Pipeline #20 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == f9856ed4c181cb6740e7f26043e96a54d3ec0853`.
 
+## P00-007 — Private PKI and Caddy mTLS static validation
+
+**Status:** 🟧 Implemented but needs verification
+
+**Purpose:** Create a private coursework certificate authority, issue a Windows proxy server certificate and a Kali client certificate in host-local protected storage, and configure Caddy to require and verify a client certificate before reverse-proxying to the loopback-only Ollama backend.
+
+**Scope and limitations:**
+
+- Verified on the authorized Kali VM and Windows inference host as a coursework/development configuration.
+- Certificate material and the Windows-local Caddyfile remain host-local and outside the repository.
+- This procedure records only sanitized metadata, validation outcomes, permissions/ACL outcomes, and static configuration validation.
+- Caddy and Ollama were not started after the mTLS configuration change; no live listener check, mTLS handshake, bearer-token check, or Kali-to-Windows inference request occurred.
+- Bearer authorization is deferred to P00-008. Live authenticated cross-host verification is deferred to P00-009.
+- This is not a production PKI lifecycle: no certificate revocation service, rotation automation, persistent Windows service, or firewall validation was performed.
+
+**Prerequisites:**
+
+- P00-006 loopback/private-interface separation is already verified: Ollama remains loopback-only and Caddy is the sole intended private-interface proxy.
+- OpenSSL is available on the authorized Kali and Windows hosts.
+- Caddy is installed on the Windows host.
+- Approved host-local protected storage locations exist for PKI material.
+- The approved private-interface address is `192.168.0.189`.
+
+**Safety boundaries:**
+
+- Never print, commit, or transmit CA private keys, server/client private keys, certificate bodies, CSRs, passwords, tokens, or raw secret-bearing command output.
+- Keep all PKI material and host-local Caddy configuration outside Git.
+- Caddy must reference only the server certificate, matching server private key, and CA certificate; it must not reference the CA private key.
+- Preserve Ollama loopback binding at `127.0.0.1:11435`; do not expose Ollama directly to the LAN.
+- Do not start Docker/Open WebUI, change firewall policy, or run an authenticated Kali-to-Windows inference request in this procedure.
+
+**Verified local validation:**
+
+- Kali CA self-verification succeeded.
+- Kali client certificate chain and `sslclient` purpose validation succeeded.
+- Kali client private key and client certificate public keys matched.
+- Windows server certificate chain and `sslserver` purpose validation succeeded.
+- Windows server certificate contained the approved private-interface IP in its subject alternative name and had TLS Web Server Authentication usage.
+- Windows server private key and server certificate public keys matched.
+- Kali time synchronization was active and synchronized before final certificate validation.
+- Temporary shared-folder certificate copies were absent during final Kali validation.
+- Caddy static validation returned `Valid configuration` for the host-local mTLS configuration.
+- Caddy recognized the configured TLS client-authentication policy; static validation exited without starting a server.
+
+**Verified Caddy policy:**
+
+- Caddy administration is disabled.
+- Persisted runtime configuration is disabled.
+- Automatic HTTPS is disabled because a private-CA-issued server certificate is configured explicitly.
+- The intended HTTPS site address is the approved private-interface address and port `11434`.
+- Caddy presents the private-CA-issued server certificate and matching private key.
+- Caddy requires and verifies a client certificate against the private CA.
+- Caddy reverse-proxies only to `127.0.0.1:11435`.
+
+**Expected static-validation result:**
+
+```text
+Valid configuration
+```
+
+A warning that the legacy trusted-CA-file field is deprecated or that the Caddyfile is not formatted does not invalidate a successful static validation. Treat any trust-pool syntax migration or formatting-only change as a separately reviewed maintenance change followed by validation.
+
+**Failure indicators and safe response:**
+
+- Certificate chain or purpose validation fails, certificate validity time is incorrect, or a key/certificate public-key comparison fails: stop and investigate only the affected host-local PKI artifact; do not regenerate or copy key material without an approved scope.
+- The server certificate does not contain the approved private-interface IP in its subject alternative name: do not start Caddy; correct certificate issuance in a separate controlled task.
+- Caddy static validation fails: do not start Caddy; preserve sanitized error output and restore or inspect only the host-local Caddy configuration.
+- A private key, token, or certificate body appears in terminal output or a proposed Git diff: stop, do not stage it, remove it from tracked content, and perform a targeted secret-boundary review.
+- Caddy or Ollama is unexpectedly running, or ports `11434`/`11435` are unexpectedly listening during static validation: stop and investigate before any further configuration change.
+
+**Evidence and provenance:**
+
+- Task: `P00-007`.
+- Evidence: sanitized Kali and Windows terminal output in the P00-007 implementation thread.
+- Factual validation: CA/client/server certificate validation, key/certificate match checks, protected-storage permission/ACL checks, Kali NTP synchronization verification, repository secret-boundary scan, and Caddy static validation.
+- Documentation commit, GitLab CI result, GitHub post, and three-way SHA synchronization: pending at the time of this runbook update.
+
 ### Future phases
 
 For every completed phase or operational component, add:
