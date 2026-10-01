@@ -61,6 +61,11 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Final approved local set: `qwen2.5-coder:32b`, `deepseek-r1:32b-stable`, `qwen3.5:9b`, and `qwen3:32b`.
   - Documentation/evidence commit `afb049f37ad850f67c3dbc534a892b69634f5a1c` passed GitLab Pipeline #18 and was synchronized to GitHub.
   - Final verification commit `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` passed GitLab Pipeline #19; `main == gitlab/main == origin/main == 7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6`.
+- **P00-006 — Ollama loopback binding and private-interface reverse proxy:** ✅ Complete and verified.
+  - Ollama was validated as a normal-user foreground process bound solely to `127.0.0.1:11435`; direct `/api/tags` health returned four models.
+  - Caddy 2.11.4 was validated as a normal-user foreground reverse proxy with its administration endpoint disabled and its sole listener at `192.168.0.189:11434`; the proxy forwarded to `127.0.0.1:11435`, and proxied `/api/tags` returned four models.
+  - Docker/Open WebUI, Windows Firewall changes, mTLS material, bearer authorization, and Kali-to-Windows testing were not performed; the validated services are non-persistent foreground processes.
+  - Documentation/evidence commit `f9856ed4c181cb6740e7f26043e96a54d3ec0853` passed GitLab Pipeline #20 and was synchronized to GitHub; `main == gitlab/main == origin/main == f9856ed4c181cb6740e7f26043e96a54d3ec0853`.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -142,39 +147,19 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ### P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS
 
-**Scope**
+**Authoritative task details:** See `## Current task details` above for the full P00-007 objective, scope, expected files, acceptance criteria, validation approach, dependencies, and security constraints.
 
-Generate and protect a private coursework CA, issue a Windows proxy server certificate and Kali client certificate, and configure Caddy for mTLS only after the required certificate material is available. Perform local certificate/configuration validation without bearer authorization or a full Kali authenticated inference test.
+**Scope:** Generate and protect a private coursework CA, issue a Windows proxy server certificate and Kali client certificate, and prepare Caddy for mTLS without beginning P00-008 bearer authorization or P00-009 Kali-to-Windows authenticated inference.
 
-**Expected files**
+**Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`, and approved non-secret configuration references only. Private key and certificate material must remain outside Git.
 
-- `docs/CHECKLIST.md`
-- `docs/HANDOFF.md`
-- `docs/RUNBOOK.md`
-- Approved non-secret configuration references only. Private keys, certificate private material, and passwords must remain outside Git.
+**Acceptance criteria:** Private CA/server/client certificates exist only in approved host-local secret locations; Caddy is prepared to require trusted client certificates without committed secrets; local certificate/configuration validation is sanitized; P00-008 and P00-009 remain deferred.
 
-**Acceptance criteria**
+**Validation commands:** First inspect actual available certificate tooling and approved host-local secret-storage locations. Record only commands that are factually executed and sanitized.
 
-- [ ] A private CA, server certificate, and Kali client certificate are created only in approved host-local secret locations.
-- [ ] Caddy is prepared to require client certificates without committing any private key or secret.
-- [ ] Certificate/key permissions and local configuration validation are recorded without printing private material.
-- [ ] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows inference remain deferred.
+**Dependencies:** P00-006 is complete and verified at `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; GitLab Pipeline #20 passed; `main == gitlab/main == origin/main`.
 
-**Validation commands**
-
-Exact commands must be established from the actual certificate tool available on the authorized hosts, then executed and documented with sanitized output. No unverified commands are recorded here.
-
-**Dependencies**
-
-- P00-006 implementation and local proxy validation are complete.
-- P00-006 documentation commit `f9856ed4c181cb6740e7f26043e96a54d3ec0853`, GitLab Pipeline #20, GitHub post, and three-way SHA synchronization are verified.
-
-**Security constraints**
-
-- Do not commit CA/server/client private keys, passwords, tokens, generated credentials, or certificate contents.
-- Do not remove the loopback/proxy separation.
-- Do not start Docker/Open WebUI, bearer authorization, or Kali cross-host inference validation during this task.
-- `docs/RUNBOOK.md` is expected to change only after a certificate procedure is factually executed and validated.
+**Security constraints:** Do not commit or print private keys, certificate contents, passwords, or tokens. Preserve the loopback/proxy separation. Do not start Docker/Open WebUI, bearer authorization, or Kali cross-host inference validation. `docs/RUNBOOK.md` changes only after a certificate procedure is executed and validated.
 
 ## Subsequent task queue
 
