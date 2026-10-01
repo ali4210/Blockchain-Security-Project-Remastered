@@ -604,6 +604,37 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 - Factual local validation: four direct models and four proxied models.
 - Documentation/evidence commit: `f9856ed4c181cb6740e7f26043e96a54d3ec0853`; GitLab Pipeline #20 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == f9856ed4c181cb6740e7f26043e96a54d3ec0853`.
 
+## P00-008/P00-009 — Temporary Bearer-enforced mTLS gateway validation
+
+**Purpose:** Validate the approved temporary path from Kali to the Windows Caddy gateway while preserving loopback-only Ollama and loopback-only Bearer verification.
+
+**Verified architecture:**
+
+```text
+Kali client
+  -> https://ollama-mtls.home.arpa:11434
+  -> Caddy server certificate validation and required client certificate
+  -> loopback-only forward-auth verifier at 127.0.0.1:11436
+  -> loopback-only Ollama backend at 127.0.0.1:11435
+```
+
+**Sanitized validation record:**
+
+- Server certificate identity was aligned with the Caddy site name using `DNS:ollama-mtls.home.arpa` and `IP:192.168.0.189`.
+- Caddy configuration validation succeeded and strict SNI/Host enforcement remained enabled with TLS client authentication.
+- A request without a client certificate failed during TLS negotiation with no HTTP response.
+- A valid mTLS request without Bearer returned HTTP `401`.
+- A valid mTLS request with the configured Bearer caused the verifier to record an allow decision.
+- The authenticated root-route request returned HTTP `403` after authorization; it is not evidence of token rejection.
+- During testing, direct Kali access to Ollama and verifier ports timed out, and all temporary processes/listeners were stopped after validation.
+
+**Operational constraints:**
+
+- Never print, commit, or place a Bearer token in shell history, a command line, a document, or a screenshot.
+- Keep the Caddyfile, CA material, server key, client key, and token in approved host-local protected storage only.
+- Do not make the temporary runtime persistent, alter firewall policy, or expose Ollama/verifier directly to the LAN.
+- If an application-level success response is required, use one separately approved temporary `GET /api/tags` request through the same protected path and perform cleanup immediately afterward.
+
 ## P00-007 — Private PKI and Caddy mTLS static validation
 
 **Status:** ✅ Verified
@@ -616,7 +647,7 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 - Certificate material and the Windows-local Caddyfile remain host-local and outside the repository.
 - This procedure records only sanitized metadata, validation outcomes, permissions/ACL outcomes, and static configuration validation.
 - Caddy and Ollama were not started after the mTLS configuration change; no live listener check, mTLS handshake, bearer-token check, or Kali-to-Windows inference request occurred.
-- Bearer authorization is deferred to P00-008. Live authenticated cross-host verification is deferred to P00-009.
+- Bearer authorization and live authenticated cross-host verification were deferred at the time of this P00-007 procedure. They were subsequently completed under the approved temporary P00-008/P00-009 validation documented above.
 - This is not a production PKI lifecycle: no certificate revocation service, rotation automation, persistent Windows service, or firewall validation was performed.
 
 **Prerequisites:**

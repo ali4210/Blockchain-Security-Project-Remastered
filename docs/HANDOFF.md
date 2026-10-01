@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-008 — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN |
-| Current thread | P00-007 complete and verified; P00-008 selected by authoritative Phase 0 order |
+| Current task | Documentation closeout after P00-008 bearer enforcement and P00-009 authenticated transport-path validation |
+| Current thread | P00-008 and P00-009 temporary validation complete; documentation closeout and dual-remote synchronization remain |
 | Current branch | `main` |
 | Last verified commit | `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` — `docs(phase-00): finalize P00-007 verification status` |
 | Last GitLab pipeline | Passed — Pipeline #24 for `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` |
@@ -132,7 +132,7 @@ Private certificate material remains host-local and outside Git. `docs/.backup/`
 - [ ] A private CA, Windows proxy server certificate, and Kali client certificate exist only in approved host-local secret locations.
 - [ ] Caddy is configured to require a trusted client certificate without committing secret material.
 - [ ] Certificate/key permissions and local configuration validation are recorded without revealing private material.
-- [ ] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows inference remain deferred.
+- [x] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows transport-path validation were completed on 2026-10-02; see the completion addendum above. A successful authenticated Ollama API response remains an optional separately approved functional follow-up.
 
 **Validation approach**
 
@@ -153,19 +153,27 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ## Immediate next task
 
+### P00-008/P00-009 completion addendum — 2026-10-02
+
+- **Validated enforcement:** Caddy configuration validation passed with strict SNI/Host enforcement enabled for mandatory TLS client authentication. The server certificate was reissued under the existing private CA with `DNS:ollama-mtls.home.arpa` and `IP:192.168.0.189` SANs, and its key match and CA chain were verified.
+- **Validated isolation:** During the approved temporary test, Ollama listened only on `127.0.0.1:11435` and the forward-auth verifier only on `127.0.0.1:11436`. Kali reached the Caddy gateway but direct Kali connections to ports `11435` and `11436` timed out.
+- **Validated request path:** No client certificate caused a TLS certificate-required alert with no HTTP response. Valid mTLS without Bearer returned HTTP `401`. Valid mTLS with the configured Bearer caused the verifier to record `decision=allow`; the subsequent `GET /` response was HTTP `403`, recorded as a route/backend response after authorization rather than a credential failure.
+- **Runtime status:** Temporary Caddy, verifier, and Ollama processes were stopped after testing; the test ports were confirmed released. The token was not documented or committed, and the temporary Windows clipboard transfer was overwritten and verification-confirmed.
+- **Optional follow-up:** If application-level API success evidence is later required, perform one separately approved temporary `GET /api/tags` request through the same mTLS and Bearer path, then repeat cleanup. This is not required to establish the documented P00-008/P00-009 access-control result.
+
 ### P00-008 — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN
 
-**Scope:** Add reverse-proxy bearer-token authorization without changing the approved loopback/backend separation. Preserve the Caddy mTLS configuration established in P00-007. Do not perform cross-host inference until P00-009.
+**Historical scope:** Add reverse-proxy bearer-token authorization without changing the approved loopback/backend separation and preserve the Caddy mTLS configuration established in P00-007. Cross-host validation was intentionally deferred from P00-008 and subsequently performed as the approved P00-009 validation documented in the completion addendum above.
 
 **Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md` if a user-executable authorization procedure is tested and verified. Bearer-token values, PKI material, and host-local Caddy configuration remain outside Git.
 
 **Acceptance criteria:** A bearer token is required by Caddy before proxying; the token is stored only in approved host-local secret storage; Ollama remains reachable only at `127.0.0.1:11435`; Caddy remains the sole intended private-interface entry point; no token is printed, committed, or documented.
 
-**Validation commands:** Select only after inspecting the installed Caddy version and current host-local configuration. Record only sanitized factual command results. Do not make a Kali-to-Windows inference request under P00-008.
+**Historical validation boundary:** Select commands only after inspecting the installed Caddy version and current host-local configuration, and record only sanitized factual command results. Kali-to-Windows validation was deferred from P00-008 and completed under the approved P00-009 evidence record.
 
 **Dependencies:** P00-007 is complete and verified; documentation/evidence commit `3eb7d51225622833d7813d64bb9dd343ad8e3f62` passed GitLab Pipeline #23; final-status commit `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` passed GitLab Pipeline #24; `main == gitlab/main == origin/main == 44c50e1cdd840aa2920dd55ef5fe9eebedd82966`. P00-006 loopback/backend separation remains mandatory.
 
-**Security constraints:** Do not expose bearer tokens, private keys, certificate material, passwords, or raw secret-bearing output. Do not start Docker/Open WebUI, change Windows Firewall policy, expose Ollama on the LAN, or perform P00-009 authenticated cross-host inference. Do not use force-push.
+**Security constraints:** Do not expose bearer tokens, private keys, certificate material, passwords, or raw secret-bearing output. Do not start Docker/Open WebUI, change Windows Firewall policy, or expose Ollama on the LAN. The approved P00-009 authenticated cross-host validation was completed temporarily and cleaned up; do not repeat it without a new approved scope. Do not use force-push.
 
 **RUNBOOK.md impact:** Expected if and only if the bearer-token configuration and its safe local validation procedure are factually executed.
 
