@@ -526,6 +526,84 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 - Coursework limitation: local prerequisite validation only. Tool installation and help/version checks are not a contract audit, proof, production deployment, or authorization to scan any target.
 - Repository-tracked documentation artifacts: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Pipx environments and the Docker image are user-local/runtime state and are outside Git.
 
+## P00-006 — Windows Ollama loopback backend and Caddy private-interface proxy
+
+**Status:** 🟧 Implemented but needs verification
+
+**Purpose:** Run the authorized Windows Ollama backend only on a loopback, non-default endpoint and present the API only through a Caddy reverse proxy bound to the approved private interface.
+
+**Scope and limitations:**
+
+- Verified locally on the authorized Windows inference host as a coursework/development configuration.
+- Ollama and Caddy run in separate normal-user foreground PowerShell sessions; this is not a persistent Windows service arrangement.
+- The proxy is plaintext HTTP for this task only. mTLS is deferred to P00-007, bearer authorization to P00-008, and Kali-to-Windows authenticated validation to P00-009.
+- Docker Desktop/Open WebUI, Windows Firewall changes, model pulls/removals, and public/internet exposure are outside this procedure.
+
+**Prerequisites:**
+
+- Ollama is installed and the approved local model inventory is present.
+- Caddy is installed and available as `caddy`.
+- The approved Windows private-interface address is `192.168.0.189`.
+- No conflicting Ollama or Caddy process is listening on the specified ports.
+
+**Safety boundaries:**
+
+- Bind Ollama only to `127.0.0.1:11435`.
+- Bind Caddy only to `192.168.0.189:11434`.
+- Do not bind either service to `0.0.0.0`, `[::]`, or an unintended adapter.
+- Do not commit host-local configuration, model-store paths, credentials, certificates, or tokens.
+- Do not start Docker/Open WebUI or perform Kali-to-Windows tests in this procedure.
+
+**Verified configuration:**
+
+Create a host-local Caddyfile outside the repository with automatic HTTPS and Caddy administration disabled, an explicit `bind 192.168.0.189`, and a `reverse_proxy 127.0.0.1:11435` site at `http://192.168.0.189:11434`. Validate it with:
+
+```powershell
+caddy validate --config <host-local-Caddyfile> --adapter caddyfile
+```
+
+**Verified startup:**
+
+1. In a normal-user PowerShell session, set process-local `OLLAMA_HOST` to `127.0.0.1:11435` and process-local `OLLAMA_MODELS` to the existing approved host-local model store, then run `ollama.exe serve`.
+2. Confirm startup output reports `Listening on 127.0.0.1:11435`.
+3. In another normal-user PowerShell session, run:
+
+   ```powershell
+   caddy run --config <host-local-Caddyfile> --adapter caddyfile
+   ```
+
+4. Confirm Caddy reports that its administration endpoint is disabled and its HTTP listener is `192.168.0.189:11434`.
+
+**Verified health checks:**
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:11435/api/tags
+Get-NetTCPConnection -State Listen
+Invoke-RestMethod http://192.168.0.189:11434/api/tags
+```
+
+- Direct backend health returned a `models` field containing four models.
+- Listener inspection showed Ollama solely at `127.0.0.1:11435` and Caddy solely at `192.168.0.189:11434`.
+- Proxy health returned a `models` field containing four models.
+
+**Expected healthy result:** Direct backend health and private-interface proxy health each return four models. Ollama is not a private-interface listener; Caddy is the sole listener at `192.168.0.189:11434`.
+
+**Failure indicators and safe response:**
+
+- If Caddy returns HTTP `502`, verify the foreground Ollama process is still running and that direct loopback `/api/tags` succeeds before restarting Caddy.
+- If Caddy appears on `[::]:11434`, stop it and use an explicit `bind 192.168.0.189` directive before retesting.
+- If Ollama returns zero models, stop it and verify the correct existing local model store is supplied only as a process-local environment value. Do not pull, delete, move, or copy models as part of recovery.
+- If either service acquires an unexpected listener, stop the affected foreground process and correct its explicit binding before proceeding.
+
+**Shutdown:** In each foreground service window, press `Ctrl+C`. Confirm no `ollama.exe` or `caddy.exe` process remains before changing bindings or restarting a validated session.
+
+**Evidence and provenance:**
+
+- Task: `P00-006`.
+- Evidence: sanitized Windows PowerShell listener tables, Caddy validation output, direct backend health, and proxy health in the P00-006 implementation thread.
+- Factual local validation: four direct models and four proxied models.
+- Documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization are pending this update.
+
 ### Future phases
 
 For every completed phase or operational component, add:

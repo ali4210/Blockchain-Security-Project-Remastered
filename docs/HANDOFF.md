@@ -13,13 +13,25 @@
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
 | Current task | P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434 |
-| Current thread | P00-005 complete and synchronized; P00-006 selected by authoritative Phase 0 order |
+| Current thread | P00-006 implemented and locally validated; documentation, commit, CI, and synchronization pending |
 | Current branch | `main` |
 | Last verified commit | `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` — `docs(phase-00): verify P00-005 completion` |
 | Last GitLab pipeline | Passed — Pipeline #19 for `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
 | Last GitHub post | Verified — `origin/main` resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` |
-| Last updated | 2026-09-30 |
+| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `7a82193af9a3d5aa8397d6f9b6c49018f04f1fc6` before P00-006 documentation |
+| Last updated | 2026-10-01 |
+
+## Completed since previous handoff
+
+- **P00-006:** 🟧 Implemented and locally validated on the authorized Windows inference host; repository closeout is pending.
+- Ollama was run as a normal-user foreground process and bound solely to `127.0.0.1:11435`; direct `GET /api/tags` returned four models.
+- Caddy 2.11.4 was validated and run as a normal-user foreground reverse proxy. Its administration endpoint was disabled and its only listener was `192.168.0.189:11434`; it reverse-proxied to `127.0.0.1:11435`.
+- Local proxy `GET /api/tags` succeeded and returned four models.
+- Docker/Open WebUI was not started or changed. No firewall rule, mTLS material, bearer token, Kali-to-Windows connectivity test, or secret-handling work occurred.
+- Files pending documentation update: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- Validation evidence: sanitized Windows PowerShell listener tables, Caddy validation output, direct backend health, and proxy health in the P00-006 implementation thread.
+- Commit / GitLab CI / GitHub post / three-way SHA synchronization: pending.
+- Limitation: the validated Ollama and Caddy processes are normal-user foreground processes; they are not persistent services and stop when their respective terminal sessions end.
 
 ## Project purpose
 
@@ -135,38 +147,41 @@ Factual results: Ollama version `0.34.4` was already installed; the initial five
 
 ## Immediate next task
 
-### P00-006 — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434
+### P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS
 
 **Scope**
 
-After P00-005 documentation, commit, CI, GitHub post, and three-way SHA synchronization are completed, change Ollama from its currently observed direct listener behavior to a loopback/non-default local binding and configure the reverse proxy on the authorized private interface at port `11434`. Establish factual local health checks without beginning mTLS, bearer-token, or Kali-to-Windows authenticated connectivity testing.
+Generate and protect a private coursework CA, issue a Windows proxy server certificate and Kali client certificate, and configure Caddy for mTLS only after the required certificate material is available. Perform local certificate/configuration validation without bearer authorization or a full Kali authenticated inference test.
 
 **Expected files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
-- `docs/RUNBOOK.md` if and only if the Windows/Ollama binding and reverse-proxy procedure is factually executed and validated.
+- `docs/RUNBOOK.md`
+- Approved non-secret configuration references only. Private keys, certificate private material, and passwords must remain outside Git.
 
 **Acceptance criteria**
 
-- [ ] Ollama no longer directly listens on the LAN/private interface.
-- [ ] Ollama is bound only to the selected loopback/non-default local endpoint.
-- [ ] The reverse proxy is the only authorized private-interface listener at port `11434`.
-- [ ] Local health checks validate the intended proxy-to-Ollama path.
-- [ ] No mTLS, bearer token, or Kali-to-Windows cross-host validation is claimed before P00-007 through P00-009.
+- [ ] A private CA, server certificate, and Kali client certificate are created only in approved host-local secret locations.
+- [ ] Caddy is prepared to require client certificates without committing any private key or secret.
+- [ ] Certificate/key permissions and local configuration validation are recorded without printing private material.
+- [ ] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows inference remain deferred.
+
+**Validation commands**
+
+Exact commands must be established from the actual certificate tool available on the authorized hosts, then executed and documented with sanitized output. No unverified commands are recorded here.
 
 **Dependencies**
 
-- P00-005 must first be committed, pass GitLab CI, be posted to GitHub, and be proven synchronized across `main`, `gitlab/main`, and `origin/main`.
-- The authorized Windows inference host remains available.
-- The exact approved reverse-proxy implementation and binding values must be reviewed before any state-changing configuration action.
+- P00-006 implementation and local proxy validation are complete.
+- P00-006 documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization remain required before P00-007 begins.
 
 **Security constraints**
 
-- Treat listener, environment-variable, firewall, proxy, startup, and service changes as separately approved state-changing work.
-- Do not expose Ollama directly to the LAN.
-- Do not generate or store mTLS private keys, bearer tokens, or other credentials in this task.
-- Do not start P00-007, P00-008, or P00-009 activities while P00-006 is active.
+- Do not commit CA/server/client private keys, passwords, tokens, generated credentials, or certificate contents.
+- Do not remove the loopback/proxy separation.
+- Do not start Docker/Open WebUI, bearer authorization, or Kali cross-host inference validation during this task.
+- `docs/RUNBOOK.md` is expected to change only after a certificate procedure is factually executed and validated.
 
 ## Subsequent task queue
 
