@@ -80,69 +80,62 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 
 ## Current task details
 
-### P00-005 — Install Ollama on Windows and record the approved local model set
+### P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS
 
 **Objective**
 
-Establish the factual Windows Ollama installed state and local-model inventory, approve and retain the required local model set, remove only the explicitly approved redundant model tag, and validate the resulting local inventory without beginning transport-bridge or network-hardening work.
+Generate and protect a private coursework CA, issue a Windows proxy server certificate and a Kali client certificate, configure Caddy to require mTLS only after the certificate material is available, and validate the local certificate/configuration state without bearer authorization or a Kali-to-Windows authenticated inference request.
 
 **Status**
 
-✅ Complete and verified. The P00-005 documentation commit `afb049f37ad850f67c3dbc534a892b69634f5a1c` was posted to GitLab, GitLab Pipeline #18 passed, the same commit was posted to GitHub, and `main`, `gitlab/main`, and `origin/main` were verified at the same SHA.
+⬜ Not started. P00-006 is complete and verified at `f9856ed4c181cb6740e7f26043e96a54d3ec0853`, with GitLab Pipeline #20 passed and `main == gitlab/main == origin/main` verified before this final handoff correction.
 
-**Scope completed**
+**Scope**
 
-- Verified that Ollama was already installed at `C:\Users\User\AppData\Local\Programs\Ollama\ollama.exe`; CLI version was `0.34.4`.
-- Recorded running-process state, current-user Startup-folder reference, local listener/API availability, effective relevant environment-variable presence, and existing local model inventory through read-only inspection.
-- Captured local metadata for the five initial model tags before a state-changing model operation.
-- Removed only the explicitly approved redundant tag, `deepseek-r1:32b`, using `ollama rm deepseek-r1:32b`.
-- Validated that `deepseek-r1:32b-stable` remains available and that `deepseek-r1:32b` is absent.
-- Recorded the approved final retained set: `qwen2.5-coder:32b`, `deepseek-r1:32b-stable`, `qwen3.5:9b`, and `qwen3:32b`.
+- Create a private CA and issue server/client certificates only in approved host-local secret locations.
+- Prepare Caddy mTLS configuration without committing private keys, certificate contents, passwords, or tokens.
+- Verify certificate/key permissions and local configuration with sanitized output.
+- Record factual results and the verified procedure only after execution.
 
 **Explicitly out of scope**
 
-- P00-006 through P00-009: Ollama loopback binding, port changes, reverse proxy, firewall controls, LAN exposure, mTLS, bearer authorization, and Kali-to-Windows connectivity testing.
-- Windows firewall, `OLLAMA_*` environment-variable, startup/service, listener, proxy, certificate, credential, token, API-key, or remote-model-endpoint changes.
-- Project source/configuration changes, Docker Compose startup, P00-012 installation, raw evidence, private signing keys, and `apt autoremove`.
+- Bearer-token authorization, which belongs to P00-008.
+- Kali-to-Windows authenticated inference, which belongs to P00-009.
+- Docker/Open WebUI startup or reconfiguration.
+- Windows Firewall changes, internet exposure, and any direct Ollama LAN listener.
+- Committing CA keys, server/client private keys, passwords, tokens, certificate contents, or raw secret-bearing output.
 
-**Expected tracked files for closeout**
+**Expected tracked files**
 
 - `docs/CHECKLIST.md`
 - `docs/HANDOFF.md`
+- `docs/RUNBOOK.md`
+- Approved non-secret configuration references only, if a repository configuration reference becomes necessary.
 
-`docs/.backup/` remains untracked local recovery material and must not be staged or committed. `docs/RUNBOOK.md` is not changed in this correction-limited closeout.
+Private certificate material remains host-local and outside Git. `docs/.backup/` remains untracked local recovery material and must not be staged or committed.
 
-**Acceptance criteria reconciliation**
+**Acceptance criteria**
 
-- [x] Ollama installed state and version factually established on the authorized Windows host.
-- [x] Existing local model tags and factual metadata recorded.
-- [x] No installation or model pull occurred before inspection output review.
-- [x] The final retained model set was explicitly approved; the only model-state change was deletion of the approved redundant `deepseek-r1:32b` tag, followed by validation.
-- [x] Documentation commit, GitLab CI success, GitHub post, and three-way SHA synchronization recorded: `afb049f37ad850f67c3dbc534a892b69634f5a1c`; GitLab Pipeline #18 passed; `main == gitlab/main == origin/main`.
+- [ ] A private CA, Windows proxy server certificate, and Kali client certificate exist only in approved host-local secret locations.
+- [ ] Caddy is configured to require a trusted client certificate without committing secret material.
+- [ ] Certificate/key permissions and local configuration validation are recorded without revealing private material.
+- [ ] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows inference remain deferred.
 
-**Validation evidence**
+**Validation approach**
 
-```powershell
-ollama --version
-ollama list
-ollama show deepseek-r1:32b
-ollama show qwen2.5-coder:32b
-ollama show deepseek-r1:32b-stable
-ollama show qwen3.5:9b
-ollama show qwen3:32b
-ollama rm deepseek-r1:32b
-ollama list
-ollama show deepseek-r1:32b-stable
-ollama show deepseek-r1:32b
-```
+Exact commands must be selected only after identifying the actual certificate tooling available on the authorized Windows and Kali hosts. Before any credential-generation action, inspect the installed toolchain and approved host-local storage locations. Do not document unexecuted commands as verified.
 
-Factual results: Ollama version `0.34.4` was already installed; the initial five-model inventory was inspected; removal returned `deleted 'deepseek-r1:32b'`; the final inventory contains four approved tags; retained `deepseek-r1:32b-stable` metadata rendered successfully; removed `deepseek-r1:32b` returned `Error: model 'deepseek-r1:32b' not found`.
+**Dependencies**
+
+- P00-006 loopback/private-interface proxy separation is complete and verified.
+- The authorized Windows inference host and Kali VM remain available.
+- Certificate tooling and safe host-local secret-storage locations must be identified before generation.
 
 **Security constraints**
 
-- Do not expose Ollama directly to the LAN in P00-005.
-- Do not reveal, request, store, or commit passwords, tokens, API keys, certificates, private keys, seed phrases, wallet material, raw evidence, or unredacted compliance data.
-- Do not stage `docs/.backup/`, model files, Windows-local runtime state, or `node_modules/`.
+- Never paste, print, store, or commit CA private keys, server/client private keys, passwords, tokens, certificate contents, or secret-bearing command output.
+- Do not remove the P00-006 binding separation: Ollama remains loopback-only and Caddy remains the sole private-interface listener.
+- Do not begin bearer authorization or Kali-to-Windows authenticated inference validation in P00-007.
 - Do not use force-push.
 
 ## Immediate next task
@@ -185,12 +178,13 @@ Exact commands must be established from the actual certificate tool available on
 
 ## Subsequent task queue
 
-1. `P00-006` — Bind Ollama to loopback/non-default local port and configure a reverse proxy on the private interface at port 11434.
-2. `P00-007` to `P00-009` — Generate mTLS credentials, require bearer authorization at the reverse proxy, and verify authenticated Kali-to-Windows connectivity.
-3. `P00-010` — Create the private GitLab project / remote; define GitLab CI/CD as the implementation source of truth.
-4. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
-5. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
-6. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P00-007` — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS.
+2. `P00-008` — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN.
+3. `P00-009` — Verify Kali can make an authenticated mTLS request to the Windows Ollama proxy.
+4. `P00-010` — Create the private GitLab project / remote; define GitLab CI/CD as the implementation source of truth.
+5. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
+6. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
+7. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 
