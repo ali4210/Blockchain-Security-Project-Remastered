@@ -33,7 +33,8 @@
 - Files changed: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Host-local PKI and Caddy configuration remain outside Git.
 - Documentation/evidence commit: `3eb7d51225622833d7813d64bb9dd343ad8e3f62`; GitLab Pipeline #23 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == 3eb7d51225622833d7813d64bb9dd343ad8e3f62`.
 - Security boundary: no private key, certificate body, password, token, or other secret-bearing output is recorded in tracked documentation. The CA private key is not referenced by Caddy.
-- Limitation: Caddy reported that `trusted_ca_cert_file` is deprecated and the Caddyfile is not formatted; neither warning prevented static validation. Any syntax migration or formatting-only change is deferred to separate review.
+- Post-verification maintenance: the Windows-local Caddyfile was migrated from deprecated `trusted_ca_cert_file` to `trust_pool file`, formatted, and validated with exit code `0`; a timestamped host-local backup matched the live Caddyfile SHA-256. Caddy and Ollama remained stopped with no listeners on ports `11434` or `11435`.
+- Documentation maintenance status: local documentation update is pending commit, GitLab CI, GitHub post, and fresh three-way synchronization verification. The Caddyfile remains user-readable locally, so P00-008 must not store a plaintext bearer token in it.
 
 ## Project purpose
 

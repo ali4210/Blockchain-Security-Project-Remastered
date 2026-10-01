@@ -664,7 +664,7 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 Valid configuration
 ```
 
-A warning that the legacy trusted-CA-file field is deprecated or that the Caddyfile is not formatted does not invalidate a successful static validation. Treat any trust-pool syntax migration or formatting-only change as a separately reviewed maintenance change followed by validation.
+The legacy trusted-CA-file deprecation and formatting warnings were subsequently addressed through an approved host-local maintenance step: the configuration now uses `trust_pool file`, is formatted, and final `caddy validate` returned `Valid configuration` with exit code `0`. A timestamped host-local backup was created and its SHA-256 matched the final Caddyfile. This maintenance did not start Caddy or Ollama, change listeners, perform a live mTLS handshake, or authorize bearer-token or cross-host inference testing. Treat any future Caddy syntax or formatting change as a separately reviewed maintenance change followed by validation.
 
 **Failure indicators and safe response:**
 

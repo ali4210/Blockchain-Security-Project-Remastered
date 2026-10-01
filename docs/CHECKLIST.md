@@ -383,10 +383,19 @@ For every `✅ Complete` item, record:
 - **GitHub post:** Posted to `origin/main`.
 - **Synchronization:** Verified: `main == gitlab/main == origin/main == 3eb7d51225622833d7813d64bb9dd343ad8e3f62`.
 - **Security checks:** No private key, certificate body, CSR body, password, token, bearer credential, or raw secret-bearing output was committed. PKI material remains in protected host-local storage. The CA private key is not referenced by Caddy. Repository scans found no common PKI artifact files. Temporary shared-folder certificate copies were removed before final validation.
-- **Dependencies / forward references:** P00-006 supplied the loopback backend and private-interface proxy separation. P00-008 remains required for bearer authorization. P00-009 remains required for live authenticated Kali-to-Windows mTLS verification. Caddy reported a non-blocking deprecation warning for `trusted_ca_cert_file`; migration to a newer trust-pool syntax is deferred to a separately reviewed maintenance change.
+- **Dependencies / forward references:** P00-006 supplied the loopback backend and private-interface proxy separation. P00-008 remains required for bearer authorization. P00-009 remains required for live authenticated Kali-to-Windows mTLS verification. The previously deferred Caddy trust-pool migration and formatting maintenance are recorded in the addendum below.
 - **Runbook impact:** Verified P00-007 host-local PKI and Caddy static-validation procedure is recorded in `docs/RUNBOOK.md`; it explicitly does not authorize service startup or live network testing.
 - **Coursework simulation / limitations:** Coursework/development configuration only; no production certificate lifecycle, revocation service, persistent Windows service, firewall validation, live mTLS handshake, bearer authorization, or inference request was performed.
 - **Next recommended task:** P00-008 — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN.
+
+#### P00-007 maintenance addendum — Caddy trust-pool migration and formatting
+
+- **Status:** ✅ Host-local maintenance validated; repository synchronization pending.
+- **Scope completed:** Replaced the deprecated Caddy `trusted_ca_cert_file` setting with `trust_pool file` in the host-local Caddyfile and applied Caddy formatting. Created a timestamped host-local backup of the resulting validated Caddyfile.
+- **Validation commands actually run:** Temporary candidate validation; `caddy fmt`; final `caddy validate --config <host-local-Caddyfile> --adapter caddyfile`; backup/live SHA-256 comparison; process/listener recheck.
+- **Factual results:** The temporary candidate and final formatted live configuration each returned `Valid configuration` with exit code `0`. The deprecated-trust-field and formatting warnings were absent after maintenance. The final Caddyfile and its timestamped backup had identical SHA-256 `22D8195FD727267B36EB7C6CEC16E660C09ABFC5A0C71A02C8E58F46C48312F7`. Caddy and Ollama were not started; no listeners on ports `11434` or `11435` were present.
+- **Security checks:** No secret, certificate/key body, token, password, firewall rule, service start, or cross-host request was created or exposed. The Caddyfile remains host-local and outside Git. Its local ACL permits ordinary users to read the file; it must not contain plaintext bearer secrets in P00-008.
+- **Git commit / CI / synchronization:** Pending for this documentation maintenance update. Historical P00-007 validation evidence remains recorded above.
 
 ### P00-008 to P00-015 — evidence entries
 
