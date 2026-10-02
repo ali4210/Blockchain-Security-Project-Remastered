@@ -536,7 +536,7 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 
 ## P00-012 — Kali DFIR tooling baseline
 
-**Status:** 🟧 Locally verified; documentation commit, GitLab CI, GitHub post, and final SHA synchronization pending.
+**Status:** ✅ Complete and verified on 2026-10-02. Documentation closeout commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` passed GitLab CI (green observed; pipeline identifier not captured), was posted to GitHub, and final verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`.
 
 **Purpose:** Establish a minimal, host-local Kali DFIR tooling baseline for later authorized coursework work without collecting, opening, analyzing, signing, or modifying forensic evidence.
 
@@ -570,7 +570,7 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 - Task: `P00-012`.
 - Evidence: sanitized Kali terminal output from the P00-012 implementation thread, including the reviewed Minisign transaction and safe validation.
 - This establishes local host-preparation only. Installation and version/help output do not constitute forensic analysis, tool suitability for a specific evidence format, chain-of-custody validation, or authorization to collect evidence.
-- Documentation closeout remains pending until the commit is validated in GitLab CI, posted to GitHub, and final fetched SHA synchronization is confirmed.
+- Documentation closeout completed in commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6`: GitLab CI passed with green status (pipeline identifier not captured), the commit was posted to GitHub, and final fetched verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`.
 
 ## P00-006 — Windows Ollama loopback backend and Caddy private-interface proxy
 
