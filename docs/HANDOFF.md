@@ -13,12 +13,12 @@
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
 | Current task | P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign |
-| Current thread | P00-011 is complete and verified at documentation closeout commit `e01d36a5de7a61bf4821b4895ecb35f149a1ba38`; this factual reconciliation commit is pending GitLab-first CI validation, GitHub post, and synchronization verification |
+| Current thread | P00-011 GitHub account/public-mirror policy is complete and verified; factual reconciliation commit `5b670d1b4b4d682155e5500928bcae1bac6a01eb` passed GitLab CI, was posted to GitHub, and was synchronized across local `main`, `gitlab/main`, and `origin/main`; P00-012 DFIR-tooling baseline discovery is next |
 | Current branch | `main` |
-| Last verified commit | `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` — P00-011 documentation closeout commit |
-| Last GitLab pipeline | Passed — pipeline identifier not captured for `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` |
-| Last GitHub post | Posted — `origin/main` resolved to `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == e01d36a5de7a61bf4821b4895ecb35f149a1ba38` |
+| Last verified commit | `5b670d1b4b4d682155e5500928bcae1bac6a01eb` — `docs(phase-00): reconcile P00-011 completion` |
+| Last GitLab pipeline | Passed — pipeline identifier not captured for `5b670d1b4b4d682155e5500928bcae1bac6a01eb` |
+| Last GitHub post | Posted — `origin/main` resolved to `5b670d1b4b4d682155e5500928bcae1bac6a01eb` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == 5b670d1b4b4d682155e5500928bcae1bac6a01eb` |
 | Last updated | 2026-10-02 |
 
 ## Completed since previous handoff
