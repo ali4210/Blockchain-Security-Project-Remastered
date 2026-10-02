@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-010 — Audit and document the existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure |
-| Current thread | P00-008/P00-009 complete, documented, GitLab-CI validated, pushed to GitHub, and synchronized |
+| Current task | P00-011 — GitHub account/public-mirror policy documentation closeout |
+| Current thread | P00-011 read-only audit is complete; factual documentation closeout, GitLab-first CI validation, GitHub post, and synchronization verification remain |
 | Current branch | `main` |
-| Last verified commit | `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` — `docs(phase-00): record P00-008 and P00-009 validation` |
-| Last GitLab pipeline | Passed — pipeline identifier not captured for `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
-| Last GitHub post | Posted — `origin/main` resolved to `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Last verified commit | `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` — `docs(runbook): reconcile P00-001 and P00-002 evidence` |
+| Last GitLab pipeline | Passed — GitLab pipeline result was reported for `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; P00-011 documentation-closeout pipeline is not yet run |
+| Last GitHub post | Posted — `origin/main` resolved to `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == b634e287f140b64ffac03d2b58f1f19aee7bc6d8` |
 | Runtime state | Temporary Caddy, verifier, and Ollama test processes stopped; temporary listeners released |
 | Last updated | 2026-10-02 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -128,7 +128,7 @@ resolve to the same full SHA.
 | P00-008 | Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN. | ✅ | Verified 2026-10-02: host-local bearer verifier enforced authorization before proxying; Ollama and verifier were loopback-only during the approved temporary test; valid mTLS without Bearer returned HTTP 401; no secret was committed or documented. |
 | P00-009 | Verify Kali can make an authenticated mTLS request to the Windows Ollama proxy. | ✅ | Verified 2026-10-02: Kali-to-Windows hostname/SNI-aligned mTLS request was rejected without a client certificate; with the approved client certificate and valid Bearer token, the verifier recorded allow. GET / returned HTTP 403 after authorization, so an authenticated GET /api/tags success response remains an optional functional follow-up. |
 | P00-010 | Audit and document the existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure. | ✅ | Verified 2026-10-02: read-only audit confirmed the existing GitLab remote and tracked CI smoke configuration; evidence commit `e735198dcf25d186d659313520976d342d973380` passed GitLab CI, was pushed to GitHub, and `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
-| P00-011 | Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring. | ⬜ | — |
+| P00-011 | Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring. | 🟧 | Read-only audit completed 2026-10-02 at `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`: GitLab is the private CI/CD source-of-truth remote; GitHub is a manually synchronized secondary remote; no repository-tracked GitHub automation or local mirror configuration was found. Documentation closeout / GitLab CI / GitHub post / final synchronization remain pending. |
 | P00-012 | Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. | ⬜ | — |
 | P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | ⬜ | — |
 | P00-014 | Prepare a dedicated evidence-vault directory/volume with separate service-account ownership; optionally document MinIO Object Lock. | ⬜ | — |
@@ -457,9 +457,24 @@ resolve to the same full SHA.
 - **Git commit / CI / synchronization:** Evidence commit `e735198dcf25d186d659313520976d342d973380` — `docs(phase-00): record GitLab CI source-of-truth audit` — passed GitLab CI, was pushed to `origin/main`, and was verified synchronized as `main == gitlab/main == origin/main == e735198dcf25d186d659313520976d342d973380`.
 - **Security checks:** No password, token, runner registration/authentication token, SSH private key, CI/CD variable value, credential-helper detail, or secret-bearing output was displayed or committed. `docs/.backup/` remains untracked local recovery material.
 - **Dependencies / limitations:** GitLab runner hardening, Docker isolation verification, no-privileged-mode enforcement, no-host-mount enforcement, Auto DevOps policy, and broader DevSecOps jobs remain deferred to their planned phases. No coursework simulation was newly introduced by this read-only audit.
-- **Next recommended task:** P00-011 — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
+- **Next recommended task at P00-010 closeout:** P00-011 — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring. The P00-011 read-only audit was completed on 2026-10-02; its documentation closeout is in progress.
 
-### P00-011 to P00-015 — evidence entries
+### P00-011 — GitHub account/public-mirror policy
+
+- **Status:** 🟧 Needs verification. The read-only audit is complete; the documentation closeout commit, GitLab CI validation, GitHub post, and final three-way synchronization verification remain pending.
+- **Scope completed:** Performed a read-only audit of GitHub remote metadata, current refs, tracked GitHub-related automation/policy files, local remote/mirror keys, GitHub reachability, branch state, releases, and tags. Established the intended policy: GitLab is the private CI/CD source of truth; GitHub is a manually synchronized secondary remote; automatic public mirroring is neither configured nor authorized.
+- **Scope not completed:** No GitHub account or repository setting, repository visibility, GitHub Action, webhook, secret, deploy key, personal access token, release, tag, branch-protection rule, remote, or mirror configuration was created, changed, or deleted. GitHub website-side visibility, secrets, webhooks, and repository/account settings were intentionally not inspected; their absence is not claimed.
+- **Files changed:** Intended closeout files: `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/RUNBOOK.md` is not required because no verified user-executable GitHub/public-release procedure changed.
+- **Validation commands:** `git remote -v`; `git remote get-url origin`; `git remote get-url --push origin`; `git remote get-url gitlab`; `git remote get-url --push gitlab`; `git fetch --prune gitlab`; `git fetch --prune origin`; `git rev-parse main`; `git rev-parse gitlab/main`; `git rev-parse origin/main`; `git ls-remote --heads origin main`; `git ls-files` for `.github/**` and policy files; tracked-reference `git grep`; `.github/workflows` presence check; restricted `git config --get-regexp` for remote/mirror and `branch.main` keys; and read-only GitHub account, branch, release, and tag metadata review.
+- **Factual results:** Audit date: 2026-10-02. Evidence SHA: `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`. GitLab fetch/push remote: `gitlab-soc:root/blockchain-security-project-remastered.git`. GitHub fetch/push remote: `git@github.com:ali4210/Blockchain-Security-Project-Remastered.git`. At audit time, `main`, `gitlab/main`, and `origin/main` all equaled the evidence SHA; GitHub advertised `refs/heads/main` at that SHA. No `.github/workflows/` directory was present. The tracked scan returned no GitHub Actions, webhook, mirror, release, Pages, deploy-key, or public-egress automation references. No local `remote.*.mirror`, remote push-URL override, or `branch.main.pushRemote` configuration was returned. GitHub metadata review observed only `main` at the evidence SHA, with no releases and no tags.
+- **Evidence path / CI job:** Sanitized P00-011 Kali terminal audit output and read-only GitHub metadata observations. Documentation closeout GitLab CI job is pending.
+- **Git commit:** Pending the P00-011 documentation-only closeout commit.
+- **Security checks:** No token, password, SSH private key, deploy key, webhook secret, GitHub Actions secret value, credential-helper detail, or browser/session data was displayed or committed. `docs/.backup/` remains untracked local recovery material.
+- **Dependencies / forward references:** GitLab remains the private CI/CD source-of-truth remote. GitHub remains a manually synchronized secondary remote. Any future public release or external egress remains human-in-the-loop and subject to the Phase 9 quarantine-egress gate.
+- **Coursework simulation / limitations:** This was a repository and remote read-only audit, not a complete GitHub account-security assessment. It does not establish GitHub repository visibility or the absence of GitHub website-side secrets, webhooks, or repository/account settings.
+- **Next recommended task:** After this documentation-only closeout passes GitLab CI, is posted unchanged to GitHub, and three-way synchronization is verified, begin P00-012.
+
+### P00-012 to P00-015 — evidence entries
 
 > Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
 

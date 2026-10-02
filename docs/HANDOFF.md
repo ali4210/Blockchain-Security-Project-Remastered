@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-011 — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring |
-| Current thread | P00-010 audit evidence commit is GitLab-CI validated, posted to GitHub, and synchronized; P00-011 read-only policy preparation is next |
+| Current task | P00-011 — GitHub account/public-mirror policy documentation closeout |
+| Current thread | P00-011 read-only audit is complete; factual documentation closeout, GitLab-first CI validation, GitHub post, and synchronization verification remain |
 | Current branch | `main` |
-| Last verified commit | `e735198dcf25d186d659313520976d342d973380` — `docs(phase-00): record GitLab CI source-of-truth audit` |
-| Last GitLab pipeline | Passed — pipeline identifier not captured for `e735198dcf25d186d659313520976d342d973380` |
-| Last GitHub post | Posted — `origin/main` resolved to `e735198dcf25d186d659313520976d342d973380` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == e735198dcf25d186d659313520976d342d973380` |
+| Last verified commit | `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` — `docs(runbook): reconcile P00-001 and P00-002 evidence` |
+| Last GitLab pipeline | Passed — GitLab pipeline result was reported for `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; P00-011 documentation-closeout pipeline is not yet run |
+| Last GitHub post | Posted — `origin/main` resolved to `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == b634e287f140b64ffac03d2b58f1f19aee7bc6d8` |
 | Last updated | 2026-10-02 |
 
 ## Completed since previous handoff
@@ -43,6 +43,15 @@
   - No GitLab project, remote, runner, token, CI/CD variable, visibility setting, branch protection, pipeline definition, or CI configuration was created, changed, or deleted. No secret-bearing value was exposed.
   - Evidence commit `e735198dcf25d186d659313520976d342d973380` — `docs(phase-00): record GitLab CI source-of-truth audit` — passed GitLab CI, was posted to GitHub, and final fetched verification proved `main == gitlab/main == origin/main == e735198dcf25d186d659313520976d342d973380`.
   - `docs/RUNBOOK.md` update was not required because no user-executable operational procedure changed. Pipeline identifier and job URL were not captured.
+
+- **P00-011 — GitHub account/public-mirror policy:** Read-only audit complete; documentation closeout and publication evidence remain pending.
+  - GitLab remote remains `gitlab-soc:root/blockchain-security-project-remastered.git`, the private CI/CD source of truth.
+  - GitHub remote remains `git@github.com:ali4210/Blockchain-Security-Project-Remastered.git`, a manually synchronized secondary remote.
+  - At audit time, `main == gitlab/main == origin/main == b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; GitHub advertised `refs/heads/main` at the same SHA.
+  - No `.github/workflows/` directory, tracked GitHub automation reference, or local mirror/push-routing override was found.
+  - Read-only GitHub metadata observed only unprotected `main`, with no releases and no tags.
+  - No automatic public mirroring was configured or authorized; no external infrastructure was changed.
+  - Limitation: GitHub repository visibility, website-side secrets, webhooks, and repository/account settings were intentionally not inspected or modified; their absence is not claimed.
 
 ## Project purpose
 
@@ -178,27 +187,28 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ## Immediate next task
 
-### P00-011 — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring
+### P00-011 — GitHub account/public-mirror policy documentation closeout
 
-**Scope:** Perform a read-only audit and document the intended GitHub account/public-mirror policy. Do not configure automatic public mirroring, repository visibility changes, GitHub Actions workflows, deploy keys, personal access tokens, webhooks, releases, public egress, or branch-protection changes unless a separately approved change scope is provided.
+**Scope:** Record the completed read-only GitHub/Git policy audit factually in `docs/CHECKLIST.md` and `docs/HANDOFF.md`, review the exact documentation diff, create a narrow documentation-only commit, validate it in GitLab CI, post the exact validated commit to GitHub, and prove final three-way SHA synchronization. Do not configure automatic public mirroring or change any external repository infrastructure.
 
-**Expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md`; update `docs/RUNBOOK.md` only if the audit establishes or changes a verified user-executable GitHub/public-release procedure.
+**Expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md` only. `docs/RUNBOOK.md` is not expected to change.
 
-**Acceptance criteria:** Existing GitHub remote/account relationship and intended public-mirror policy are verified from factual repository and remote evidence; GitLab remains the private CI/CD source of truth; GitHub remains secondary and no automatic public mirroring is configured; no credential, token, private key, or unredacted report is exposed.
+**Acceptance criteria:** The P00-011 policy and limitations are recorded accurately; GitLab is the private CI/CD source of truth; GitHub is a manually synchronized secondary remote; no automatic public mirroring is configured or authorized; no visibility claim is made; no uninspected GitHub website-side secret, webhook, or setting is claimed absent; the documentation commit is GitLab-CI validated, posted unchanged to GitHub, and synchronized across local `main`, `gitlab/main`, and `origin/main`.
 
-**Validation approach:** Use read-only Git repository inspection, remote metadata, committed configuration review, and factual GitHub remote/branch evidence. Do not create, delete, publish, reconfigure, or change external repository infrastructure during the audit.
+**Validation approach:** Review `git diff --check`, exact path-limited diff, policy wording search, and `git status --short`; then use GitLab-first publication, wait for its CI pass, use GitHub-second publication, fetch both remotes, and compare all three SHAs.
 
-**Dependencies:** P00-010 is complete and verified at `e735198dcf25d186d659313520976d342d973380`; Phase 0 remains active.
+**Dependencies:** P00-010 is complete and verified; P00-011 read-only audit evidence is recorded at `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; Phase 0 remains active.
 
-**Security constraints:** Do not expose tokens, passwords, SSH private keys, deploy keys, webhook secrets, GitHub Actions secrets, or host-specific credentials. Do not change GitHub repository visibility, remotes, Actions, webhooks, branch protection, releases, or mirroring without separate explicit approval. Do not use force-push.
+**Security constraints:** Do not expose or commit tokens, passwords, SSH private keys, deploy keys, webhook secrets, GitHub Actions secret values, credential-helper details, browser/session data, or host-specific credentials. Do not change repository visibility, remotes, Actions, webhooks, branch protection, releases, tags, or mirroring. Do not use force-push. Keep `docs/.backup/` untracked.
 
-**RUNBOOK.md impact:** Not expected for a read-only policy audit unless a verified operational GitHub/public-release procedure changes.
+**RUNBOOK.md impact:** Not required; no verified operating procedure changed.
 
 ## Subsequent task queue
 
-1. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
-2. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
-3. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P00-011` — Complete documentation-only closeout, GitLab-first CI validation, GitHub post, and three-way synchronization verification.
+2. `P00-012` — Install DFIR tooling.
+3. `P00-013` to `P00-015` — Acquisition decision, evidence-vault baseline, and operator signing-key setup.
+4. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 
