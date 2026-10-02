@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-011 — GitHub account/public-mirror policy documentation closeout |
-| Current thread | P00-011 read-only audit is complete; factual documentation closeout, GitLab-first CI validation, GitHub post, and synchronization verification remain |
+| Current task | P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign |
+| Current thread | P00-011 is complete and verified at documentation closeout commit `e01d36a5de7a61bf4821b4895ecb35f149a1ba38`; this factual reconciliation commit is pending GitLab-first CI validation, GitHub post, and synchronization verification |
 | Current branch | `main` |
-| Last verified commit | `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` — `docs(runbook): reconcile P00-001 and P00-002 evidence` |
-| Last GitLab pipeline | Passed — GitLab pipeline result was reported for `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; P00-011 documentation-closeout pipeline is not yet run |
-| Last GitHub post | Posted — `origin/main` resolved to `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == b634e287f140b64ffac03d2b58f1f19aee7bc6d8` |
+| Last verified commit | `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` — P00-011 documentation closeout commit |
+| Last GitLab pipeline | Passed — pipeline identifier not captured for `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` |
+| Last GitHub post | Posted — `origin/main` resolved to `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == e01d36a5de7a61bf4821b4895ecb35f149a1ba38` |
 | Last updated | 2026-10-02 |
 
 ## Completed since previous handoff
@@ -44,14 +44,14 @@
   - Evidence commit `e735198dcf25d186d659313520976d342d973380` — `docs(phase-00): record GitLab CI source-of-truth audit` — passed GitLab CI, was posted to GitHub, and final fetched verification proved `main == gitlab/main == origin/main == e735198dcf25d186d659313520976d342d973380`.
   - `docs/RUNBOOK.md` update was not required because no user-executable operational procedure changed. Pipeline identifier and job URL were not captured.
 
-- **P00-011 — GitHub account/public-mirror policy:** Read-only audit complete; documentation closeout and publication evidence remain pending.
-  - GitLab remote remains `gitlab-soc:root/blockchain-security-project-remastered.git`, the private CI/CD source of truth.
-  - GitHub remote remains `git@github.com:ali4210/Blockchain-Security-Project-Remastered.git`, a manually synchronized secondary remote.
-  - At audit time, `main == gitlab/main == origin/main == b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; GitHub advertised `refs/heads/main` at the same SHA.
-  - No `.github/workflows/` directory, tracked GitHub automation reference, or local mirror/push-routing override was found.
-  - Read-only GitHub metadata observed only unprotected `main`, with no releases and no tags.
+- **P00-011 — GitHub account/public-mirror policy:** ✅ Complete and verified.
+  - Read-only audit confirmed GitLab remote `gitlab-soc:root/blockchain-security-project-remastered.git` remains the private CI/CD source of truth and GitHub remote `git@github.com:ali4210/Blockchain-Security-Project-Remastered.git` remains a manually synchronized secondary remote.
+  - Audit evidence at `b634e287f140b64ffac03d2b58f1f19aee7bc6d8` confirmed `main == gitlab/main == origin/main`; GitHub advertised `refs/heads/main` at the same SHA.
+  - No `.github/workflows/` directory, tracked GitHub automation reference, or local mirror/push-routing override was found. Read-only GitHub metadata observed only `main`, with no releases and no tags.
   - No automatic public mirroring was configured or authorized; no external infrastructure was changed.
+  - Documentation closeout commit `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` passed GitLab CI, was posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e01d36a5de7a61bf4821b4895ecb35f149a1ba38`.
   - Limitation: GitHub repository visibility, website-side secrets, webhooks, and repository/account settings were intentionally not inspected or modified; their absence is not claimed.
+  - `docs/RUNBOOK.md` was not updated because no verified user-executable operational procedure changed.
 
 ## Project purpose
 
@@ -187,28 +187,29 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ## Immediate next task
 
-### P00-011 — GitHub account/public-mirror policy documentation closeout
+### P00-012 — Install DFIR tooling
 
-**Scope:** Record the completed read-only GitHub/Git policy audit factually in `docs/CHECKLIST.md` and `docs/HANDOFF.md`, review the exact documentation diff, create a narrow documentation-only commit, validate it in GitLab CI, post the exact validated commit to GitHub, and prove final three-way SHA synchronization. Do not configure automatic public mirroring or change any external repository infrastructure.
+**Scope:** Perform read-only baseline discovery, then install and validate the required Kali DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. Record only tools actually installed and validated. Keep acquisition, live-memory capture, forensic evidence handling, evidence-vault creation, operator signing-key generation, packet capture, live network analysis, and production use out of scope.
 
-**Expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md` only. `docs/RUNBOOK.md` is not expected to change.
+**Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md` only if a verified installation/validation procedure is established. Package-manager state is host-local and not a repository artifact.
 
-**Acceptance criteria:** The P00-011 policy and limitations are recorded accurately; GitLab is the private CI/CD source of truth; GitHub is a manually synchronized secondary remote; no automatic public mirroring is configured or authorized; no visibility claim is made; no uninspected GitHub website-side secret, webhook, or setting is claimed absent; the documentation commit is GitLab-CI validated, posted unchanged to GitHub, and synchronized across local `main`, `gitlab/main`, and `origin/main`.
+**Acceptance criteria:** Each required non-optional tool is either installed and version/help validated or recorded with a factual package/compatibility blocker; optional Autopsy and Zeek are installed only after explicit package-transaction review or documented as intentionally deferred. No forensic acquisition, raw evidence, packet capture, private key, signing-key generation, or sensitive data is created, exposed, or committed. Documentation is reconciled with actual commands and results, then committed, GitLab-CI validated, posted to GitHub, and synchronized.
 
-**Validation approach:** Review `git diff --check`, exact path-limited diff, policy wording search, and `git status --short`; then use GitLab-first publication, wait for its CI pass, use GitHub-second publication, fetch both remotes, and compare all three SHAs.
+**Validation approach:** Start with package/tool availability and APT policy inspection; review the exact proposed package transaction before accepting installation; validate installed tools with safe version/help commands only; inspect `git status` before and after; run documentation and Git review gates before commit.
 
-**Dependencies:** P00-010 is complete and verified; P00-011 read-only audit evidence is recorded at `b634e287f140b64ffac03d2b58f1f19aee7bc6d8`; Phase 0 remains active.
+**Dependencies:** P00-011 is complete and verified at `e01d36a5de7a61bf4821b4895ecb35f149a1ba38`. Phase 0 remains active and incomplete.
 
-**Security constraints:** Do not expose or commit tokens, passwords, SSH private keys, deploy keys, webhook secrets, GitHub Actions secret values, credential-helper details, browser/session data, or host-specific credentials. Do not change repository visibility, remotes, Actions, webhooks, branch protection, releases, tags, or mirroring. Do not use force-push. Keep `docs/.backup/` untracked.
+**Security constraints:** Do not acquire memory, disks, packets, or live evidence. Do not create a signing key, import private keys, access real case material, use privileged capture, start packet capture, or expose credentials. Do not run `apt autoremove`. Do not change Git remotes, GitHub settings, or GitLab CI. Keep `docs/.backup/` untracked.
 
-**RUNBOOK.md impact:** Not required; no verified operating procedure changed.
+**RUNBOOK.md impact:** Expected only if actual installation/validation commands are successfully executed and should be reusable by a future operator; otherwise record no Runbook update.
 
 ## Subsequent task queue
 
-1. `P00-011` — Complete documentation-only closeout, GitLab-first CI validation, GitHub post, and three-way synchronization verification.
-2. `P00-012` — Install DFIR tooling.
-3. `P00-013` to `P00-015` — Acquisition decision, evidence-vault baseline, and operator signing-key setup.
-4. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P00-012` — Install and validate DFIR tooling.
+2. `P00-013` — Select and test a memory-acquisition method on a throwaway VM.
+3. `P00-014` — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership.
+4. `P00-015` — Create an operator signing key for evidence-manifest signing; keep private material outside Git.
+5. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 
