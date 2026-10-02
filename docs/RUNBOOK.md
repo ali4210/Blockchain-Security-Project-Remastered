@@ -635,6 +635,14 @@ Kali client
 - Do not make the temporary runtime persistent, alter firewall policy, or expose Ollama/verifier directly to the LAN.
 - If an application-level success response is required, use one separately approved temporary `GET /api/tags` request through the same protected path and perform cleanup immediately afterward.
 
+**Evidence and provenance:**
+
+- Tasks: P00-008 and P00-009.
+- Sanitized evidence: Windows and Kali terminal validation output; no token, certificate body, or private-key material is recorded here.
+- Documentation closeout: `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` — `docs(phase-00): record P00-008 and P00-009 validation`.
+- Publication state: GitLab CI passed, the same commit was posted to GitHub, and `main == gitlab/main == origin/main == e9c788688ae2cd18187eb5710d22837e0aaf3d9f`.
+- Runtime state after validation: temporary Caddy, verifier, and Ollama processes stopped; temporary listeners released.
+
 ## P00-007 — Private PKI and Caddy mTLS static validation
 
 **Status:** ✅ Verified

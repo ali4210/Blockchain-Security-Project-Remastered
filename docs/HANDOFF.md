@@ -12,14 +12,14 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | Documentation closeout after P00-008 bearer enforcement and P00-009 authenticated transport-path validation |
-| Current thread | P00-008 and P00-009 temporary validation complete; documentation closeout and dual-remote synchronization remain |
+| Current task | P00-010 — Audit and document the existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure |
+| Current thread | P00-008/P00-009 completion evidence is committed and synchronized; P00-010 read-only audit is next |
 | Current branch | `main` |
-| Last verified commit | `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` — `docs(phase-00): finalize P00-007 verification status` |
-| Last GitLab pipeline | Passed — Pipeline #24 for `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` |
-| Last GitHub post | Verified — `origin/main` resolved to `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` |
-| Synchronization | Verified — `main`, `gitlab/main`, and `origin/main` all resolved to `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` |
-| Last updated | 2026-10-01 |
+| Last verified commit | `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` — `docs(phase-00): record P00-008 and P00-009 validation` |
+| Last GitLab pipeline | Passed — pipeline identifier not captured for `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Last GitHub post | Posted — `origin/main` resolved to `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Last updated | 2026-10-02 |
 
 ## Completed since previous handoff
 
@@ -74,6 +74,14 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - Caddy mTLS configuration requires and verifies a client certificate against the private CA, uses the private-CA-issued server certificate/key, and forwards only to the loopback backend.
   - Static Caddy validation returned `Valid configuration`; no Caddy/Ollama service start, listener, live mTLS request, bearer authorization, or cross-host inference occurred.
   - Documentation/evidence commit `3eb7d51225622833d7813d64bb9dd343ad8e3f62` passed GitLab Pipeline #23; final-status commit `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` passed GitLab Pipeline #24; both commits were posted to GitHub and final synchronization verified `main == gitlab/main == origin/main == 44c50e1cdd840aa2920dd55ef5fe9eebedd82966`.
+- **P00-008 — Bearer authorization and backend/verifier isolation:** ✅ Complete and verified.
+  - During the approved temporary test, the bearer verifier listened only on `127.0.0.1:11436`, Ollama listened only on `127.0.0.1:11435`, and direct Kali access to either backend port timed out.
+  - Valid mTLS without a Bearer credential returned HTTP `401`; no secret value was committed or documented.
+- **P00-009 — Authenticated Kali-to-Windows mTLS/Bearer transport-path validation:** ✅ Complete and verified.
+  - No client certificate was rejected during the TLS handshake; valid mTLS with the configured Bearer credential caused the verifier to record an allow decision.
+  - The root route returned HTTP `403` after authorization, recorded as a route/backend response rather than token rejection; an authenticated `/api/tags` response remains an optional separately approved functional follow-up.
+  - P00-008/P00-009 documentation commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` passed GitLab CI, was posted to GitHub, and was verified synchronized across `main`, `gitlab/main`, and `origin/main`.
+  - Temporary Caddy, verifier, and Ollama test processes were stopped and their temporary listeners released.
 - Phase 0 remains active and its completion gate is not ready.
 
 ## Architecture invariants — must not be violated
@@ -151,40 +159,39 @@ Exact commands must be selected only after identifying the actual certificate to
 - Do not begin bearer authorization or Kali-to-Windows authenticated inference validation in P00-007.
 - Do not use force-push.
 
-## Immediate next task
-
-### P00-008/P00-009 completion addendum — 2026-10-02
+## P00-008/P00-009 completion addendum — 2026-10-02
 
 - **Validated enforcement:** Caddy configuration validation passed with strict SNI/Host enforcement enabled for mandatory TLS client authentication. The server certificate was reissued under the existing private CA with `DNS:ollama-mtls.home.arpa` and `IP:192.168.0.189` SANs, and its key match and CA chain were verified.
 - **Validated isolation:** During the approved temporary test, Ollama listened only on `127.0.0.1:11435` and the forward-auth verifier only on `127.0.0.1:11436`. Kali reached the Caddy gateway but direct Kali connections to ports `11435` and `11436` timed out.
 - **Validated request path:** No client certificate caused a TLS certificate-required alert with no HTTP response. Valid mTLS without Bearer returned HTTP `401`. Valid mTLS with the configured Bearer caused the verifier to record `decision=allow`; the subsequent `GET /` response was HTTP `403`, recorded as a route/backend response after authorization rather than a credential failure.
 - **Runtime status:** Temporary Caddy, verifier, and Ollama processes were stopped after testing; the test ports were confirmed released. The token was not documented or committed, and the temporary Windows clipboard transfer was overwritten and verification-confirmed.
+- **Documentation closeout:** Commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` recorded the P00-008/P00-009 validation, passed GitLab CI, was posted to GitHub, and was verified synchronized across `main`, `gitlab/main`, and `origin/main`.
 - **Optional follow-up:** If application-level API success evidence is later required, perform one separately approved temporary `GET /api/tags` request through the same mTLS and Bearer path, then repeat cleanup. This is not required to establish the documented P00-008/P00-009 access-control result.
 
-### P00-008 — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN
+## Immediate next task
 
-**Historical scope:** Add reverse-proxy bearer-token authorization without changing the approved loopback/backend separation and preserve the Caddy mTLS configuration established in P00-007. Cross-host validation was intentionally deferred from P00-008 and subsequently performed as the approved P00-009 validation documented in the completion addendum above.
+### P00-010 — Audit existing private GitLab remote and GitLab CI/CD source-of-truth policy
 
-**Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md` if a user-executable authorization procedure is tested and verified. Bearer-token values, PKI material, and host-local Caddy configuration remain outside Git.
+**Scope:** Perform a read-only audit of the existing private GitLab remote, repository policy, CI/CD configuration, and GitLab-first workflow. Do not create a duplicate GitLab project, remote, runner, token, or pipeline unless the audit identifies a documented missing prerequisite and a separately approved change scope is provided.
 
-**Acceptance criteria:** A bearer token is required by Caddy before proxying; the token is stored only in approved host-local secret storage; Ollama remains reachable only at `127.0.0.1:11435`; Caddy remains the sole intended private-interface entry point; no token is printed, committed, or documented.
+**Expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md`; update `docs/RUNBOOK.md` only if the audit establishes or changes a verified user-executable GitLab/CI procedure.
 
-**Historical validation boundary:** Select commands only after inspecting the installed Caddy version and current host-local configuration, and record only sanitized factual command results. Kali-to-Windows validation was deferred from P00-008 and completed under the approved P00-009 evidence record.
+**Acceptance criteria:** The existing GitLab remote and intended CI/CD source-of-truth policy are verified from factual repository and CI evidence; the GitLab-first/GitHub-second synchronization policy is accurately documented; no secret, runner token, SSH private key, or credential is exposed.
 
-**Dependencies:** P00-007 is complete and verified; documentation/evidence commit `3eb7d51225622833d7813d64bb9dd343ad8e3f62` passed GitLab Pipeline #23; final-status commit `44c50e1cdd840aa2920dd55ef5fe9eebedd82966` passed GitLab Pipeline #24; `main == gitlab/main == origin/main == 44c50e1cdd840aa2920dd55ef5fe9eebedd82966`. P00-006 loopback/backend separation remains mandatory.
+**Validation approach:** Use read-only repository inspection, Git remote metadata, committed CI configuration review, and factual GitLab CI evidence. Do not create, delete, or reconfigure remote infrastructure during the audit.
 
-**Security constraints:** Do not expose bearer tokens, private keys, certificate material, passwords, or raw secret-bearing output. Do not start Docker/Open WebUI, change Windows Firewall policy, or expose Ollama on the LAN. The approved P00-009 authenticated cross-host validation was completed temporarily and cleaned up; do not repeat it without a new approved scope. Do not use force-push.
+**Dependencies:** P00-008/P00-009 documentation closeout is complete at `e9c788688ae2cd18187eb5710d22837e0aaf3d9f`; temporary Windows test services are stopped; Phase 0 remains active.
 
-**RUNBOOK.md impact:** Expected if and only if the bearer-token configuration and its safe local validation procedure are factually executed.
+**Security constraints:** Do not expose tokens, passwords, SSH private keys, runner registration tokens, or host-specific credentials. Do not change Git remotes, project visibility, CI variables, runner configuration, or pipeline definitions without a separate explicit approval. Do not use force-push.
+
+**RUNBOOK.md impact:** Not expected for a read-only audit unless verified operational GitLab/CI procedure changes are identified.
 
 ## Subsequent task queue
 
-1. `P00-008` — Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN.
-2. `P00-009` — Verify Kali can make an authenticated mTLS request to the Windows Ollama proxy.
-3. `P00-010` — Create the private GitLab project / remote; define GitLab CI/CD as the implementation source of truth.
-4. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
-5. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
-6. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P00-010` — Audit existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure.
+2. `P00-011` — Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring.
+3. `P00-012` to `P00-015` — DFIR tooling, acquisition decision, evidence vault baseline, and operator signing-key setup.
+4. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 

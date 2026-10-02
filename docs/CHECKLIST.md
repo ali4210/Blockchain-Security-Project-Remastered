@@ -50,11 +50,15 @@ For every `✅ Complete` item, record:
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-005 — Install Ollama on Windows and record the approved local model set |
+| Current task | P00-010 — Audit and document the existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure |
+| Current thread | P00-008/P00-009 complete, documented, GitLab-CI validated, pushed to GitHub, and synchronized |
 | Current branch | `main` |
-| Last verified commit | `a909fbe571833f95eb39d6d9ca39e484e39cd838` — `docs(phase-00): correct next task to P00-005` |
-| Last GitLab pipeline | Passed — Pipeline #17 for `a909fbe571833f95eb39d6d9ca39e484e39cd838` |
-| Last updated | 2026-09-30 |
+| Last verified commit | `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` — `docs(phase-00): record P00-008 and P00-009 validation` |
+| Last GitLab pipeline | Passed — pipeline identifier not captured for `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Last GitHub post | Posted — `origin/main` resolved to `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == e9c788688ae2cd18187eb5710d22837e0aaf3d9f` |
+| Runtime state | Temporary Caddy, verifier, and Ollama test processes stopped; temporary listeners released |
+| Last updated | 2026-10-02 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
 
 ---
@@ -97,7 +101,7 @@ For every `✅ Complete` item, record:
 | P00-007 | Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS. | ✅ | Verified 2026-10-01: private CA, Windows server certificate, and Kali client certificate created only in host-local protected storage; certificate chain/purpose and key/certificate matching checks passed; Caddy mTLS static validation passed without starting Caddy or Ollama; documentation commit `3eb7d51225622833d7813d64bb9dd343ad8e3f62`; GitLab Pipeline #23 passed; `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-008 | Require a bearer token at the reverse proxy and ensure Ollama itself is not directly exposed on the LAN. | ✅ | Verified 2026-10-02: host-local bearer verifier enforced authorization before proxying; Ollama and verifier were loopback-only during the approved temporary test; valid mTLS without Bearer returned HTTP 401; no secret was committed or documented. |
 | P00-009 | Verify Kali can make an authenticated mTLS request to the Windows Ollama proxy. | ✅ | Verified 2026-10-02: Kali-to-Windows hostname/SNI-aligned mTLS request was rejected without a client certificate; with the approved client certificate and valid Bearer token, the verifier recorded allow. GET / returned HTTP 403 after authorization, so an authenticated GET /api/tags success response remains an optional functional follow-up. |
-| P00-010 | Create the private GitLab project / remote; define GitLab CI/CD as the implementation source of truth. | ⬜ | — |
+| P00-010 | Audit and document the existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure. | ⬜ | — |
 | P00-011 | Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring. | ⬜ | — |
 | P00-012 | Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. | ⬜ | — |
 | P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | ⬜ | — |
