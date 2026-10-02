@@ -173,11 +173,13 @@ cat /etc/os-release
 - Task: `P00-001`.
 - Evidence: sanitized Kali terminal output for package update, package health,
   reboot check, and OS/kernel baseline.
-- Prior evidence record commit:
+- Documentation/evidence commit:
   `6e6d9baf744495039e0271a19f170cf40b29a639`.
-- This runbook entry is a documentation backfill. Its own commit, GitLab CI
-  result where applicable, GitHub post, and three-way SHA synchronization must
-  be verified before the runbook update is considered synchronized.
+- GitLab documentation pipeline was reported as succeeded; pipeline identifier
+  and job URL were not captured.
+- The same commit was posted to GitHub and synchronization was verified:
+  `main == gitlab/main == origin/main ==
+  6e6d9baf744495039e0271a19f170cf40b29a639`.
 
 **Evidence to record**
 
@@ -188,7 +190,7 @@ cat /etc/os-release
 
 ### P00-002 — Core Kali development prerequisites
 
-**Status:** 🟧 Implemented but needs verification
+**Status:** ✅ Verified
 
 **Purpose**
 
@@ -299,8 +301,14 @@ Stop and preserve sanitized output. Do not run `apt autoremove`, reinstall unrel
 
 - Task: `P00-002`.
 - Evidence: sanitized Kali terminal output in the P00-002 implementation thread.
-- Documentation commit, GitLab CI evidence, GitHub post, and three-way SHA synchronization: pending at the time of this entry.
-- Coursework limitation: local development environment validation only; this does not establish production container or CI-runner hardening.
+- Documentation/evidence commit:
+  `bd7d284c50debf43330504721dea77bb8252d804`.
+- GitLab Pipeline #12 passed; the same commit was posted to GitHub and
+  synchronization was verified:
+  `main == gitlab/main == origin/main ==
+  bd7d284c50debf43330504721dea77bb8252d804`.
+- Coursework limitation: local development environment validation only; this
+  does not establish production container or CI-runner hardening.
 
 ### P00-003 — Foundry and Hardhat prerequisites
 
@@ -872,4 +880,4 @@ Before marking any runbook procedure as verified:
 
 | Date | Change | Verification | Commit |
 |---|---|---|---|
-| 2026-09-28 | Added verified P00-001 Kali update and baseline-verification procedure | Commands and observed results recorded from sanitized terminal evidence; synchronization evidence is documented in the P00-001 project ledger | Pending governance documentation commit |
+| 2026-09-28 | Added verified P00-001 Kali update and baseline-verification procedure | Commands and observed results recorded from sanitized terminal evidence; GitLab pipeline reported succeeded; GitHub post and three-way synchronization verified | `6e6d9baf744495039e0271a19f170cf40b29a639` |
