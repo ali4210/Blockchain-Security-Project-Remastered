@@ -34,7 +34,7 @@
 - Documentation/evidence commit: `3eb7d51225622833d7813d64bb9dd343ad8e3f62`; GitLab Pipeline #23 passed; the same commit was posted to GitHub; `main == gitlab/main == origin/main == 3eb7d51225622833d7813d64bb9dd343ad8e3f62`.
 - Security boundary: no private key, certificate body, password, token, or other secret-bearing output is recorded in tracked documentation. The CA private key is not referenced by Caddy.
 - Post-verification maintenance: the Windows-local Caddyfile was migrated from deprecated `trusted_ca_cert_file` to `trust_pool file`, formatted, and validated with exit code `0`; a timestamped host-local backup matched the live Caddyfile SHA-256. Caddy and Ollama remained stopped with no listeners on ports `11434` or `11435`.
-- Documentation maintenance status: local documentation update is pending commit, GitLab CI, GitHub post, and fresh three-way synchronization verification. The Caddyfile remains user-readable locally, so P00-008 must not store a plaintext bearer token in it.
+- Historical documentation-maintenance note: the P00-007 trust-pool formatting change was validated before later P00-008/P00-009 work. P00-008/P00-009 evidence was subsequently recorded in commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f`, which passed GitLab CI, was posted to GitHub, and was verified synchronized. The host-local Caddyfile remains user-readable, so it must not contain a plaintext Bearer token.
 
 ## Project purpose
 
@@ -99,7 +99,7 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
 11. **Zone 9 report:** summary/redacted data only. Never include sealed evidence, private keys, key shares, or unredacted compliance content.
 12. **Authorized testing only:** exploit PoCs, forks, network tests, and monitoring drills must remain limited to fixtures, testnets, local Anvil forks, and systems you own or are explicitly authorized to test.
 
-## Current task details
+## Completed task record — P00-007
 
 ### P00-007 — Generate private CA, server certificate, and client certificate for Kali-to-Windows mTLS
 
@@ -137,10 +137,10 @@ Private certificate material remains host-local and outside Git. `docs/.backup/`
 
 **Acceptance criteria**
 
-- [ ] A private CA, Windows proxy server certificate, and Kali client certificate exist only in approved host-local secret locations.
-- [ ] Caddy is configured to require a trusted client certificate without committing secret material.
-- [ ] Certificate/key permissions and local configuration validation are recorded without revealing private material.
-- [x] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows transport-path validation were completed on 2026-10-02; see the completion addendum above. A successful authenticated Ollama API response remains an optional separately approved functional follow-up.
+- [x] A private CA, Windows proxy server certificate, and Kali client certificate exist only in approved host-local secret locations.
+- [x] Caddy is configured to require a trusted client certificate without committing secret material.
+- [x] Certificate/key permissions and local configuration validation are recorded without revealing private material.
+- [x] P00-008 bearer authorization and P00-009 authenticated Kali-to-Windows transport-path validation were completed on 2026-10-02; see the completion addendum below. A successful authenticated Ollama API response remains an optional separately approved functional follow-up.
 
 **Validation approach**
 
