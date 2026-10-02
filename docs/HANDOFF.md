@@ -210,8 +210,23 @@ Exact commands must be selected only after identifying the actual certificate to
 3. Implement on the Kali VM; do not treat proposed code as completed until you run validation.
 4. Update `docs/CHECKLIST.md` with real outcomes, evidence path, limitations, and commit ID.
 5. Update this `docs/HANDOFF.md` with current phase/task, completed work, blockers, and next task.
-6. Commit implementation plus documentation together.
-7. Open the next thread using the updated two files.
+6. Reconcile documentation before staging: inspect every applicable CHECKLIST tracker row, detailed task record, acceptance checkbox, HANDOFF current-position/current-task field, historical-task heading, next-task reference, and applicable RUNBOOK status. Do not mark work `✅ Complete and verified` while required criteria remain unchecked or stale `current`, `pending`, `not run`, or pre-completion wording remains.
+7. Run `git diff --check`, inspect the exact changed-file diff, perform a secret-safety review, and confirm that `docs/.backup/` remains untracked.
+8. Commit implementation plus documentation together.
+9. Open the next thread using the updated two files.
+
+## Documentation reconciliation rule
+
+
+Before every task-completion commit, the CHECKLIST tracker row, detailed task
+record, acceptance criteria, HANDOFF current position/current task/completed
+record, and applicable RUNBOOK procedure must describe the same factual state.
+Use `✅ Complete and verified` only after required work and validation are
+complete, documentation is reconciled, the commit has passed the GitLab-first
+and GitHub-second publication workflow, and three-way SHA synchronization is
+proved. Do not use completion, verification, pipeline, publication, or
+synchronization language prospectively.
+
 
 ## Required end-of-thread output
 

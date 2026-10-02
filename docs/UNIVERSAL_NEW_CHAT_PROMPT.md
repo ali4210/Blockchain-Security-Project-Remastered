@@ -162,6 +162,134 @@ Use only these task statuses:
 
 ---
 
+# Mandatory documentation reconciliation gate
+
+
+Documentation is a required task-completion control, not a final editorial
+cleanup step. Before staging any task-completion, implementation, runbook, or
+documentation-update commit, reconcile every applicable status surface across
+the tracked project documents.
+
+
+## State-model definitions
+
+
+Use these terms only with the meanings below:
+
+
+| Term | Permitted only when |
+|---|---|
+| `✅ Complete` | The approved in-scope task work is finished. |
+| `✅ Verified` | Required acceptance checks were actually run successfully and factual results are recorded. |
+| `Passed` | A named command, test, scanner, CI job, or pipeline returned success. Name the evidence. |
+| `Committed` | A local Git commit exists. Record its SHA only after the commit succeeds. |
+| `Published to GitLab` | The exact local commit was successfully pushed to the existing GitLab remote. |
+| `GitLab CI passed` | GitLab reports successful CI/pipeline evidence for the exact published commit. |
+| `Published to GitHub` | The same GitLab-gated commit was successfully pushed to `origin/main`. |
+| `Synchronized` | After fetching both remotes, `main`, `gitlab/main`, and `origin/main` resolve to the same full SHA. |
+
+
+Do not use `✅`, `complete`, `verified`, `passed`, `green`, `committed`,
+`published`, or `synchronized` prospectively. Never present an expected commit,
+pipeline outcome, remote push, or SHA equality as though it has already
+occurred.
+
+
+## Required reconciliation inventory
+
+
+For the active task and any immediately preceding task whose status is edited,
+inspect and reconcile every applicable surface:
+
+
+- `docs/CHECKLIST.md`
+  - Phase dashboard/tracker row.
+  - Detailed task status.
+  - Every acceptance-criteria checkbox.
+  - Evidence, limitations, dependencies, and next-task wording.
+- `docs/HANDOFF.md`
+  - Current position table.
+  - Current thread text.
+  - Completed-since-previous-handoff record.
+  - Detailed task record.
+  - Immediate next task section and task queue.
+  - Earlier task sections that still say `Current`, `pending`, `next`,
+    `not run`, `not started`, or have stale unchecked criteria.
+- `docs/RUNBOOK.md`
+  - Applicable procedure status label.
+  - Only factual commands, outcomes, and limitations that were actually
+    verified.
+- Any task-specific tracked README, CI configuration, evidence index, or
+  operational record changed by the task.
+
+
+A task may be marked `✅ Complete and verified` only when all applicable
+required acceptance criteria are checked, the documentation surfaces agree with
+the factual evidence, the required Git/GitLab/GitHub publication conditions in
+this prompt have been met, and no unexplained stale state remains.
+
+
+## Required pre-stage reconciliation checks
+
+
+After updating the documents but before any `git add`, run:
+
+
+```bash
+git diff --check
+
+
+git diff --name-only
+
+
+git --no-pager diff --   docs/CHECKLIST.md   docs/HANDOFF.md   docs/RUNBOOK.md   docs/UNIVERSAL_NEW_CHAT_PROMPT.md
+
+
+grep -RInE   --include='CHECKLIST.md'   --include='HANDOFF.md'   --include='RUNBOOK.md'   --include='UNIVERSAL_NEW_CHAT_PROMPT.md'   '(P[0-9]{2}-[0-9]{3}|Current task|Current thread|Status:|✅|\[ \]|pending|not run|not started|next task|TODO)'   docs
+```
+
+
+Manually inspect the output for the active task ID and related predecessor
+records. Explain every remaining unchecked box or retained word such as
+`pending`, `optional`, `not run`, `not started`, `deferred`, or `draft`.
+
+
+Do not stage or commit until all applicable conditions are true:
+
+
+1. Every required acceptance criterion is `[x]`; otherwise the task is not
+   `✅ Complete and verified`.
+2. The CHECKLIST tracker row, detailed task section, HANDOFF record, and
+   applicable RUNBOOK procedure use the same factual state.
+3. `HANDOFF.md` identifies the actual current task and the preceding completed
+   task is not still presented as current.
+4. No stale text says documentation, CI, publication, or synchronization is
+   pending after that event has already occurred.
+5. `git diff --check` passes.
+6. The exact diff is reviewed before staging.
+7. A secret-safety review of the changed tracked files passes.
+8. `docs/.backup/` and other local recovery material remain untracked and are
+   not staged.
+
+
+Before proposing the local commit, provide a factual documentation-reconciliation
+record containing:
+
+
+- Active task ID and final state.
+- Scope completed and scope intentionally not completed.
+- Acceptance criteria: checked, deferred, failed, or not applicable.
+- CHECKLIST tracker/detailed-task alignment result.
+- HANDOFF current-position/current-task/historical-record alignment result.
+- RUNBOOK alignment result or explicit reason it is not applicable.
+- Commands run and factual results.
+- Remaining limitations, deferred work, and optional follow-ups.
+- Exact changed-file list and intended commit scope.
+
+
+---
+
+
 # Security and safety requirements
 
 - Agents are read-only by default.

@@ -45,6 +45,32 @@ For every `✅ Complete` item, record:
 
 ---
 
+## Documentation reconciliation requirement
+
+
+Before a task is marked `✅ Complete and verified` or its completion
+documentation is committed, reconcile all applicable records in
+`docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. The tracker row,
+detailed task state, every required acceptance checkbox, HANDOFF current
+position/current task/completed record, and applicable RUNBOOK procedure status
+must agree with factual evidence.
+
+
+Do not mark a task complete when required acceptance criteria remain unchecked,
+when a predecessor task is still labelled current, or when stale wording says
+documentation, CI, publication, or synchronization is pending after the event
+has occurred. Run `git diff --check`, inspect the exact documentation diff,
+perform a secret-safety review, and keep `docs/.backup/` untracked before
+staging.
+
+
+Use evidence terms precisely: `passed` requires a named successful command,
+test, scanner, or CI result; `committed` requires a created local commit;
+`published` requires a successful push of that exact commit; and
+`synchronized` requires fetched `main`, `gitlab/main`, and `origin/main` to
+resolve to the same full SHA.
+
+
 ## Project state
 
 | Field | Current value |
