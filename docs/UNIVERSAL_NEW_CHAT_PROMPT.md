@@ -129,24 +129,73 @@ Do not require me to remember or manually provide a task ID or task name.
   security control, deployment, remote push, synchronization, or runbook
   procedure succeeded unless factual evidence has been provided.
 
+## Task evidence status and publication status
+
+
+Task evidence status and repository-publication status are related but distinct.
+Use both fields in task completion records, tracker notes, and handoff records
+whenever a documentation/evidence commit is awaiting or has completed the
+GitLab-first/GitHub-second publication workflow.
+
+
+### Task evidence status
+
+
 A checklist item can be marked `✅ Complete and verified` only when all
 applicable requirements exist:
 
-1. Implementation, configuration, or explicitly documented coursework
-   simulation.
-2. Relevant command, test, scan, drill, CI job, or factual verification
-   evidence.
-3. Required policy/security validation where relevant.
-4. Evidence/results recorded in `docs/CHECKLIST.md`.
-5. A local Git commit containing the applicable implementation and documentation
-   update.
-6. The commit has been pushed to GitLab `main`.
-7. Relevant GitLab CI/CD evidence is successful, where CI applies.
-8. The same commit has been pushed to GitHub `origin/main`.
-9. Local `main`, `gitlab/main`, and `origin/main` are proven to resolve to the
-   exact same commit SHA.
-10. If the task created or changed a user-executable operational procedure, the
-    corresponding verified `docs/RUNBOOK.md` update has been completed.
+1. Approved implementation, configuration, or explicitly documented coursework
+   simulation is complete.
+2. Required command, test, scan, drill, CI job, or factual verification evidence
+   has been collected successfully.
+3. Required policy/security validation has been completed where relevant.
+4. Factual evidence/results and limitations are recorded in
+   `docs/CHECKLIST.md`.
+5. Required documentation status surfaces are reconciled in `CHECKLIST.md`,
+   `HANDOFF.md`, and applicable `RUNBOOK.md`.
+6. A local Git evidence/documentation commit has been created.
+7. If the task created or changed a user-executable operational procedure, the
+   corresponding verified `docs/RUNBOOK.md` update has been completed.
+
+
+### Publication status
+
+
+Record publication separately for the exact evidence/documentation commit:
+
+- `Pending publication`: The local evidence/documentation commit exists but has
+  not yet completed GitLab CI, GitHub publication, or final SHA verification.
+- `Published and verified`: The exact commit was pushed to GitLab `main`,
+  required GitLab CI passed, the same commit was pushed to GitHub
+  `origin/main`, and fetched `main`, `gitlab/main`, and `origin/main` resolve
+  to the same full SHA.
+- `Blocked`: State the exact failed or unverified publication step and do not
+  claim synchronization.
+
+
+### Timing rule for completion records
+
+
+Do not write future GitLab CI, GitHub-post, or synchronization results into a
+commit before those facts exist. A task may remain `🟧 Implemented but needs
+verification` while its required local technical validation or documentation
+reconciliation is incomplete.
+
+
+After the evidence/documentation commit has successfully completed the
+GitLab-first/GitHub-second workflow, update the task's tracker and handoff
+status to `✅ Complete and verified` at the next normal documentation update.
+Do not create a status-only commit solely to repeat a known successful
+publication result unless a factual correction, active-task transition, or other
+required documentation change already justifies that commit.
+
+
+When the publication result is available after the evidence commit, record it
+factually in the completion record, next task's handoff update, or other
+normal documentation update. The update must name the evidence commit SHA and
+state whether GitLab CI, GitHub publication, and three-way SHA synchronization
+were verified.
+
 
 Use only these task statuses:
 
