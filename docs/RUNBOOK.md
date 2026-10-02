@@ -606,6 +606,8 @@ Invoke-RestMethod http://192.168.0.189:11434/api/tags
 
 ## P00-008/P00-009 — Temporary Bearer-enforced mTLS gateway validation
 
+**Status:** ✅ Verified
+
 **Purpose:** Validate the approved temporary path from Kali to the Windows Caddy gateway while preserving loopback-only Ollama and loopback-only Bearer verification.
 
 **Verified architecture:**

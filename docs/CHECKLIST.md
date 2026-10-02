@@ -403,6 +403,7 @@ For every `✅ Complete` item, record:
 
 ### P00-008 — Bearer authorization and loopback-only backend protection
 
+- **Status:** ✅ Complete and verified.
 - **Scope completed:** Implemented host-local Bearer-token authorization through the loopback-only forward-auth verifier while preserving the Caddy mTLS gateway and loopback-only Ollama backend.
 - **Factual results:** Caddy static validation succeeded with strict SNI/Host enforcement enabled for client authentication. During the approved temporary test, Ollama listened only on `127.0.0.1:11435` and the verifier only on `127.0.0.1:11436`; direct Kali connections to those backend ports timed out. A valid mTLS request without a Bearer credential returned HTTP `401`. The verifier recorded an allow decision when the configured Bearer credential was supplied.
 - **Security checks:** No token, private key, certificate body, or raw secret-bearing output was committed or documented. Temporary test processes were stopped, test listeners were released, and the temporary clipboard transfer was overwritten and verified with a harmless marker.
@@ -411,6 +412,7 @@ For every `✅ Complete` item, record:
 
 ### P00-009 — Authenticated Kali-to-Windows mTLS and Bearer transport-path validation
 
+- **Status:** ✅ Complete and verified.
 - **Scope completed:** Performed the approved temporary cross-host validation through the hostname/SNI-aligned Caddy gateway using the CA-verified Kali client certificate and the host-local Bearer verifier.
 - **Factual results:** Without a client certificate, the TLS handshake failed with a certificate-required alert and no HTTP response. With valid mTLS but no Bearer credential, Caddy returned HTTP `401`. With valid mTLS and the configured Bearer credential, the Windows verifier recorded an allow decision. The request to `GET /` then returned HTTP `403`; this is recorded as a route/backend response after authorization, not as a Bearer-token rejection.
 - **Security checks:** Kali used explicit private resolution for the gateway hostname; no permanent DNS, firewall, startup, or service change was made. Ollama and verifier were not LAN-accessible. The temporary stack was stopped after testing.
