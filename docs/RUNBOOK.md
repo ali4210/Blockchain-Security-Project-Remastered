@@ -534,6 +534,44 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 - Coursework limitation: local prerequisite validation only. Tool installation and help/version checks are not a contract audit, proof, production deployment, or authorization to scan any target.
 - Repository-tracked documentation artifacts: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`. Pipx environments and the Docker image are user-local/runtime state and are outside Git.
 
+## P00-012 — Kali DFIR tooling baseline
+
+**Status:** 🟧 Locally verified; documentation commit, GitLab CI, GitHub post, and final SHA synchronization pending.
+
+**Purpose:** Establish a minimal, host-local Kali DFIR tooling baseline for later authorized coursework work without collecting, opening, analyzing, signing, or modifying forensic evidence.
+
+**Verified scope and results**
+
+- Safely version/help validated: Sleuth Kit `4.14.0`; optional Autopsy `2.24-6kali1`; Volatility 3 `2.28.2` in a pipx-managed environment and exposed as `vol`; Plaso `20260119-1kali1` via packaged `plaso-*` utilities; dc3dd `7.3.1-4`; ewf-tools `20140816-2+b2`; YARA `4.5.8`; tshark `4.6.6`; tcpdump `4.99.6`; GnuPG `2.4.9`; and minisign package `0.12-1+b1` with CLI version `0.12`. Minisign was the sole package newly installed in the final reviewed transaction; GnuPG was already present and only safely validated.
+- Optional Zeek was not installed. The available Kali package required `libc6 < 2.38`, conflicting with installed `libc6 2.43-4`. No forced install, libc downgrade, alternate repository, or workaround was attempted.
+- Minisign’s reviewed transaction added exactly one package: `0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded`. Its package state was `install ok installed`; `minisign -v` returned `minisign 0.12`; bare `minisign` rendered usage only.
+- `dpkg --audit` returned no findings, and `apt-mark showhold` returned no held packages.
+
+**Safety boundary**
+
+- This task did not acquire disks, memory, packets, logs, or any live evidence.
+- It did not start packet capture, run network analysis, launch Autopsy, execute a Plaso parse, open a case, or inspect case material.
+- It did not generate, import, export, or use a signing key; create or verify a signature; or access private keys.
+- It did not run `apt autoremove`, force package installation, downgrade system libraries, alter Git remotes, or change CI configuration.
+- Package, pipx, and operator key state are host-local and must never be committed. `docs/.backup/` remains untracked local recovery material.
+
+**Reusable validation pattern**
+
+1. Start from the project directory and record `git status --short`.
+2. Simulate the exact APT transaction before installation and review package count, dependency effects, removals, upgrades, and held-package state.
+3. Install only the approved package set after reviewing the simulation. Do not run `apt autoremove`.
+4. Validate each installed tool only with safe version or local help output. Do not provide an evidence file, capture interface, target, signing key, or case path.
+5. For Minisign, safe validation is limited to `minisign -v` and bare `minisign` usage rendering; do not use `-G`, `-R`, `-C`, `-S`, or `-V`.
+6. Run `dpkg --audit` and `apt-mark showhold`, then repeat `git status --short`.
+7. If package health is not clean, an unexpected package transaction appears, Zeek remains incompatible, a tool requires case material, or repository paths change unexpectedly, stop and record only the factual blocker.
+
+**Evidence and limitation**
+
+- Task: `P00-012`.
+- Evidence: sanitized Kali terminal output from the P00-012 implementation thread, including the reviewed Minisign transaction and safe validation.
+- This establishes local host-preparation only. Installation and version/help output do not constitute forensic analysis, tool suitability for a specific evidence format, chain-of-custody validation, or authorization to collect evidence.
+- Documentation closeout remains pending until the commit is validated in GitLab CI, posted to GitHub, and final fetched SHA synchronization is confirmed.
+
 ## P00-006 — Windows Ollama loopback backend and Caddy private-interface proxy
 
 **Status:** ✅ Verified

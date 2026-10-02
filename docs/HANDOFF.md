@@ -12,16 +12,23 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-012 — Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign |
-| Current thread | P00-011 GitHub account/public-mirror policy is complete and verified; factual reconciliation commit `5b670d1b4b4d682155e5500928bcae1bac6a01eb` passed GitLab CI, was posted to GitHub, and was synchronized across local `main`, `gitlab/main`, and `origin/main`; P00-012 DFIR-tooling baseline discovery is next |
+| Current task | P00-012 — DFIR tooling documentation closeout and verification |
+| Current thread | P00-012 DFIR tooling is locally verified from sanitized Kali terminal evidence; documentation reconciliation is in progress. No P00-012 documentation commit, GitLab CI validation, GitHub post, or final three-way synchronization has occurred yet. |
 | Current branch | `main` |
-| Last verified commit | `5b670d1b4b4d682155e5500928bcae1bac6a01eb` — `docs(phase-00): reconcile P00-011 completion` |
-| Last GitLab pipeline | Passed — pipeline identifier not captured for `5b670d1b4b4d682155e5500928bcae1bac6a01eb` |
-| Last GitHub post | Posted — `origin/main` resolved to `5b670d1b4b4d682155e5500928bcae1bac6a01eb` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == 5b670d1b4b4d682155e5500928bcae1bac6a01eb` |
+| Last verified commit | `4ed50320486a9bc94942b30afabc3be96679d428` — current synchronized documentation baseline before P00-012 closeout |
+| Last GitLab pipeline | Previously passed for the synchronized baseline; pipeline identifier not captured for `4ed50320486a9bc94942b30afabc3be96679d428` |
+| Last GitHub post | Previously posted — `origin/main` resolved to `4ed50320486a9bc94942b30afabc3be96679d428` before P00-012 closeout |
+| Synchronization | Verified before P00-012 documentation edits — `main == gitlab/main == origin/main == 4ed50320486a9bc94942b30afabc3be96679d428`; P00-012 closeout remains pending commit, CI, GitHub post, and final fetched SHA comparison. |
 | Last updated | 2026-10-02 |
 
 ## Completed since previous handoff
+
+- **P00-012 — DFIR tooling baseline:** 🟧 Locally verified; documentation closeout, GitLab CI, GitHub post, and final synchronization remain pending.
+  - Safely version/help validated the required Kali DFIR baseline: Sleuth Kit 4.14.0; optional Autopsy 2.24-6kali1; Volatility 3 2.28.2 via pipx as `vol`; Plaso 20260119-1kali1 using packaged `plaso-*` utilities; dc3dd 7.3.1-4; ewf-tools 20140816-2+b2; YARA 4.5.8; tshark 4.6.6; tcpdump 4.99.6; GnuPG 2.4.9; and minisign CLI 0.12 from package 0.12-1+b1. Minisign was the sole package newly installed in the final reviewed transaction; GnuPG was already present and only safely validated.
+  - Minisign’s reviewed transaction installed exactly one new package: `0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded`. `dpkg-query` reported `install ok installed`; `minisign -v` returned `minisign 0.12`; bare invocation printed usage only. `dpkg --audit` returned no findings and `apt-mark showhold` returned no held packages.
+  - Optional Zeek was not installed because the available Kali package required `libc6 < 2.38`, conflicting with installed `libc6 2.43-4`. No forced installation, system downgrade, alternate repository, or workaround was attempted.
+  - No disk, memory, packet, or live-evidence acquisition occurred. No packet capture, network analysis, Autopsy launch, signing-key generation/import/export/use, signature creation/verification, or `apt autoremove` occurred. No secret, private key, credential, raw evidence, or sensitive case material was displayed or committed.
+  - Repository boundary after validation: only `docs/.backup/` remained untracked before documentation edits. Package and pipx state are host-local, not repository artifacts.
 
 - **P00-007:** ✅ Complete and verified.
 - A private coursework CA, Windows proxy server certificate, and Kali client certificate were created in protected host-local storage outside Git.
@@ -187,29 +194,22 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ## Immediate next task
 
-### P00-012 — Install DFIR tooling
+### P00-012 — Documentation closeout and verification
 
-**Scope:** Perform read-only baseline discovery, then install and validate the required Kali DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. Record only tools actually installed and validated. Keep acquisition, live-memory capture, forensic evidence handling, evidence-vault creation, operator signing-key generation, packet capture, live network analysis, and production use out of scope.
+**Scope:** Reconcile the locally verified DFIR-tooling result across `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and a reusable verified `docs/RUNBOOK.md` procedure; inspect the exact documentation diff; perform secret-safety and repository-boundary checks; commit the factual record; validate the commit in GitLab CI; post the same commit to GitHub; and verify final fetched three-way SHA synchronization.
 
-**Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md` only if a verified installation/validation procedure is established. Package-manager state is host-local and not a repository artifact.
+**Current factual status:** Required DFIR tools were installed and safely version/help validated locally. Optional Zeek remains a factual compatibility blocker because its available Kali package requires `libc6 < 2.38` while installed libc is `2.43-4`. Minisign package 0.12-1+b1 and CLI 0.12 were installed and validated without key or signature operations.
 
-**Acceptance criteria:** Each required non-optional tool is either installed and version/help validated or recorded with a factual package/compatibility blocker; optional Autopsy and Zeek are installed only after explicit package-transaction review or documented as intentionally deferred. No forensic acquisition, raw evidence, packet capture, private key, signing-key generation, or sensitive data is created, exposed, or committed. Documentation is reconciled with actual commands and results, then committed, GitLab-CI validated, posted to GitHub, and synchronized.
+**Security constraints:** Do not begin P00-013. Do not acquire memory, disks, packets, or live evidence. Do not create, import, export, or use signing keys; do not sign or verify case material; do not run `apt autoremove`; do not expose secrets; do not change Git remotes, GitHub settings, or GitLab CI; and keep `docs/.backup/` untracked.
 
-**Validation approach:** Start with package/tool availability and APT policy inspection; review the exact proposed package transaction before accepting installation; validate installed tools with safe version/help commands only; inspect `git status` before and after; run documentation and Git review gates before commit.
-
-**Dependencies:** P00-011 is complete and verified at `e01d36a5de7a61bf4821b4895ecb35f149a1ba38`. Phase 0 remains active and incomplete.
-
-**Security constraints:** Do not acquire memory, disks, packets, or live evidence. Do not create a signing key, import private keys, access real case material, use privileged capture, start packet capture, or expose credentials. Do not run `apt autoremove`. Do not change Git remotes, GitHub settings, or GitLab CI. Keep `docs/.backup/` untracked.
-
-**RUNBOOK.md impact:** Expected only if actual installation/validation commands are successfully executed and should be reusable by a future operator; otherwise record no Runbook update.
+**Exit criteria:** P00-012 may be marked ✅ Complete and verified only after the documentation commit exists, the required GitLab CI result is confirmed, the same commit is posted to GitHub, and fetched verification proves `main == gitlab/main == origin/main`.
 
 ## Subsequent task queue
 
-1. `P00-012` — Install and validate DFIR tooling.
-2. `P00-013` — Select and test a memory-acquisition method on a throwaway VM.
-3. `P00-014` — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership.
-4. `P00-015` — Create an operator signing key for evidence-manifest signing; keep private material outside Git.
-5. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P00-013` — Select and test a memory-acquisition method on a throwaway VM. **Blocked until P00-012 documentation closeout and its commit/CI/GitHub/synchronization gate are complete.**
+2. `P00-014` — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership.
+3. `P00-015` — Create an operator signing key for evidence-manifest signing; keep private material outside Git.
+4. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 
