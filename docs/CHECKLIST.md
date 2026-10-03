@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-013 — Memory acquisition and bounded process-structure validation |
-| Current thread | P00-013 local acquisition and bounded Volatility validation completed on 2026-10-03. Documentation update is in progress; local commit, GitLab CI validation, GitHub post, and three-way synchronization remain pending. |
+| Current task | P00-014 — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership |
+| Current thread | P00-013 is complete and verified at `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`; P00-014 evidence-vault planning and baseline discovery is next. Do not move, modify, rehash, seal, sign, or commit P00-013 raw evidence without separately approved scope. |
 | Current branch | `main` |
-| Last verified commit | `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` — `docs(phase-00): record P00-012 DFIR tooling baseline` |
-| Last GitLab pipeline | Passed (green observed); pipeline identifier not captured for `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` |
-| Last GitHub post | Posted — `origin/main` resolved to `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` |
-| Synchronization | Verified for the prior P00-012 commit only: `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`; P00-013 documentation synchronization is pending. |
+| Last verified commit | `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` — `docs(phase-00): record P00-013 memory validation` |
+| Last GitLab pipeline | Passed for `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` |
 | Runtime state | Temporary Caddy, verifier, and Ollama test processes stopped; temporary listeners released |
 | Last updated | 2026-10-03 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -130,7 +130,7 @@ resolve to the same full SHA.
 | P00-010 | Audit and document the existing private GitLab remote and GitLab CI/CD source-of-truth policy; do not create duplicate infrastructure. | ✅ | Verified 2026-10-02: read-only audit confirmed the existing GitLab remote and tracked CI smoke configuration; evidence commit `e735198dcf25d186d659313520976d342d973380` passed GitLab CI, was pushed to GitHub, and `main`, `gitlab/main`, and `origin/main` resolved to the same SHA. |
 | P00-011 | Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring. | ✅ | Verified 2026-10-02: read-only audit established GitLab as the private CI/CD source-of-truth remote and GitHub as a manually synchronized secondary remote; no repository-tracked GitHub automation or local mirror configuration was found. Documentation closeout commit `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` passed GitLab CI, was posted to GitHub, and was verified synchronized as `main == gitlab/main == origin/main == e01d36a5de7a61bf4821b4895ecb35f149a1ba38`. |
 | P00-012 | Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. | ✅ | Verified 2026-10-02: Sleuth Kit 4.14.0, Autopsy 2.24-6kali1, Volatility 3 2.28.2 via pipx (`vol`), Plaso 20260119-1kali1, dc3dd 7.3.1-4, ewf-tools 20140816-2+b2, YARA 4.5.8, tshark 4.6.6, tcpdump 4.99.6, GnuPG 2.4.9, and minisign 0.12 (`0.12-1+b1`) safely version/help validated. Optional Zeek remains blocked by the available Kali package dependency `libc6 < 2.38` versus installed `libc6 2.43-4`. Documentation closeout commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` passed GitLab CI (green observed; pipeline identifier not captured), was posted to GitHub, and final verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`. |
-| P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | 🟨 | Implemented but needs verification 2026-10-03: disposable Ubuntu memory-image acquisition and Volatility 3 banner/`linux.pslist`/`linux.pstree` validation completed locally; documentation commit, GitLab CI, GitHub post, and SHA synchronization pending. |
+| P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | ✅ | Verified 2026-10-03: disposable Ubuntu memory-image acquisition and Volatility 3 banner/`linux.pslist`/`linux.pstree` validation completed. Evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI, was posted to GitHub, and `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`. |
 | P00-014 | Prepare a dedicated evidence-vault directory/volume with separate service-account ownership; optionally document MinIO Object Lock. | ⬜ | — |
 | P00-015 | Create an operator signing key for evidence-manifest signing; keep private material outside Git. | ⬜ | — |
 
@@ -491,16 +491,16 @@ resolve to the same full SHA.
 ### P00-013 — Memory acquisition and bounded process-structure validation
 
 - **Task ID:** P00-013.
-- **Status:** 🟨 Implemented but needs verification. Local acquisition and bounded Volatility validation completed; documentation commit, GitLab CI validation, GitHub post, and three-way SHA synchronization remain pending.
+- **Status:** ✅ Complete and verified on 2026-10-03.
 - **Scope completed:** Acquired a memory image from the designated disposable Ubuntu lab target and completed limited banner, process-list, and parent/child process-hierarchy validation using Volatility 3.
 - **Scope not completed:** No comprehensive malware, hidden-process, module, socket, command-line, open-file, network, or compromise assessment was performed. No clean-host or no-compromise conclusion is made.
-- **Files changed:** No tracked repository files during acquisition or analysis. This documentation update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`; raw evidence, symbols, and analysis logs remain outside Git.
+- **Files changed:** No tracked repository files during acquisition or analysis. Documentation/evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` changed `docs/CHECKLIST.md` and `docs/HANDOFF.md`; raw evidence, symbols, and analysis logs remain outside Git.
 - **Validation commands:** Volatility 3 Framework 2.28.2 banner validation; `linux.pslist`; and `linux.pstree`.
 - **Factual results:** The analysis input was `ubuntu-server_P00-013_20261003T055707Z_working.elf`, size `4,317,911,540` bytes, SHA-256 `e5184b85d82f1abb130fc726afecadc7f9b0c298f60b54be1dc6b3b487816f93`. Banner validation exited `0` at `2026-10-03T06:30:47Z`; `linux.pslist` exited `0` at `2026-10-03T06:44:50Z`; and `linux.pstree` exited `0` at `2026-10-03T06:46:14Z`. The Linux process plugins used `Ubuntu_6.8.0-90-generic_6.8.0-90.91_amd64.json.xz`, verified by symbol Git blob SHA-1 `cc2757b589e0af49fde532fc05a4c038c3b4a461`. The observed process list and parent/child hierarchy were plausible for the configured disposable Ubuntu lab host.
-- **Evidence path / CI job:** Analysis statuses and logs remain outside Git under `/media/sf_VBox_Files_Shared/P00-013-Analysis/`. Documentation CI evidence is pending.
-- **Commit:** Pending. Do not record a commit SHA until this documentation update is committed and validated.
+- **Evidence path / CI job:** Analysis statuses and logs remain outside Git under `/media/sf_VBox_Files_Shared/P00-013-Analysis/`. Documentation/evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI (pipeline identifier not captured), was posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`.
+- **Commit:** `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` — `docs(phase-00): record P00-013 memory validation`.
 - **Security checks:** Raw ELF evidence, symbol archives, analysis logs, credentials, private keys, tokens, and sensitive artifacts are not staged or committed. `docs/.backup/` remains local recovery material and must remain untracked.
-- **Dependencies / forward references:** P00-012 supplied Volatility 3. P00-014 remains next and must establish the dedicated evidence-vault boundary without altering P00-013 evidence.
+- **Dependencies / forward references:** P00-012 supplied Volatility 3. P00-014 is next and must establish the dedicated evidence-vault boundary without altering P00-013 evidence.
 - **Runbook impact:** Not required. The supplied evidence validates a bounded result, not a complete reusable operator procedure with tested setup, collection, cleanup, recovery, and troubleshooting steps.
 - **Notes / simulation / limitation:** Disposable-lab validation only. This result supports the acquisition-and-analysis workflow but does not establish production readiness or a comprehensive forensic conclusion.
 
