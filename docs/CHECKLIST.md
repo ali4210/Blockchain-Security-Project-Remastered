@@ -76,14 +76,14 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-014 — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership |
-| Current thread | P00-013 is complete and verified at `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`; P00-014 evidence-vault planning and baseline discovery is next. Do not move, modify, rehash, seal, sign, or commit P00-013 raw evidence without separately approved scope. |
+| Current task | P00-014 — Evidence-vault service-account isolation and validation |
+| Current thread | P00-014 local evidence-vault boundary was implemented and validated on 2026-10-03. Documentation update is in progress; local commit, GitLab CI validation, GitHub post, and three-way synchronization remain pending. |
 | Current branch | `main` |
-| Last verified commit | `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` — `docs(phase-00): record P00-013 memory validation` |
-| Last GitLab pipeline | Passed for `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` |
-| Runtime state | Temporary Caddy, verifier, and Ollama test processes stopped; temporary listeners released |
+| Last verified commit | `ebbd51d837c3f9d0c944d76b014d94a701db31b4` — `docs(phase-00): close P00-013 verification` |
+| Last GitLab pipeline | Passed for `ebbd51d837c3f9d0c944d76b014d94a701db31b4` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `ebbd51d837c3f9d0c944d76b014d94a701db31b4` |
+| Synchronization | Verified for the prior P00-013 closeout commit only: `main == gitlab/main == origin/main == ebbd51d837c3f9d0c944d76b014d94a701db31b4`; P00-014 documentation synchronization is pending. |
+| Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-03 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
 
@@ -131,7 +131,7 @@ resolve to the same full SHA.
 | P00-011 | Prepare the GitHub account/public-mirror policy; do not configure automatic public mirroring. | ✅ | Verified 2026-10-02: read-only audit established GitLab as the private CI/CD source-of-truth remote and GitHub as a manually synchronized secondary remote; no repository-tracked GitHub automation or local mirror configuration was found. Documentation closeout commit `e01d36a5de7a61bf4821b4895ecb35f149a1ba38` passed GitLab CI, was posted to GitHub, and was verified synchronized as `main == gitlab/main == origin/main == e01d36a5de7a61bf4821b4895ecb35f149a1ba38`. |
 | P00-012 | Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. | ✅ | Verified 2026-10-02: Sleuth Kit 4.14.0, Autopsy 2.24-6kali1, Volatility 3 2.28.2 via pipx (`vol`), Plaso 20260119-1kali1, dc3dd 7.3.1-4, ewf-tools 20140816-2+b2, YARA 4.5.8, tshark 4.6.6, tcpdump 4.99.6, GnuPG 2.4.9, and minisign 0.12 (`0.12-1+b1`) safely version/help validated. Optional Zeek remains blocked by the available Kali package dependency `libc6 < 2.38` versus installed `libc6 2.43-4`. Documentation closeout commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` passed GitLab CI (green observed; pipeline identifier not captured), was posted to GitHub, and final verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`. |
 | P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | ✅ | Verified 2026-10-03: disposable Ubuntu memory-image acquisition and Volatility 3 banner/`linux.pslist`/`linux.pstree` validation completed. Evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI, was posted to GitHub, and `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`. |
-| P00-014 | Prepare a dedicated evidence-vault directory/volume with separate service-account ownership; optionally document MinIO Object Lock. | ⬜ | — |
+| P00-014 | Prepare a dedicated evidence-vault directory/volume with separate service-account ownership; optionally document MinIO Object Lock. | 🟧 | Implemented but needs verification 2026-10-03: local ext4 vault `/srv/blockchain-soc/evidence-vault` created empty with `soc-evidence:soc-evidence` ownership and mode `0700`; service-account access passed and interactive `kali` listing was denied; documentation lifecycle pending. |
 | P00-015 | Create an operator signing key for evidence-manifest signing; keep private material outside Git. | ⬜ | — |
 
 ## P00 — evidence log
@@ -504,7 +504,23 @@ resolve to the same full SHA.
 - **Runbook impact:** Not required. The supplied evidence validates a bounded result, not a complete reusable operator procedure with tested setup, collection, cleanup, recovery, and troubleshooting steps.
 - **Notes / simulation / limitation:** Disposable-lab validation only. This result supports the acquisition-and-analysis workflow but does not establish production readiness or a comprehensive forensic conclusion.
 
-### P00-014 to P00-015 — evidence entries
+### P00-014 — Evidence-vault service-account isolation and validation
+
+- **Task ID:** P00-014.
+- **Status:** 🟧 Implemented but needs verification. Local vault implementation and validation completed; documentation commit, GitLab CI validation, GitHub post, and three-way SHA synchronization remain pending.
+- **Scope completed:** Created and validated an empty local evidence-vault boundary outside the repository and separate from the VirtualBox shared transfer folder.
+- **Scope not completed:** No raw P00-013 evidence was copied, moved, rehashed, sealed, signed, deleted, or modified. No MinIO/Object Lock deployment, object retention policy, evidence admission workflow, chain-of-custody system, signing-key work, or P00-015 task was performed.
+- **Files changed:** Host-local system state only: the `soc-evidence` system identity and `/srv/blockchain-soc/evidence-vault`. No tracked repository files changed during implementation. This documentation update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Validation commands:** Read-only storage/mount/permission inspection; guarded system-user/group and vault creation; `stat`; `findmnt`; empty-vault listing as `soc-evidence`; service-account traversal test; denied interactive-user listing test; P00-013 ELF metadata comparison; and repository-boundary `git status --short`.
+- **Factual results:** `soc-evidence` was created as a non-login system identity with UID `999`, GID `966`, home `/nonexistent`, and shell `/usr/sbin/nologin`. `/srv/blockchain-soc` is `root:root` mode `0755`; `/srv/blockchain-soc/evidence-vault` is on local `/dev/sda1` `ext4`, is empty, and is `soc-evidence:soc-evidence` mode `0700`. Service-account traversal passed; the interactive `kali` user was denied vault listing. The P00-013 transfer ELF remained `root:vboxsf`, mode `770`, size `4,317,911,540` bytes before and after validation.
+- **Evidence path / CI job:** Sanitized terminal evidence in the P00-014 implementation thread; documentation CI evidence is pending.
+- **Commit:** Pending. Do not record a commit SHA until the documentation update is committed and validated.
+- **Security checks:** The vault is outside the Git repository and uses local ext4 ownership/permission enforcement. The VirtualBox `vboxsf` shared folder remains transfer/staging only, not the authoritative vault. Raw ELF evidence, symbols, logs, credentials, private keys, tokens, and `docs/.backup/` are not staged or committed.
+- **Dependencies / forward references:** P00-012 supplied DFIR tooling; P00-013 supplied the preserved working-evidence boundary. P00-015 remains deferred until P00-014 documentation synchronization is complete.
+- **Runbook impact:** Not required. This bounded implementation does not establish a complete reusable procedure for evidence admission, capacity planning, hashing, sealing, custody, retention, recovery, or destruction.
+- **Notes / simulation / limitation:** Coursework/local implementation only. The local ext4 filesystem had approximately 8.7 GiB free during preflight; do not transfer the 4.0 GiB P00-013 ELF into the vault without separately approved capacity and integrity controls.
+
+### P00-015 — evidence entry
 
 > Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
 
