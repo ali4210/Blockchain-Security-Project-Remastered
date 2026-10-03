@@ -13,12 +13,12 @@
 |---|---|
 | Current phase | Phase 1 — Skeleton scaffold |
 | Current task | P01-001 — Unpack/create the project skeleton in the Kali VM project directory |
-| Current thread | Phase 0 is complete and verified through P00-GATE evidence commit `983098a34511ba06157268feda9f0f02c15eac63`; this phase-declaration documentation update is pending its own commit, CI, remote posts, and synchronization. Do not begin P01-001 until that lifecycle is complete. |
+| Current thread | Phase 0 is complete, verified, and tagged `v10.3-phase-00` at `68f97d8d63f859969fc2762f7a30ea653791e44e`; Phase 1 has not started. This handoff reconciliation must complete its own documentation lifecycle before P01-001 begins. |
 | Current branch | `main` |
-| Last verified commit | `983098a34511ba06157268feda9f0f02c15eac63` — `docs(phase-00): reconcile P00 gate evidence` |
-| Last GitLab pipeline | Passed for `983098a34511ba06157268feda9f0f02c15eac63` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `983098a34511ba06157268feda9f0f02c15eac63` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == 983098a34511ba06157268feda9f0f02c15eac63` |
+| Last verified commit | `68f97d8d63f859969fc2762f7a30ea653791e44e` — `docs(phase-00): declare completion gate` |
+| Last GitLab pipeline | Passed for `68f97d8d63f859969fc2762f7a30ea653791e44e` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `68f97d8d63f859969fc2762f7a30ea653791e44e` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == 68f97d8d63f859969fc2762f7a30ea653791e44e` |
 | Last updated | 2026-10-03 |
 
 ## Completed since previous handoff
@@ -197,7 +197,7 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ### P00-015 — Create an operator signing key for evidence-manifest signing
 
-**Task status:** 🟧 Implemented and locally verified on 2026-10-03. Documentation closeout, local commit, GitLab CI, GitHub post, and final fetched synchronization remain required before this task can be marked complete and verified.
+**Task status:** ✅ Complete and verified on 2026-10-03.
 
 **Scope completed:**
 
@@ -208,11 +208,12 @@ Exact commands must be selected only after identifying the actual certificate to
 - Harmless synthetic-manifest detached-signature creation and verification using the generated public verification material.
 - Confirmed cleanup of only the named synthetic manifest and detached signature.
 - Repository-boundary checks confirming no signing material entered Git; only `docs/.backup/` was untracked before documentation edits.
+- Documentation closeout, GitLab-first post and reported green CI, GitHub post, and fetched three-way synchronization.
 
 **Files changed:**
 
 - Host-local protected signing material outside Git.
-- Pending tracked documentation closeout: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- Tracked documentation closeout: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 
 **Validation evidence:**
 
@@ -220,6 +221,7 @@ Exact commands must be selected only after identifying the actual certificate to
 - Synthetic detached signing exited `0`.
 - Minisign reported that the signature and comment signature verified; verification exited `0`.
 - Synthetic validation artifacts were confirmed absent after cleanup.
+- P00-015 documentation closeout commit `f34e97b18cb3cee417d1c2b3fc618ef676271773` was posted to GitLab, reported green in GitLab CI (pipeline identifier not captured), posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == f34e97b18cb3cee417d1c2b3fc618ef676271773`.
 - No real evidence, evidence-vault content, P00-013 material, shared-folder data, or repository file was signed, modified, moved, sealed, or rehashed.
 
 **Security boundary:**
@@ -236,7 +238,7 @@ Exact commands must be selected only after identifying the actual certificate to
 - Public-key publication, distribution, trust bootstrap, revocation, compromise response exercise, key rotation, or key replacement.
 - Evidence-vault ownership/content changes, MinIO/Object Lock, Git remote/CI configuration changes, and `apt autoremove`.
 
-**RUNBOOK.md:** Updated in this documentation closeout with the verified synthetic procedure and safety boundaries only. It does not disclose private material, protected-key location, passphrases, public-key strings, fingerprints, or real evidence details.
+**RUNBOOK.md:** Verified and synchronized as part of P00-015 closeout; it documents the synthetic procedure and safety boundaries only, without disclosing private material, protected-key location, passphrases, public-key strings, fingerprints, or real evidence details.
 
 **Immediate next task**
 
