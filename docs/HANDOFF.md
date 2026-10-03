@@ -13,12 +13,12 @@
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
 | Current task | P00-015 — Create an operator signing key for evidence-manifest signing |
-| Current thread | P00-014 evidence-vault service-account isolation and validation is complete and verified at `54bde63816abe2f7015b20c87dfc50adcbd98a13`; P00-015 signing-key planning and baseline discovery is next. |
+| Current thread | P00-015 protected Minisign operator-key creation and synthetic sign/verify proof are locally verified; documentation closeout, commit, GitLab CI, GitHub post, and final synchronization remain required. |
 | Current branch | `main` |
-| Last verified commit | `54bde63816abe2f7015b20c87dfc50adcbd98a13` — `docs(phase-00): record P00-014 evidence vault validation` |
-| Last GitLab pipeline | Passed for `54bde63816abe2f7015b20c87dfc50adcbd98a13` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `54bde63816abe2f7015b20c87dfc50adcbd98a13` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13` |
+| Last verified commit | `434ad837ce2f9d388c67cb6d67b434bb34849f2b` — `docs(phase-00): close P00-014 verification` |
+| Last GitLab pipeline | Passed for `434ad837ce2f9d388c67cb6d67b434bb34849f2b` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
+| Synchronization | Verified before P00-015 documentation edits — `main == gitlab/main == origin/main == 434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
 | Last updated | 2026-10-03 |
 
 ## Completed since previous handoff
@@ -197,41 +197,56 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ### P00-015 — Create an operator signing key for evidence-manifest signing
 
-**Scope:** Perform read-only signing-tool and protected-storage discovery for an operator signing key. Select a non-secret public-key algorithm and a host-local protected storage location before any key generation. Do not generate, display, export, or commit private-key material until a separately approved execution plan is confirmed.
+**Task status:** 🟧 Implemented and locally verified on 2026-10-03. Documentation closeout, local commit, GitLab CI, GitHub post, and final fetched synchronization remain required before this task can be marked complete and verified.
 
-**P00-014 completion evidence:**
+**Scope completed:**
 
-- **Task status:** ✅ Complete and verified on 2026-10-03.
-- **Evidence commit:** `54bde63816abe2f7015b20c87dfc50adcbd98a13` — `docs(phase-00): record P00-014 evidence vault validation`.
-- **Repository lifecycle:** GitLab CI passed (pipeline identifier not captured); the commit was posted to GitHub; fetched verification proved `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13`.
-- **Vault:** `/srv/blockchain-soc/evidence-vault`, local ext4, empty, `soc-evidence:soc-evidence`, mode `0700`; `soc-evidence` traversal passed and interactive `kali` listing was denied.
-- **Preservation:** P00-013 transfer ELF metadata remained unchanged. The VirtualBox shared folder remains transfer/staging only, not the authoritative vault.
-- **RUNBOOK.md:** Not updated. P00-014 did not establish a complete reusable procedure for evidence admission, capacity planning, hashing, sealing, custody, retention, recovery, or destruction.
+- Read-only signing-tool, package-ownership, protected-storage, repository-ignore, and boundary discovery.
+- Selection of Minisign `0.12` for a dedicated evidence-manifest detached-signature identity.
+- Creation of a dedicated passphrase-protected signing key in host-local owner-only storage outside Git.
+- Metadata-only permission validation: protected directory owner-only; private material owner-readable only; public verification material public-readable.
+- Harmless synthetic-manifest detached-signature creation and verification using the generated public verification material.
+- Confirmed cleanup of only the named synthetic manifest and detached signature.
+- Repository-boundary checks confirming no signing material entered Git; only `docs/.backup/` was untracked before documentation edits.
 
-**P00-013 completion evidence:**
+**Files changed:**
 
-- **Task status:** ✅ Complete and verified on 2026-10-03.
-- **Analysis input:** `ubuntu-server_P00-013_20261003T055707Z_working.elf`; `4,317,911,540` bytes.
-- **Input SHA-256:** `e5184b85d82f1abb130fc726afecadc7f9b0c298f60b54be1dc6b3b487816f93`.
-- **Tool:** Volatility 3 Framework `2.28.2`.
-- **Validation:** Banner validation exited `0` at `2026-10-03T06:30:47Z`; `linux.pslist` exited `0` at `2026-10-03T06:44:50Z`; `linux.pstree` exited `0` at `2026-10-03T06:46:14Z`.
-- **Symbols:** `Ubuntu_6.8.0-90-generic_6.8.0-90.91_amd64.json.xz`; symbol Git blob SHA-1 `cc2757b589e0af49fde532fc05a4c038c3b4a461`.
-- **Result:** Process enumeration and parent/child hierarchy were plausible for the configured disposable Ubuntu lab host. This is a bounded process-focused validation only; it is not a malware finding, clean-host declaration, or comprehensive compromise assessment.
-- **Evidence boundary:** Raw memory evidence, analysis logs, and symbol material remain outside Git under `/media/sf_VBox_Files_Shared/P00-013-Analysis/`. Do not stage or commit those items.
-- **Documentation lifecycle:** Evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI (pipeline identifier not captured), was posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`.
-- **RUNBOOK.md:** Not updated. The available evidence does not establish a fully verified, reusable operator procedure with tested setup, cleanup, recovery, and troubleshooting.
+- Host-local protected signing material outside Git.
+- Pending tracked documentation closeout: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 
-**P00-015 explicitly out of scope:** Generating, displaying, exporting, copying, committing, or uploading a private signing key; signing any evidence or manifest; moving, deleting, sealing, or rehashing P00-013 evidence; changing the vault ownership model; changing Git remotes, GitLab CI, GitHub configuration, or `docs/.backup/`; starting MinIO/Object Lock; and `apt autoremove`.
+**Validation evidence:**
 
-**Expected files:** Protected host-local signing-key directory and key material outside Git after separate approval. Documentation changes only after factual validation: `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/RUNBOOK.md` changes only if a complete reusable signing-key procedure is tested and verified.
+- Minisign key generation exited `0`.
+- Synthetic detached signing exited `0`.
+- Minisign reported that the signature and comment signature verified; verification exited `0`.
+- Synthetic validation artifacts were confirmed absent after cleanup.
+- No real evidence, evidence-vault content, P00-013 material, shared-folder data, or repository file was signed, modified, moved, sealed, or rehashed.
 
-**Acceptance criteria:** Before key generation, identify installed signing tools, select an algorithm and protected local storage location, confirm private-key exclusion from Git and terminal output, and obtain explicit approval for the exact generation command.
+**Security boundary:**
 
-**Validation commands:** Read-only discovery only until a separate key-generation action is explicitly approved. Do not add untested commands to the runbook.
+- Never display, paste, log, export, upload, copy, stage, commit, or transmit private-key content, passphrases, recovery material, or secret-key identifiers.
+- Do not place signing material in the repository, `docs/.backup/`, a shared folder, `/tmp`, or the evidence vault.
+- The public verification key remains host-local for now; public-key publication, trust bootstrap, and distribution are not established by P00-015.
+- Keep `docs/.backup/` untracked. Do not use force push.
 
-**Dependencies:** P00-014 is complete and verified. The local service-account evidence vault exists, but its empty state must be preserved; do not place private operator signing material inside the evidence vault.
+**Explicitly out of scope:**
 
-**Security constraints:** Never display, paste, log, copy to shared folders, or commit a private key, passphrase, seed, token, or raw evidence. Keep `docs/.backup/` untracked. Do not use force push.
+- Real-evidence or P00-013 signing.
+- Production evidence-manifest schema or canonical manifest-generation workflow.
+- Public-key publication, distribution, trust bootstrap, revocation, compromise response exercise, key rotation, or key replacement.
+- Evidence-vault ownership/content changes, MinIO/Object Lock, Git remote/CI configuration changes, and `apt autoremove`.
+
+**RUNBOOK.md:** Updated in this documentation closeout with the verified synthetic procedure and safety boundaries only. It does not disclose private material, protected-key location, passphrases, public-key strings, fingerprints, or real evidence details.
+
+**Immediate next task**
+
+- **Task:** P00-GATE — Audit Phase 0 before beginning Phase 1.
+- **Scope:** Review every Phase 0 completion criterion against factual local validation, documentation, commit, GitLab CI, GitHub post, and synchronization evidence; record remaining gaps without beginning Phase 1.
+- **Expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md`; update `docs/RUNBOOK.md` only if the audit changes an operational procedure.
+- **Acceptance criteria:** Every P00 item is either complete and verified or accurately documented as blocked/stubbed; Phase 0 gate criteria are reconciled against factual evidence; outstanding gaps are explicitly recorded.
+- **Validation:** Read-only Git, documentation, and available CI/remote evidence audit.
+- **Dependencies:** P00-015 documentation closeout must first be committed, pass GitLab CI, post to GitHub, and be proven synchronized.
+- **Security constraints:** Do not access private signing material, real evidence, the evidence vault, or unrelated host configuration during the audit.
 
 ## Subsequent task queue
 

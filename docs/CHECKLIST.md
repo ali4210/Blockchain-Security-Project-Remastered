@@ -77,12 +77,12 @@ resolve to the same full SHA.
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
 | Current task | P00-015 — Create an operator signing key for evidence-manifest signing |
-| Current thread | P00-014 evidence-vault service-account isolation is complete and verified at `54bde63816abe2f7015b20c87dfc50adcbd98a13`; P00-015 signing-key planning and baseline discovery is next. Keep private signing material outside Git, tracked documentation, and terminal captures. |
+| Current thread | P00-015 protected Minisign operator-key creation and synthetic detached-signature proof are locally verified; documentation closeout, commit, CI, remote posts, and synchronization remain required. Keep private material outside Git, tracked documentation, terminal captures, shared folders, `/tmp`, and the evidence vault. |
 | Current branch | `main` |
-| Last verified commit | `54bde63816abe2f7015b20c87dfc50adcbd98a13` — `docs(phase-00): record P00-014 evidence vault validation` |
-| Last GitLab pipeline | Passed for `54bde63816abe2f7015b20c87dfc50adcbd98a13` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `54bde63816abe2f7015b20c87dfc50adcbd98a13` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13` |
+| Last verified commit | `434ad837ce2f9d388c67cb6d67b434bb34849f2b` — `docs(phase-00): close P00-014 verification` |
+| Last GitLab pipeline | Passed for `434ad837ce2f9d388c67cb6d67b434bb34849f2b` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
+| Synchronization | Verified before P00-015 documentation edits — `main == gitlab/main == origin/main == 434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-03 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -132,7 +132,7 @@ resolve to the same full SHA.
 | P00-012 | Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. | ✅ | Verified 2026-10-02: Sleuth Kit 4.14.0, Autopsy 2.24-6kali1, Volatility 3 2.28.2 via pipx (`vol`), Plaso 20260119-1kali1, dc3dd 7.3.1-4, ewf-tools 20140816-2+b2, YARA 4.5.8, tshark 4.6.6, tcpdump 4.99.6, GnuPG 2.4.9, and minisign 0.12 (`0.12-1+b1`) safely version/help validated. Optional Zeek remains blocked by the available Kali package dependency `libc6 < 2.38` versus installed `libc6 2.43-4`. Documentation closeout commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` passed GitLab CI (green observed; pipeline identifier not captured), was posted to GitHub, and final verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`. |
 | P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | ✅ | Verified 2026-10-03: disposable Ubuntu memory-image acquisition and Volatility 3 banner/`linux.pslist`/`linux.pstree` validation completed. Evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI, was posted to GitHub, and `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`. |
 | P00-014 | Prepare a dedicated evidence-vault directory/volume with separate service-account ownership; optionally document MinIO Object Lock. | ✅ | Verified 2026-10-03: local ext4 vault `/srv/blockchain-soc/evidence-vault` is empty, `soc-evidence:soc-evidence`, mode `0700`; service-account access passed and interactive `kali` listing was denied. Evidence commit `54bde63816abe2f7015b20c87dfc50adcbd98a13` passed GitLab CI, was posted to GitHub, and `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13`. |
-| P00-015 | Create an operator signing key for evidence-manifest signing; keep private material outside Git. | ⬜ | — |
+| P00-015 | Create an operator signing key for evidence-manifest signing; keep private material outside Git. | 🟧 | Locally verified 2026-10-03: dedicated passphrase-protected Minisign key was created only in protected host-local storage; owner-only permissions were validated; a harmless synthetic manifest was detached-signed and verified; and synthetic artifacts were removed. Documentation/commit/CI/remote synchronization remains pending. |
 
 ## P00 — evidence log
 
@@ -520,18 +520,19 @@ resolve to the same full SHA.
 - **Runbook impact:** Not required. This bounded implementation does not establish a complete reusable procedure for evidence admission, capacity planning, hashing, sealing, custody, retention, recovery, or destruction.
 - **Notes / simulation / limitation:** Coursework/local implementation only. The local ext4 filesystem had approximately 8.7 GiB free during preflight; do not transfer the 4.0 GiB P00-013 ELF into the vault without separately approved capacity and integrity controls.
 
-### P00-015 — evidence entry
+### P00-015 — Operator signing key for evidence-manifest signing
 
-> Copy the same evidence fields for each completed task. Keep secret values, private keys, bearer tokens, and internal addresses out of this document.
-
-- **Task ID:**
-- **Status:**
-- **Files changed:**
-- **Validation commands:**
-- **Result:**
-- **Evidence path / CI job:**
-- **Commit:**
-- **Notes / simulation / limitation:
+- **Status:** 🟧 Implemented and locally verified on 2026-10-03; documentation closeout, local commit, GitLab CI, GitHub post, and final synchronization remain pending.
+- **Scope completed:** Read-only signing-tool and protected-storage discovery; dedicated Minisign key generation in protected host-local storage; permission validation; harmless synthetic detached-signature creation and verification; synthetic-artifact cleanup; and repository-boundary checks.
+- **Files changed:** Host-local protected signing material outside Git. Pending documentation changes: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Validation commands:** Safe system-binary/version and package-ownership inspection; protected-directory metadata inspection; repository ignore-rule checks; interactive Minisign key generation; metadata-only permission validation; synthetic-manifest creation; detached signing; public-key verification; synthetic-artifact cleanup verification; and repository status checks.
+- **Factual results:** Minisign key generation exited `0`. Synthetic detached signing exited `0`; Minisign reported that the signature and comment signature verified; verification exited `0`. The synthetic manifest and signature were confirmed absent after cleanup. Before documentation edits, the repository worktree contained only intentional untracked `docs/.backup/`.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-015 implementation thread. CI evidence is pending the documentation commit.
+- **Commit:** Pending documentation closeout commit.
+- **Security checks:** No private-key body, passphrase, recovery material, secret-key identifier, or key content was recorded. No signing material was copied to Git, `docs/.backup/`, shared folders, `/tmp`, or the evidence vault. No raw evidence, P00-013 material, evidence-vault content, repository file, or real evidence manifest was accessed, signed, moved, rehashed, sealed, or modified.
+- **Dependencies / limitations:** Dedicated Minisign signing material is host-local only. This task does not define a production evidence-manifest schema, public-key publication/distribution, trust bootstrap, revocation/replacement exercise, or real-evidence signing workflow. Real evidence remains unsigned by this task.
+- **Runbook impact:** Required and pending in this same documentation closeout: the verified protected-key generation, synthetic sign/verify, cleanup, and failure-boundary procedure is reusable, but documentation must not reveal secret material or protected-key location.
+- **Next recommended task:** P00-GATE — Audit Phase 0 before beginning Phase 1, after P00-015 documentation, commit, GitLab CI, GitHub post, and three-way synchronization are complete.
 
 ## P00-GATE — Phase 0 completion gate
 

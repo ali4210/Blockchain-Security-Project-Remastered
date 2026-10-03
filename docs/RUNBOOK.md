@@ -572,6 +572,63 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 - This establishes local host-preparation only. Installation and version/help output do not constitute forensic analysis, tool suitability for a specific evidence format, chain-of-custody validation, or authorization to collect evidence.
 - Documentation closeout completed in commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6`: GitLab CI passed with green status (pipeline identifier not captured), the commit was posted to GitHub, and final fetched verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`.
 
+## P00-015 — Protected Minisign evidence-manifest signing-key validation
+
+**Status:** Implemented but needs verification
+
+**Purpose:** Create and locally validate a dedicated passphrase-protected Minisign signing identity for future evidence-manifest detached signatures, without signing real evidence or exposing private material.
+
+**Scope and limitations**
+
+- Verified only on the authorized Kali coursework host.
+- This procedure uses a harmless synthetic manifest solely to prove local sign-and-verify capability.
+- It does not define a production evidence-manifest schema, publish a public key, establish a trust-distribution process, exercise revocation or rotation, or authorize signing real evidence.
+- The evidence vault is not a signing-key store. Do not access or alter vault content as part of this procedure.
+
+**Preconditions and safety boundaries**
+
+- Perform discovery first and obtain explicit approval before generating private signing material.
+- Use a dedicated host-local owner-only directory outside the repository, shared folders, `/tmp`, `docs/.backup/`, and the evidence vault.
+- Enter the dedicated passphrase only at the interactive Minisign prompt. Never include it in shell arguments, environment variables, scripts, files, screenshots, logs, Git, or chat.
+- Never display, copy, export, upload, edit, or inspect the private-key body.
+- Use absolute paths for system utilities if the interactive shell cannot resolve ordinary commands.
+- Stop if either intended key file already exists or if a synthetic test path already exists; do not overwrite or delete material automatically.
+
+**Tested workflow**
+
+1. Record repository state with `/usr/bin/git status --short`.
+2. Inspect only metadata for the protected directory and intended key-file paths with `/usr/bin/stat`; confirm the directory is owner-only and both intended key files are absent before initial generation.
+3. Generate the dedicated Minisign key pair with `/usr/bin/minisign -G`, supplying the private-key and public-key output paths only in approved host-local protected storage. Enter the new dedicated passphrase only at the interactive prompts.
+4. Inspect file metadata only. Confirm private material is owner-readable only and the public verification file is not group-writable.
+5. Create a generated non-sensitive synthetic manifest inside the protected signing directory, restrict it to owner-only access, and record its SHA-256 with `/usr/bin/sha256sum`.
+6. Create a detached signature with `/usr/bin/minisign -S`, entering the passphrase only at the interactive prompt.
+7. Verify with `/usr/bin/minisign -Vm` and the public verification file. The expected result is `Signature and comment signature verified` with exit status `0`.
+8. After successful verification, remove only the explicitly named synthetic manifest and its detached signature with `/usr/bin/rm -f --`; confirm both are absent.
+9. Repeat `/usr/bin/git status --short`. The protected host-local files must remain outside Git.
+
+**Expected successful result**
+
+- Dedicated signing material exists only in protected host-local storage.
+- The private key is owner-readable only; the protected directory is owner-only; public verification material is not group-writable.
+- Synthetic detached signing and verification both return exit status `0`.
+- Only the named synthetic test files are removed after successful verification.
+- No repository file, raw evidence, evidence-vault content, or shared-folder content is signed or modified.
+
+**Failure indicators and safe response**
+
+- A target key file or synthetic test file exists unexpectedly: stop; do not overwrite, regenerate, or delete it.
+- Key generation, signing, or verification returns a nonzero status: preserve sanitized output and inspect metadata only. Do not retry automatically.
+- Cleanup is incomplete: do not remove additional files; retain only the named synthetic artifacts for controlled review.
+- A passphrase or private-key body appears in any output or proposed diff: stop, do not stage the content, remove it from tracked material, and perform a targeted secret-boundary review.
+- The repository shows unexpected tracked changes: stop and review the diff before proceeding.
+
+**Evidence and limitation**
+
+- Task: `P00-015`.
+- Factual local result: Minisign key generation, synthetic detached signing, and public-key verification each succeeded; synthetic test artifacts were removed.
+- This is a coursework/local cryptographic-control validation, not a production key-management system, evidence-sealing process, public-key distribution mechanism, or authorization to sign real evidence.
+- The documentation, commit, CI, remote-post, and synchronization lifecycle must be complete before this procedure is marked verified.
+
 ## P00-006 — Windows Ollama loopback backend and Caddy private-interface proxy
 
 **Status:** ✅ Verified
