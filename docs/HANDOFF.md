@@ -12,14 +12,14 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-013 — Memory-acquisition method planning and baseline discovery |
-| Current thread | P00-012 DFIR tooling baseline is complete and verified at `3fa2735ee251f90a4dc46619e6bf85ebae0371c6`; P00-013 read-only planning and baseline discovery is next. No memory acquisition, dump export, kernel-module loading, AVML/LiME execution, or non-throwaway-system interaction is authorized. |
+| Current task | P00-013 — Memory acquisition and bounded process-structure validation |
+| Current thread | P00-013 local acquisition and bounded Volatility validation completed on 2026-10-03. Documentation update is in progress; local commit, GitLab CI validation, GitHub post, and three-way synchronization remain pending. |
 | Current branch | `main` |
 | Last verified commit | `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` — `docs(phase-00): record P00-012 DFIR tooling baseline` |
 | Last GitLab pipeline | Passed (green observed); pipeline identifier not captured for `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` |
 | Last GitHub post | Posted — `origin/main` resolved to `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`; P00-013 planning has not started. |
-| Last updated | 2026-10-02 |
+| Synchronization | Verified for the prior P00-012 commit only: `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`; P00-013 documentation synchronization is pending. |
+| Last updated | 2026-10-03 |
 
 ## Completed since previous handoff
 
@@ -195,24 +195,40 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ## Immediate next task
 
-### P00-013 — Memory-acquisition method planning and baseline discovery
+### P00-014 — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership
 
-**Scope:** Perform read-only planning and baseline discovery for a future memory-acquisition test on an explicitly designated throwaway VM. Identify available supported methods and their prerequisites, document a proposed disposable test boundary, and select no method until a separately reviewed execution plan is approved.
+**Scope:** Create and validate a dedicated local evidence-vault boundary for future forensic artifacts. Document ownership, permissions, separation, and preservation controls without moving, deleting, modifying, or rehashing the existing P00-013 evidence unless separately approved.
 
-**Explicitly out of scope:** Any memory acquisition, crash/core-dump export, AVML execution, LiME build/load, kernel-module loading, snapshot export, evidence-vault creation, hashing/signing, packet capture, production/host memory interaction, non-throwaway VM interaction, or use of sensitive case data.
+**P00-013 completed local work — documentation lifecycle pending:**
 
-**Allowed actions:** Read-only host/VM inventory; inspection of hypervisor, kernel, package, and tool availability; review of local tool help and vendor/package documentation; and documentation planning. Do not create a dump file, write a kernel module, start capture, or modify VM/hypervisor configuration.
+- **Task status:** 🟨 Implemented but needs verification.
+- **Analysis input:** `ubuntu-server_P00-013_20261003T055707Z_working.elf`; `4,317,911,540` bytes.
+- **Input SHA-256:** `e5184b85d82f1abb130fc726afecadc7f9b0c298f60b54be1dc6b3b487816f93`.
+- **Tool:** Volatility 3 Framework `2.28.2`.
+- **Validation:** Banner validation exited `0` at `2026-10-03T06:30:47Z`; `linux.pslist` exited `0` at `2026-10-03T06:44:50Z`; `linux.pstree` exited `0` at `2026-10-03T06:46:14Z`.
+- **Symbols:** `Ubuntu_6.8.0-90-generic_6.8.0-90.91_amd64.json.xz`; symbol Git blob SHA-1 `cc2757b589e0af49fde532fc05a4c038c3b4a461`.
+- **Result:** Process enumeration and parent/child hierarchy were plausible for the configured disposable Ubuntu lab host. This is a bounded process-focused validation only; it is not a malware finding, clean-host declaration, or comprehensive compromise assessment.
+- **Evidence boundary:** Raw memory evidence, analysis logs, and symbol material remain outside Git under `/media/sf_VBox_Files_Shared/P00-013-Analysis/`. Do not stage or commit those items.
+- **Documentation lifecycle:** Local documentation commit, GitLab CI validation, GitHub post, and fetched three-way SHA synchronization are pending.
+- **RUNBOOK.md:** Not updated. The available evidence does not establish a fully verified, reusable operator procedure with tested setup, cleanup, recovery, and troubleshooting.
 
-**Security constraints:** Keep all work on the designated throwaway boundary once execution is separately approved. Do not access actual evidence, private keys, tokens, or credentials; do not run `apt autoremove`; do not change Git remotes, GitHub settings, GitLab CI configuration, or `docs/.backup/`. Normal documentation commit, CI validation, and manual GitHub synchronization remain allowed.
+**P00-014 explicitly out of scope:** Altering, moving, deleting, sealing, signing, exporting, or rehashing P00-013 evidence; creating an object-lock deployment; changing Git remotes, GitLab CI, GitHub configuration, or `docs/.backup/`; generating an operator signing key; memory acquisition; packet capture; and `apt autoremove`.
 
-**Exit criteria:** Before any acquisition attempt, record the selected method, throwaway VM identity and disposable proof, output location and cleanup plan, host/guest version compatibility, expected artifact format, safe validation steps, and explicit approval for the exact execution command. P00-013 is not complete until a separately approved throwaway-VM test is executed and documented.
+**Expected files:** Host-local evidence-vault directory/permission state outside Git. Documentation changes only after factual validation: `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/RUNBOOK.md` changes only if a reusable, tested operating procedure is established.
+
+**Acceptance criteria:** A dedicated evidence-vault location exists; ownership and restrictive permissions are validated; P00-013 raw evidence remains outside Git and unmodified; factual terminal evidence is captured; documentation is reviewed, committed, GitLab CI-validated, posted to GitHub, and synchronized.
+
+**Validation commands:** Select only after read-only inspection of existing storage, ownership, mount, and permission state. Do not add untested commands to the runbook.
+
+**Dependencies:** P00-012 DFIR tooling baseline is complete and verified. P00-013 local evidence acquisition and bounded analysis are complete but its documentation synchronization is pending.
+
+**Security constraints:** Preserve raw evidence. Do not display or commit credentials, keys, tokens, raw evidence, or sensitive analysis material. Keep `docs/.backup/` untracked. Do not use force push.
 
 ## Subsequent task queue
 
-1. `P00-013` — Read-only planning and baseline discovery. **No acquisition or execution is authorized yet.**
-2. `P00-014` — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership.
-3. `P00-015` — Create an operator signing key for evidence-manifest signing; keep private material outside Git.
-4. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P00-014` — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership.
+2. `P00-015` — Create an operator signing key for evidence-manifest signing; keep private material outside Git.
+3. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
 
 ## Known dependencies and planned stubs
 
