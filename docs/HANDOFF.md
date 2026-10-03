@@ -12,13 +12,13 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-014 — Evidence-vault service-account isolation and validation |
-| Current thread | P00-014 local evidence-vault boundary was implemented and validated on 2026-10-03. Documentation update is in progress; local commit, GitLab CI validation, GitHub post, and three-way synchronization remain pending. |
+| Current task | P00-015 — Create an operator signing key for evidence-manifest signing |
+| Current thread | P00-014 evidence-vault service-account isolation and validation is complete and verified at `54bde63816abe2f7015b20c87dfc50adcbd98a13`; P00-015 signing-key planning and baseline discovery is next. |
 | Current branch | `main` |
-| Last verified commit | `ebbd51d837c3f9d0c944d76b014d94a701db31b4` — `docs(phase-00): close P00-013 verification` |
-| Last GitLab pipeline | Passed for `ebbd51d837c3f9d0c944d76b014d94a701db31b4` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `ebbd51d837c3f9d0c944d76b014d94a701db31b4` |
-| Synchronization | Verified for the prior P00-013 closeout commit only: `main == gitlab/main == origin/main == ebbd51d837c3f9d0c944d76b014d94a701db31b4`; P00-014 documentation synchronization is pending. |
+| Last verified commit | `54bde63816abe2f7015b20c87dfc50adcbd98a13` — `docs(phase-00): record P00-014 evidence vault validation` |
+| Last GitLab pipeline | Passed for `54bde63816abe2f7015b20c87dfc50adcbd98a13` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `54bde63816abe2f7015b20c87dfc50adcbd98a13` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13` |
 | Last updated | 2026-10-03 |
 
 ## Completed since previous handoff
@@ -195,13 +195,18 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ## Immediate next task
 
-### P00-014 — Evidence-vault service-account isolation and validation
+### P00-015 — Create an operator signing key for evidence-manifest signing
 
-**Status:** 🟧 Implemented but needs verification.
+**Scope:** Perform read-only signing-tool and protected-storage discovery for an operator signing key. Select a non-secret public-key algorithm and a host-local protected storage location before any key generation. Do not generate, display, export, or commit private-key material until a separately approved execution plan is confirmed.
 
-**Scope completed:** Created and locally validated an empty service-account-owned evidence-vault boundary on local ext4 storage. The vault is outside Git and separate from the VirtualBox shared transfer folder. P00-013 evidence remained unchanged.
+**P00-014 completion evidence:**
 
-**Scope not completed:** No evidence admission, transfer, copy, move, rehash, sealing, signing, deletion, object lock, MinIO deployment, retention policy, custody database, P00-015 signing-key work, or Phase 0 gate audit was performed.
+- **Task status:** ✅ Complete and verified on 2026-10-03.
+- **Evidence commit:** `54bde63816abe2f7015b20c87dfc50adcbd98a13` — `docs(phase-00): record P00-014 evidence vault validation`.
+- **Repository lifecycle:** GitLab CI passed (pipeline identifier not captured); the commit was posted to GitHub; fetched verification proved `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13`.
+- **Vault:** `/srv/blockchain-soc/evidence-vault`, local ext4, empty, `soc-evidence:soc-evidence`, mode `0700`; `soc-evidence` traversal passed and interactive `kali` listing was denied.
+- **Preservation:** P00-013 transfer ELF metadata remained unchanged. The VirtualBox shared folder remains transfer/staging only, not the authoritative vault.
+- **RUNBOOK.md:** Not updated. P00-014 did not establish a complete reusable procedure for evidence admission, capacity planning, hashing, sealing, custody, retention, recovery, or destruction.
 
 **P00-013 completion evidence:**
 
@@ -216,28 +221,17 @@ Exact commands must be selected only after identifying the actual certificate to
 - **Documentation lifecycle:** Evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI (pipeline identifier not captured), was posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`.
 - **RUNBOOK.md:** Not updated. The available evidence does not establish a fully verified, reusable operator procedure with tested setup, cleanup, recovery, and troubleshooting.
 
-**Validated vault boundary:**
+**P00-015 explicitly out of scope:** Generating, displaying, exporting, copying, committing, or uploading a private signing key; signing any evidence or manifest; moving, deleting, sealing, or rehashing P00-013 evidence; changing the vault ownership model; changing Git remotes, GitLab CI, GitHub configuration, or `docs/.backup/`; starting MinIO/Object Lock; and `apt autoremove`.
 
-- **Service identity:** `soc-evidence`, UID `999`, GID `966`, home `/nonexistent`, shell `/usr/sbin/nologin`.
-- **Vault root:** `/srv/blockchain-soc`, `root:root`, mode `0755`.
-- **Vault:** `/srv/blockchain-soc/evidence-vault`, local `/dev/sda1` `ext4`, empty, `soc-evidence:soc-evidence`, mode `0700`.
-- **Access validation:** `soc-evidence` traversal passed; interactive `kali` listing was denied.
-- **P00-013 preservation check:** The transfer ELF remained mode `770`, `root:vboxsf`, and `4,317,911,540` bytes before and after the P00-014 validation.
-- **Repository boundary:** No tracked repository files changed during implementation; `docs/.backup/` remains untracked.
-- **Documentation lifecycle:** Local commit, GitLab CI validation, GitHub post, and fetched three-way synchronization are pending.
-- **RUNBOOK.md:** Not updated. This task did not establish a complete reusable procedure for evidence admission, capacity planning, hashing, sealing, custody, retention, recovery, or destruction.
+**Expected files:** Protected host-local signing-key directory and key material outside Git after separate approval. Documentation changes only after factual validation: `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/RUNBOOK.md` changes only if a complete reusable signing-key procedure is tested and verified.
 
-**P00-014 explicitly out of scope:** Altering, moving, deleting, sealing, signing, exporting, or rehashing P00-013 evidence; creating an object-lock deployment; changing Git remotes, GitLab CI, GitHub configuration, or `docs/.backup/`; generating an operator signing key; memory acquisition; packet capture; and `apt autoremove`.
+**Acceptance criteria:** Before key generation, identify installed signing tools, select an algorithm and protected local storage location, confirm private-key exclusion from Git and terminal output, and obtain explicit approval for the exact generation command.
 
-**Expected files:** Host-local service-account and evidence-vault state outside Git. Documentation changes after factual validation: `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/RUNBOOK.md` remains unchanged because no complete reusable operator procedure was verified.
+**Validation commands:** Read-only discovery only until a separate key-generation action is explicitly approved. Do not add untested commands to the runbook.
 
-**Acceptance criteria:** Met locally: a dedicated evidence-vault location exists; ownership and restrictive permissions are validated; P00-013 raw evidence remains outside Git and unchanged; factual terminal evidence is captured. Documentation commit, GitLab CI, GitHub post, and three-way synchronization remain pending.
+**Dependencies:** P00-014 is complete and verified. The local service-account evidence vault exists, but its empty state must be preserved; do not place private operator signing material inside the evidence vault.
 
-**Validation commands actually run:** Read-only storage/mount/permission inspection; guarded system-user/group and vault creation; `stat`; `findmnt`; empty-vault listing as `soc-evidence`; service-account traversal test; denied interactive-user listing test; P00-013 ELF metadata comparison; and repository-boundary `git status --short`.
-
-**Dependencies:** P00-012 DFIR tooling baseline and P00-013 memory acquisition/process-structure validation are complete and verified. P00-015 remains deferred until this documentation lifecycle is complete.
-
-**Security constraints:** Preserve raw evidence. Do not display or commit credentials, keys, tokens, raw evidence, or sensitive analysis material. Keep `docs/.backup/` untracked. Do not use force push. The VirtualBox shared folder remains transfer/staging only, not the authoritative vault.
+**Security constraints:** Never display, paste, log, copy to shared folders, or commit a private key, passphrase, seed, token, or raw evidence. Keep `docs/.backup/` untracked. Do not use force push.
 
 ## Subsequent task queue
 
