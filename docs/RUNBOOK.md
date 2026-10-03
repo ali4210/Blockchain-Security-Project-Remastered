@@ -574,7 +574,7 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 
 ## P00-015 — Protected Minisign evidence-manifest signing-key validation
 
-**Status:** Implemented but needs verification
+**Status:** ✅ Verified
 
 **Purpose:** Create and locally validate a dedicated passphrase-protected Minisign signing identity for future evidence-manifest detached signatures, without signing real evidence or exposing private material.
 

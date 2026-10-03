@@ -75,14 +75,14 @@ resolve to the same full SHA.
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-015 — Create an operator signing key for evidence-manifest signing |
-| Current thread | P00-015 protected Minisign operator-key creation and synthetic detached-signature proof are locally verified; documentation closeout, commit, CI, remote posts, and synchronization remain required. Keep private material outside Git, tracked documentation, terminal captures, shared folders, `/tmp`, and the evidence vault. |
+| Current phase | Phase 1 — Skeleton scaffold |
+| Current task | P01-001 — Unpack/create the project skeleton in the Kali VM project directory |
+| Current thread | Phase 0 is complete and verified through the synchronized P00-GATE evidence commit `983098a34511ba06157268feda9f0f02c15eac63`; Phase 1 has not started. Preserve protected signing material, evidence-vault boundaries, and untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `434ad837ce2f9d388c67cb6d67b434bb34849f2b` — `docs(phase-00): close P00-014 verification` |
-| Last GitLab pipeline | Passed for `434ad837ce2f9d388c67cb6d67b434bb34849f2b` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
-| Synchronization | Verified before P00-015 documentation edits — `main == gitlab/main == origin/main == 434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
+| Last verified commit | `983098a34511ba06157268feda9f0f02c15eac63` — `docs(phase-00): reconcile P00 gate evidence` |
+| Last GitLab pipeline | Passed for `983098a34511ba06157268feda9f0f02c15eac63` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `983098a34511ba06157268feda9f0f02c15eac63` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == 983098a34511ba06157268feda9f0f02c15eac63` |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-03 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -93,7 +93,7 @@ resolve to the same full SHA.
 
 | Phase | Name | Status | Phase gate evidence | Commit / tag |
 |---:|---|---|---|---|
-| 0 | Environment and prerequisites | ⬜ | — | — |
+| 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ⬜ | — | — |
 | 2 | Zone 1 — Ingestion Gateway | ⬜ | — | — |
 | 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | ⬜ | — | — |
@@ -543,12 +543,12 @@ resolve to the same full SHA.
 - [x] Authenticated mTLS/Bearer transport path from Kali reached the Windows proxy — P00-009 recorded a valid client-certificate plus valid Bearer allow event. This is transport-authorization evidence; authenticated `GET /api/tags` functional success remains an optional follow-up.
 - [x] All P00-001 through P00-015 task evidence is recorded above.
 - [x] A Phase 0 documentation commit exists — P00-015 closeout `f34e97b18cb3cee417d1c2b3fc618ef676271773` is verified synchronized.
-- [ ] `docs/HANDOFF.md` is updated for Phase 1 after this P00-GATE record completes its own commit, GitLab CI, GitHub post, and three-way synchronization lifecycle.
+- [x] `docs/HANDOFF.md` is prepared for Phase 1 / P01-001 in this phase-declaration update; final phase declaration remains pending this documentation commit lifecycle.
 
-**Gate status:** 🟧 Locally validated; final phase declaration pending P00-GATE documentation commit lifecycle.
+**Gate status:** ✅ Phase 0 complete and verified by factual gate evidence; phase-declaration documentation commit lifecycle pending.
 **Verified by:** Sanitized P00-GATE read-only audit and minimal command validation on 2026-10-03.
 **Verification date:** 2026-10-03
-**Gate commit/tag:** Pending P00-GATE documentation closeout commit.
+**Gate evidence commit/tag:** `983098a34511ba06157268feda9f0f02c15eac63` — GitLab CI reported green (pipeline identifier not captured), GitHub post completed, and fetched verification proved `main == gitlab/main == origin/main == 983098a34511ba06157268feda9f0f02c15eac63`.
 **Known observation:** The interactive shell/PATH and prompt integration cannot resolve ordinary utilities such as `git`, `ssh`, `stat`, `wc`, and `less`; gate validation used known absolute paths or a process-local safe `PATH`. This is host-local maintenance work and is not changed by P00-GATE.
 
 ---

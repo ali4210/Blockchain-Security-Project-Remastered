@@ -11,14 +11,14 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 0 — Environment and prerequisites |
-| Current task | P00-015 — Create an operator signing key for evidence-manifest signing |
-| Current thread | P00-015 protected Minisign operator-key creation and synthetic sign/verify proof are locally verified; documentation closeout, commit, GitLab CI, GitHub post, and final synchronization remain required. |
+| Current phase | Phase 1 — Skeleton scaffold |
+| Current task | P01-001 — Unpack/create the project skeleton in the Kali VM project directory |
+| Current thread | Phase 0 is complete and verified through P00-GATE evidence commit `983098a34511ba06157268feda9f0f02c15eac63`; this phase-declaration documentation update is pending its own commit, CI, remote posts, and synchronization. Do not begin P01-001 until that lifecycle is complete. |
 | Current branch | `main` |
-| Last verified commit | `434ad837ce2f9d388c67cb6d67b434bb34849f2b` — `docs(phase-00): close P00-014 verification` |
-| Last GitLab pipeline | Passed for `434ad837ce2f9d388c67cb6d67b434bb34849f2b` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
-| Synchronization | Verified before P00-015 documentation edits — `main == gitlab/main == origin/main == 434ad837ce2f9d388c67cb6d67b434bb34849f2b` |
+| Last verified commit | `983098a34511ba06157268feda9f0f02c15eac63` — `docs(phase-00): reconcile P00 gate evidence` |
+| Last GitLab pipeline | Passed for `983098a34511ba06157268feda9f0f02c15eac63` (pipeline identifier not captured) |
+| Last GitHub post | Posted — `origin/main` resolved to `983098a34511ba06157268feda9f0f02c15eac63` |
+| Synchronization | Verified — `main == gitlab/main == origin/main == 983098a34511ba06157268feda9f0f02c15eac63` |
 | Last updated | 2026-10-03 |
 
 ## Completed since previous handoff
@@ -248,11 +248,31 @@ Exact commands must be selected only after identifying the actual certificate to
 - **Dependencies:** P00-015 documentation closeout must first be committed, pass GitLab CI, post to GitHub, and be proven synchronized.
 - **Security constraints:** Do not access private signing material, real evidence, the evidence vault, or unrelated host configuration during the audit.
 
+## Phase 0 completion handoff
+
+- **Status:** ✅ Phase 0 environment and prerequisite controls are complete and verified by the synchronized P00-GATE evidence commit `983098a34511ba06157268feda9f0f02c15eac63`.
+- **Gate evidence:** User-local Foundry `forge --version` returned `1.8.3` with exit `0`; Slither `0.11.6`, `vol --help`, and `fls -V` each returned exit `0`; P00-009 provides authenticated mTLS/Bearer transport authorization evidence, while authenticated `/api/tags` functional success remains an optional follow-up.
+- **Repository evidence:** `main == gitlab/main == origin/main == 983098a34511ba06157268feda9f0f02c15eac63`; GitLab CI was reported green and GitHub post was completed.
+- **Open maintenance observation:** The interactive shell/PATH and prompt integration remains unable to resolve ordinary utilities. Use known absolute paths or a process-local safe `PATH` until separately remediated; do not modify it as part of P01-001 unless it blocks scoped work.
+- **Phase 1 gate:** Not started. Do not claim Phase 1 verification until its own requirements, commit, CI, remote posts, and synchronization are evidenced.
+
+## Immediate next task
+
+### P01-001 — Unpack/create the project skeleton in the Kali VM project directory
+
+- **Scope:** Inspect the current repository tree and supplied project materials, then create or reconcile only the required Phase 1 skeleton layout and TODO stubs.
+- **Out of scope:** Docker Compose startup, dependency installation, application implementation, forensics/evidence operations, signing-key work, CI/remote reconfiguration, and interactive-shell maintenance.
+- **Expected files:** Only the verified skeleton files/directories and `docs/CHECKLIST.md`/`docs/HANDOFF.md` as factual task state changes require; update `docs/RUNBOOK.md` only if a tested reusable operator procedure changes.
+- **Acceptance criteria:** Repository tree matches the required base and forensic layout; every new Phase 1 placeholder has the required TODO marker; no secret, evidence, or unrelated host-local content enters Git.
+- **Validation:** Read-only tree comparison, explicit directory/file existence checks, TODO-marker audit, `git diff --check`, and scoped Git status/diff review.
+- **Dependencies:** Phase 0 declaration documentation commit lifecycle must complete first.
+- **Security constraints:** Preserve protected signing material, evidence-vault separation, P00-013 evidence boundaries, GitLab-first synchronization, and `docs/.backup/` exclusion.
+
 ## Subsequent task queue
 
-1. `P00-014` — Prepare a dedicated evidence-vault directory/volume with separate service-account ownership.
-2. `P00-015` — Create an operator signing key for evidence-manifest signing; keep private material outside Git.
-3. `P00-GATE` — Audit Phase 0 before beginning Phase 1.
+1. `P01-001` — Unpack/create the project skeleton in the Kali VM project directory.
+2. `P01-002` — Initialize Git and commit the full skeleton with every TODO stub.
+3. `P01-003` — Confirm required base layout contracts, Move, test, scripts, src, config, dashboard, docs, and `.gitlab`.
 
 ## Known dependencies and planned stubs
 
