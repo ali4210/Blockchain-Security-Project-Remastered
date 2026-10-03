@@ -132,7 +132,7 @@ resolve to the same full SHA.
 | P00-012 | Install DFIR tooling: Sleuth Kit, optional Autopsy GUI, Volatility 3, Plaso, dc3dd, libewf-tools, YARA, tshark/tcpdump, optional Zeek, and GPG or minisign. | ✅ | Verified 2026-10-02: Sleuth Kit 4.14.0, Autopsy 2.24-6kali1, Volatility 3 2.28.2 via pipx (`vol`), Plaso 20260119-1kali1, dc3dd 7.3.1-4, ewf-tools 20140816-2+b2, YARA 4.5.8, tshark 4.6.6, tcpdump 4.99.6, GnuPG 2.4.9, and minisign 0.12 (`0.12-1+b1`) safely version/help validated. Optional Zeek remains blocked by the available Kali package dependency `libc6 < 2.38` versus installed `libc6 2.43-4`. Documentation closeout commit `3fa2735ee251f90a4dc46619e6bf85ebae0371c6` passed GitLab CI (green observed; pipeline identifier not captured), was posted to GitHub, and final verification proved `main == gitlab/main == origin/main == 3fa2735ee251f90a4dc46619e6bf85ebae0371c6`. |
 | P00-013 | Select and test a memory-acquisition method on a throwaway VM: VirtualBox core dump, LiME, or AVML. | ✅ | Verified 2026-10-03: disposable Ubuntu memory-image acquisition and Volatility 3 banner/`linux.pslist`/`linux.pstree` validation completed. Evidence commit `cd7731af8a5c50637e8d0ba3d6b624e68d04e97a` passed GitLab CI, was posted to GitHub, and `main == gitlab/main == origin/main == cd7731af8a5c50637e8d0ba3d6b624e68d04e97a`. |
 | P00-014 | Prepare a dedicated evidence-vault directory/volume with separate service-account ownership; optionally document MinIO Object Lock. | ✅ | Verified 2026-10-03: local ext4 vault `/srv/blockchain-soc/evidence-vault` is empty, `soc-evidence:soc-evidence`, mode `0700`; service-account access passed and interactive `kali` listing was denied. Evidence commit `54bde63816abe2f7015b20c87dfc50adcbd98a13` passed GitLab CI, was posted to GitHub, and `main == gitlab/main == origin/main == 54bde63816abe2f7015b20c87dfc50adcbd98a13`. |
-| P00-015 | Create an operator signing key for evidence-manifest signing; keep private material outside Git. | 🟧 | Locally verified 2026-10-03: dedicated passphrase-protected Minisign key was created only in protected host-local storage; owner-only permissions were validated; a harmless synthetic manifest was detached-signed and verified; and synthetic artifacts were removed. Documentation/commit/CI/remote synchronization remains pending. |
+| P00-015 | Create an operator signing key for evidence-manifest signing; keep private material outside Git. | ✅ | Verified 2026-10-03: dedicated passphrase-protected Minisign key was created only in protected host-local storage; owner-only permissions were validated; a harmless synthetic manifest was detached-signed and verified; and synthetic artifacts were removed. Documentation closeout commit `f34e97b18cb3cee417d1c2b3fc618ef676271773` was posted to GitLab, reported green in GitLab CI (pipeline identifier not captured), posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == f34e97b18cb3cee417d1c2b3fc618ef676271773`. |
 
 ## P00 — evidence log
 
@@ -522,33 +522,34 @@ resolve to the same full SHA.
 
 ### P00-015 — Operator signing key for evidence-manifest signing
 
-- **Status:** 🟧 Implemented and locally verified on 2026-10-03; documentation closeout, local commit, GitLab CI, GitHub post, and final synchronization remain pending.
-- **Scope completed:** Read-only signing-tool and protected-storage discovery; dedicated Minisign key generation in protected host-local storage; permission validation; harmless synthetic detached-signature creation and verification; synthetic-artifact cleanup; and repository-boundary checks.
-- **Files changed:** Host-local protected signing material outside Git. Pending documentation changes: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
-- **Validation commands:** Safe system-binary/version and package-ownership inspection; protected-directory metadata inspection; repository ignore-rule checks; interactive Minisign key generation; metadata-only permission validation; synthetic-manifest creation; detached signing; public-key verification; synthetic-artifact cleanup verification; and repository status checks.
-- **Factual results:** Minisign key generation exited `0`. Synthetic detached signing exited `0`; Minisign reported that the signature and comment signature verified; verification exited `0`. The synthetic manifest and signature were confirmed absent after cleanup. Before documentation edits, the repository worktree contained only intentional untracked `docs/.backup/`.
-- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-015 implementation thread. CI evidence is pending the documentation commit.
-- **Commit:** Pending documentation closeout commit.
+- **Status:** ✅ Complete and verified on 2026-10-03.
+- **Scope completed:** Read-only signing-tool and protected-storage discovery; dedicated Minisign key generation in protected host-local storage; permission validation; harmless synthetic detached-signature creation and verification; synthetic-artifact cleanup; repository-boundary checks; documentation closeout; GitLab-first post and reported green CI; GitHub post; and fetched three-way synchronization verification.
+- **Files changed:** Host-local protected signing material outside Git; tracked documentation closeout in `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Validation commands:** Safe system-binary/version and package-ownership inspection; protected-directory metadata inspection; repository ignore-rule checks; interactive Minisign key generation; metadata-only permission validation; synthetic-manifest creation; detached signing; public-key verification; synthetic-artifact cleanup verification; repository status checks; GitLab/GitHub posts; and fetched commit-SHA comparison.
+- **Factual results:** Minisign key generation exited `0`. Synthetic detached signing exited `0`; Minisign reported that the signature and comment signature verified; verification exited `0`. The synthetic manifest and signature were confirmed absent after cleanup. Documentation closeout commit `f34e97b18cb3cee417d1c2b3fc618ef676271773` was posted to GitLab, reported green in GitLab CI (pipeline identifier not captured), posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == f34e97b18cb3cee417d1c2b3fc618ef676271773`.
+- **Evidence path / CI job:** Sanitized Kali terminal evidence in the P00-015 implementation thread; GitLab pipeline reported green (pipeline identifier not captured).
+- **Commit:** `f34e97b18cb3cee417d1c2b3fc618ef676271773` — `docs(phase-00): record P00-015 signing key validation`.
 - **Security checks:** No private-key body, passphrase, recovery material, secret-key identifier, or key content was recorded. No signing material was copied to Git, `docs/.backup/`, shared folders, `/tmp`, or the evidence vault. No raw evidence, P00-013 material, evidence-vault content, repository file, or real evidence manifest was accessed, signed, moved, rehashed, sealed, or modified.
 - **Dependencies / limitations:** Dedicated Minisign signing material is host-local only. This task does not define a production evidence-manifest schema, public-key publication/distribution, trust bootstrap, revocation/replacement exercise, or real-evidence signing workflow. Real evidence remains unsigned by this task.
-- **Runbook impact:** Required and pending in this same documentation closeout: the verified protected-key generation, synthetic sign/verify, cleanup, and failure-boundary procedure is reusable, but documentation must not reveal secret material or protected-key location.
-- **Next recommended task:** P00-GATE — Audit Phase 0 before beginning Phase 1, after P00-015 documentation, commit, GitLab CI, GitHub post, and three-way synchronization are complete.
+- **Runbook impact:** Updated and verified in `docs/RUNBOOK.md` with the protected key-generation, synthetic sign/verify, cleanup, and failure-boundary procedure; it does not reveal secret material or protected-key location.
+- **Next recommended task:** P00-GATE — Audit Phase 0 before beginning Phase 1.
 
 ## P00-GATE — Phase 0 completion gate
 
-- [ ] `forge --version` succeeds.
-- [x] `slither --version` succeeds.
-- [ ] `vol --help` succeeds.
-- [ ] `fls -V` succeeds.
-- [ ] An authenticated mTLS `curl` from Kali reaches the Windows Ollama proxy.
-- [ ] All Phase 0 task evidence is recorded above.
-- [ ] A Phase 0 Git commit exists.
-- [ ] `docs/HANDOFF.md` is updated for Phase 1.
+- [x] `forge --version` succeeds — user-local Foundry `1.8.3`, exit `0`.
+- [x] `slither --version` succeeds — `0.11.6`, exit `0`.
+- [x] `vol --help` succeeds — exit `0`.
+- [x] `fls -V` succeeds — Sleuth Kit `4.14.0`, exit `0`.
+- [x] Authenticated mTLS/Bearer transport path from Kali reached the Windows proxy — P00-009 recorded a valid client-certificate plus valid Bearer allow event. This is transport-authorization evidence; authenticated `GET /api/tags` functional success remains an optional follow-up.
+- [x] All P00-001 through P00-015 task evidence is recorded above.
+- [x] A Phase 0 documentation commit exists — P00-015 closeout `f34e97b18cb3cee417d1c2b3fc618ef676271773` is verified synchronized.
+- [ ] `docs/HANDOFF.md` is updated for Phase 1 after this P00-GATE record completes its own commit, GitLab CI, GitHub post, and three-way synchronization lifecycle.
 
-**Gate status:** ⬜ Not ready  
-**Verified by:**  
-**Verification date:**  
-**Gate commit/tag:**  
+**Gate status:** 🟧 Locally validated; final phase declaration pending P00-GATE documentation commit lifecycle.
+**Verified by:** Sanitized P00-GATE read-only audit and minimal command validation on 2026-10-03.
+**Verification date:** 2026-10-03
+**Gate commit/tag:** Pending P00-GATE documentation closeout commit.
+**Known observation:** The interactive shell/PATH and prompt integration cannot resolve ordinary utilities such as `git`, `ssh`, `stat`, `wc`, and `less`; gate validation used known absolute paths or a process-local safe `PATH`. This is host-local maintenance work and is not changed by P00-GATE.
 
 ---
 
