@@ -627,7 +627,7 @@ docker run --rm   --network none   --read-only   --tmpfs /tmp:rw,noexec,nosuid,s
 - Task: `P00-015`.
 - Factual local result: Minisign key generation, synthetic detached signing, and public-key verification each succeeded; synthetic test artifacts were removed.
 - This is a coursework/local cryptographic-control validation, not a production key-management system, evidence-sealing process, public-key distribution mechanism, or authorization to sign real evidence.
-- The documentation, commit, CI, remote-post, and synchronization lifecycle must be complete before this procedure is marked verified.
+- Documentation closeout commit `f34e97b18cb3cee417d1c2b3fc618ef676271773` was posted to GitLab, reported green in GitLab CI (pipeline identifier not captured), posted to GitHub, and fetched verification proved `main == gitlab/main == origin/main == f34e97b18cb3cee417d1c2b3fc618ef676271773`.
 
 ## P00-006 — Windows Ollama loopback backend and Caddy private-interface proxy
 
