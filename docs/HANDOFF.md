@@ -428,45 +428,45 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 **RUNBOOK.md:** Not changed. The audit records a project-specific layout fact and bounded contract gap; it does not create or alter a reusable operator procedure.
 
+## Completed task
+
+### P01-004 — Add forensic scaffold paths — ✅ Complete and verified 2026-10-04
+
+**Decision:** The required forensic scaffold already existed in the working tree and was fully tracked. `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md` were present in baseline commit `9c15cb1c976041229f78ef4548588618ac983a0e` and retained identical tree/blob identities at `HEAD` `b066b41d1ef8b598724c53a38234788da01812e2`.
+
+- Required forensic TODO markers were present.
+- Tracked Python `__pycache__` artifacts were baseline material and were not modified.
+- No forensic code, test, policy, template, evidence material, cache cleanup, Git-history, tag, remote, credential, or skeleton change was justified.
+- `docs/.backup/` remained untracked and was not inspected or staged.
+- `RUNBOOK.md` remained unchanged because this was project-specific provenance verification, not a reusable operational procedure.
+
 ## Immediate next task
 
-### P01-004 — Add forensic scaffold paths
+### P01-005 — Add `# TODO(phase-10)` to each newly created forensic file
 
 **Scope:**
 
-- Read-only verification of the existing forensic scaffold: `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
-- Establish each path’s working-tree and Git-baseline provenance before deciding whether any separate implementation gap exists.
-- Record factual findings without creating, deleting, moving, populating, or changing forensic files.
+- Add the checklist-defined `# TODO(phase-10)` markers to the existing forensic scaffold files only.
+- Preserve P01-004 provenance findings: the required forensic scaffold was already present and tracked before this task begins.
+- Update task-state documentation only when the P01-005 work and verification are complete.
 
 **Explicitly out of scope:**
 
-- Creating or changing forensic code, tests, policies, templates, evidence-vault content, case material, signatures, credentials, tokens, certificates, Git history/tags/remotes, Docker/dependency operations, CI changes, cache cleanup, and P01-005 through P01-009 work.
-
-**Expected files:**
-
-- None during the initial read-only forensic-scaffold audit.
-- `docs/CHECKLIST.md` and `docs/HANDOFF.md` only if factual audit results require task-state documentation.
-
-**Acceptance criteria:**
-
-- Each required forensic path is verified in the working tree and its history/baseline provenance is established.
-- Any missing or divergent path is documented as a bounded gap without speculative repair.
-- No forensic, skeleton, Git, CI, dependency, or evidence-material change occurs without separately approved evidence.
+- Any work beyond adding and verifying the checklist-defined P01-005 TODO markers, including unrelated configuration, Docker, dependency, CI, evidence-vault, credential, Git-history, tag, remote, or cache-cleanup changes.
 
 **Security constraints:**
 
-- Use read-only filesystem and Git commands only.
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
 - Do not expose or access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
-- Do not change host shell configuration as part of P01-004.
+- Do not change host shell configuration.
 
-**RUNBOOK.md:** Not expected to change. This initial audit verifies project-specific scaffold state and does not establish a reusable operator procedure.
+**RUNBOOK.md:** Not expected to change unless P01-005 establishes a reusable runnable operational procedure.
 
 ## Subsequent task queue
 
-1. `P01-004` — Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
-2. `P01-005` — Add baseline config files and `.env.example` with `TODO(phase-2)` markers.
-3. `P01-006` — Add Docker Compose (Redis + placeholder services) with `TODO(phase-2)` markers.
+1. `P01-005` — Add `# TODO(phase-10)` to each newly created forensic file.
+2. `P01-006` — Add Docker Compose (Redis + placeholder services) with `TODO(phase-2)` markers.
+3. `P01-007` — Follow the checklist-defined P01-007 scope.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
