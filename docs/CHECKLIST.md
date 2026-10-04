@@ -559,7 +559,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P01-001 | Unpack/create the project skeleton in the Kali VM project directory. | ⬜ | — |
+| P01-001 | Unpack/create the project skeleton in the Kali VM project directory. | 🟧 | Technical reconciliation completed 2026-10-04. ZIP SHA-256 `ba7b16c8ccc792079dd8592a4af6617ac210bd8ea97523d7418dde9ed41859b4`; all 160 ZIP file members tracked; required base and forensic layout verified. Documentation/commit/publication verification pending. |
 | P01-002 | Initialize Git and commit the full skeleton with every TODO stub. | ⬜ | — |
 | P01-003 | Confirm required base layout: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, `docs/`, `.gitlab/`. | ⬜ | — |
 | P01-004 | Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`. | ⬜ | — |
@@ -569,11 +569,29 @@ resolve to the same full SHA.
 | P01-008 | Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green. | ⬜ | — |
 | P01-009 | Read and map every `TODO(phase-N)` marker to the relevant future phase. | ⬜ | — |
 
+### P01-001 — Skeleton reconciliation audit
+
+- **Status:** 🟧 Implemented but needs verification.
+- **Scope completed:** Completed a controlled read-only reconciliation of the existing tracked repository skeleton against `soc-project-skeleton-v10.3.zip`. No archive extraction or overwrite occurred.
+- **Scope not completed:** No source, configuration, dependency, CI, Docker Compose, test, cache-cleanup, or application implementation work. P01-002 through P01-009 were not started.
+- **Archive evidence:** `soc-project-skeleton-v10.3.zip` SHA-256: `ba7b16c8ccc792079dd8592a4af6617ac210bd8ea97523d7418dde9ed41859b4`. The archive is rootless and maps directly to repository-root paths. It contains 160 file members; all 160 are tracked in Git.
+- **Layout evidence:** Verified required base roots: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, and `docs/`. Verified `move/`, `move/modules/`, and `move/packages/` as present intentionally empty filesystem scaffold directories. Verified `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+- **Metadata and TODO evidence:** `.gitignore`, `.gitlab-ci.yml`, `docker-compose.yml`, `package.json`, and `requirements.txt` were present and tracked. `TODO(phase-N)` markers were inventoried across tracked decodable scaffold text files. Docker Compose, dependency installation, and CI execution were intentionally not performed because they belong to P01-006 through P01-008.
+- **Tracked-artifact observations:** The ZIP baseline and Git index contain 65 tracked Python generated-cache paths, while `.gitignore` ignores future `__pycache__/` and `*.py[cod]` artifacts. The tracked non-archive file `e version` is an ANSI-formatted historical Docker service-status capture. Both observations are deferred to separately scoped cleanup/hygiene work and were not modified.
+- **Validation commands actually run:** Read-only Git status/index comparisons; ZIP SHA-256/listing; non-extracting ZIP membership comparison; bounded metadata/TODO inventory; tracked-layout check; Move filesystem-metadata check; and final `git status --short`, `git --no-pager diff --stat`, and `git --no-pager diff --cached --stat`.
+- **Factual result:** Final pre-documentation boundary check showed only `?? docs/.backup/`; tracked and staged diff summaries were empty.
+- **Files changed:** None during the technical audit. Pending documentation reconciliation changes only `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Security checks:** No archive extraction, parent-archive access, Docker startup, dependency installation, test/scanner execution, secret/evidence-vault access, key handling, CI execution, remote configuration, or Git publication occurred. `docs/.backup/` remains intentionally untracked.
+- **Dependencies and limitations:** The interactive shell/PATH and prompt integration issue remains host-local; task commands used absolute binaries and a process-local safe `PATH`. P01-001 does not authorize cache cleanup or Move-package initialization.
+- **Runbook impact:** Not required; no reusable operational procedure was created or changed.
+- **Git commit and publication:** Pending. No local P01-001 evidence/documentation commit, GitLab post/CI result, GitHub post, or three-way SHA verification exists yet.
+- **Next recommended task after P01-001 publication:** P01-002 — Initialize Git and commit the full skeleton with every TODO stub.
+
 ## P01-GATE — Phase 1 completion gate
 
 - [ ] Skeleton pipeline is green in GitLab.
-- [ ] Repository tree matches the expected base and forensic layout.
-- [ ] All TODO markers are accounted for.
+- [x] Repository tree matches the expected base and forensic layout. Verified during P01-001 reconciliation; task documentation/publication remains pending.
+- [x] TODO markers are accounted for. Inventory completed during P01-001; detailed future-phase mapping remains P01-009.
 - [ ] Baseline skeleton commit/tag exists.
 - [ ] `docs/HANDOFF.md` is updated for Phase 2.
 

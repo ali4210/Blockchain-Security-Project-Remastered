@@ -193,7 +193,7 @@ Exact commands must be selected only after identifying the actual certificate to
 - **Documentation closeout:** Commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` recorded the P00-008/P00-009 validation, passed GitLab CI, was posted to GitHub, and was verified synchronized across `main`, `gitlab/main`, and `origin/main`.
 - **Optional follow-up:** If application-level API success evidence is later required, perform one separately approved temporary `GET /api/tags` request through the same mTLS and Bearer path, then repeat cleanup. This is not required to establish the documented P00-008/P00-009 access-control result.
 
-## Immediate next task
+## Historical P00-015 completion record
 
 ### P00-015 — Create an operator signing key for evidence-manifest signing
 
@@ -240,15 +240,15 @@ Exact commands must be selected only after identifying the actual certificate to
 
 **RUNBOOK.md:** Verified and synchronized as part of P00-015 closeout; it documents the synthetic procedure and safety boundaries only, without disclosing private material, protected-key location, passphrases, public-key strings, fingerprints, or real evidence details.
 
-**Immediate next task**
+**Historical transition after P00-015**
 
-- **Task:** P00-GATE — Audit Phase 0 before beginning Phase 1.
-- **Scope:** Review every Phase 0 completion criterion against factual local validation, documentation, commit, GitLab CI, GitHub post, and synchronization evidence; record remaining gaps without beginning Phase 1.
-- **Expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md`; update `docs/RUNBOOK.md` only if the audit changes an operational procedure.
-- **Acceptance criteria:** Every P00 item is either complete and verified or accurately documented as blocked/stubbed; Phase 0 gate criteria are reconciled against factual evidence; outstanding gaps are explicitly recorded.
-- **Validation:** Read-only Git, documentation, and available CI/remote evidence audit.
-- **Dependencies:** P00-015 documentation closeout must first be committed, pass GitLab CI, post to GitHub, and be proven synchronized.
-- **Security constraints:** Do not access private signing material, real evidence, the evidence vault, or unrelated host configuration during the audit.
+- **Next task at that time:** P00-GATE — Audit Phase 0 before beginning Phase 1.
+- **Historical scope:** Review every Phase 0 completion criterion against factual local validation, documentation, commit, GitLab CI, GitHub post, and synchronization evidence; record remaining gaps without beginning Phase 1.
+- **Historical expected files:** `docs/CHECKLIST.md` and `docs/HANDOFF.md`; update `docs/RUNBOOK.md` only if the audit changes an operational procedure.
+- **Historical acceptance criteria:** Every P00 item is either complete and verified or accurately documented as blocked/stubbed; Phase 0 gate criteria are reconciled against factual evidence; outstanding gaps are explicitly recorded.
+- **Historical validation:** Read-only Git, documentation, and available CI/remote evidence audit.
+- **Historical dependency:** P00-015 documentation closeout had to be committed, pass GitLab CI, post to GitHub, and be proven synchronized.
+- **Historical security constraints:** Do not access private signing material, real evidence, the evidence vault, or unrelated host configuration during the audit.
 
 ## Phase 0 completion handoff
 
@@ -262,13 +262,62 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ### P01-001 — Unpack/create the project skeleton in the Kali VM project directory
 
-- **Scope:** Inspect the current repository tree and supplied project materials, then create or reconcile only the required Phase 1 skeleton layout and TODO stubs.
-- **Out of scope:** Docker Compose startup, dependency installation, application implementation, forensics/evidence operations, signing-key work, CI/remote reconfiguration, and interactive-shell maintenance.
-- **Expected files:** Only the verified skeleton files/directories and `docs/CHECKLIST.md`/`docs/HANDOFF.md` as factual task state changes require; update `docs/RUNBOOK.md` only if a tested reusable operator procedure changes.
-- **Acceptance criteria:** Repository tree matches the required base and forensic layout; every new Phase 1 placeholder has the required TODO marker; no secret, evidence, or unrelated host-local content enters Git.
-- **Validation:** Read-only tree comparison, explicit directory/file existence checks, TODO-marker audit, `git diff --check`, and scoped Git status/diff review.
-- **Dependencies:** Phase 0 declaration documentation commit lifecycle must complete first.
-- **Security constraints:** Preserve protected signing material, evidence-vault separation, P00-013 evidence boundaries, GitLab-first synchronization, and `docs/.backup/` exclusion.
+**Task status:** 🟧 Implemented but needs verification.
+
+**Scope completed:**
+
+- Completed a controlled read-only reconciliation of the existing tracked skeleton against `soc-project-skeleton-v10.3.zip`; no extraction, overwrite, move, or deletion occurred.
+- Recorded archive SHA-256 `ba7b16c8ccc792079dd8592a4af6617ac210bd8ea97523d7418dde9ed41859b4`.
+- Verified that all 160 ZIP file members are tracked by Git and that the rootless archive maps directly to repository-root paths.
+- Verified base roots `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, and `docs/`.
+- Verified the intentionally empty Move scaffold directories `move/`, `move/modules/`, and `move/packages/`.
+- Verified `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+- Reviewed the permitted metadata files `.gitignore`, `.gitlab-ci.yml`, `docker-compose.yml`, `package.json`, and `requirements.txt`.
+- Inventoried `TODO(phase-N)` markers across tracked decodable scaffold text files.
+- Confirmed final pre-documentation repository boundary: only `?? docs/.backup/` was untracked; tracked and staged diff summaries were empty.
+
+**Scope intentionally not completed:**
+
+- ZIP extraction or overwrite; inspection or use of `../boot-orchestrator-FULL.tar.gz`; Docker Compose/Redis startup; `npm install`; `pip install -r requirements.txt`; test, scanner, CI, deployment, source, configuration, cache-cleanup, shell/PATH-repair, Git remote, or tag work.
+- P01-002 through P01-009.
+- Any evidence-vault, P00-013, signing-key, secret, credential, certificate, or token handling.
+
+**Files changed:**
+
+- None during technical reconciliation.
+- Pending documentation-only reconciliation: `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+
+**Validation evidence:**
+
+- Non-extracting ZIP SHA-256 and listing.
+- Archive-to-Git normalized membership comparison: 160 ZIP file members; none absent from Git tracking.
+- Bounded Git-index, filesystem metadata, permitted configuration/manifest, TODO-marker, and cache-path audits.
+- Final boundary command:
+  ```bash
+  /usr/bin/git status --short
+  /usr/bin/git --no-pager diff --stat
+  /usr/bin/git --no-pager diff --cached --stat
+  ```
+  returned only `?? docs/.backup/` and empty tracked/staged summaries.
+
+**Tracked-artifact observations:**
+
+- 65 tracked generated Python cache paths are present in the supplied ZIP/Git baseline while `.gitignore` ignores future generated cache artifacts.
+- The tracked non-archive file `e version` contains ANSI-formatted historical Docker service-status output.
+- Neither observation was modified; both require a separately scoped cleanup/hygiene decision.
+
+**Security constraints:**
+
+- Keep `docs/.backup/` untracked and do not inspect, stage, delete, or commit it.
+- Do not extract `soc-project-skeleton-v10.3.zip` or inspect the unrelated parent archive.
+- Do not start Docker Compose, install dependencies, run tests/scans, change remotes, force-push, move tags, or access evidence, private signing material, tokens, keys, credentials, or certificates.
+- Continue using absolute binaries or a process-local safe `PATH`; the host-local interactive prompt still cannot resolve ordinary utilities such as `wc`.
+
+**RUNBOOK.md:** Not required. P01-001 reconciled a project-specific skeleton state and did not create, change, or verify a reusable user-executable operational procedure.
+
+**Git/publication status:** Pending. No local P01-001 documentation/evidence commit exists yet. GitLab post and CI, GitHub post, and three-way SHA verification remain required before `✅ Complete and verified`.
+
+**Next action:** Apply the scoped documentation reconciliation, review the exact diff and secret boundary, create the local evidence/documentation commit, then push GitLab first and wait for factual CI evidence.
 
 ## Subsequent task queue
 
