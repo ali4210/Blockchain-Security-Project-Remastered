@@ -560,7 +560,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P01-001 | Unpack/create the project skeleton in the Kali VM project directory. | ✅ | Complete and verified 2026-10-04: technical reconciliation evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` passed GitLab CI (pipeline ID/URL not captured), was published to GitHub, and final completion-status reconciliation `85b3872c078f8748bee5d3eb3d4d6a7e572f1fff` was also GitLab-CI-passed, published to GitHub, and verified as `main == gitlab/main == origin/main`. |
-| P01-002 | Initialize Git and commit the full skeleton with every TODO stub. | ⬜ | — |
+| P01-002 | Initialize Git and commit the full skeleton with every TODO stub. | ✅ | Complete and verified 2026-10-04: read-only provenance audit established that initial reachable commit `9c15cb1c976041229f78ef4548588618ac983a0e` contains `soc-project-skeleton-v10.3.zip`, representative base files, the required forensic scaffold, and TODO-marker history; annotated tag `v10.3-phase-00` was examined without mutation. Later commits `14f9620abbde0d555305705833fae1574199e8e0` and `abbc7a233c61c0cecb309c8c6fdb9e8727cbc9c5` respectively added then deleted unrelated tracked path `saleem`; no Git initialization, duplicate/empty commit, history rewrite, tag mutation, or skeleton modification is justified. |
 | P01-003 | Confirm required base layout: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, `docs/`, `.gitlab/`. | ⬜ | — |
 | P01-004 | Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`. | ⬜ | — |
 | P01-005 | Add `# TODO(phase-10)` to each newly created forensic file. | ⬜ | — |

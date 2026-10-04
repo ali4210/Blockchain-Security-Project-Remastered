@@ -322,63 +322,101 @@ Exact commands must be selected only after identifying the actual certificate to
 
 **Git/publication status:** Published and verified. Both P01-001 documentation commits passed GitLab CI, were published to GitHub, and were verified by fetched three-way SHA synchronization.
 
-## Immediate next task
+## Completed P01-002 record
 
 ### P01-002 — Initialize Git and commit the full skeleton with every TODO stub
 
-**Scope:**
+**Task status:** ✅ Complete and verified on 2026-10-04.
 
-- Perform a read-only Git-history and provenance reconciliation because Git is already initialized and the skeleton is already tracked.
-- Establish which historical commits introduced the skeleton archive, baseline files, TODO stubs, forensic paths, and relevant initial repository state.
-- Determine whether a baseline skeleton commit/tag already exists, and document any factual gap before modifying repository history.
+**Decision:**
 
-**Explicitly out of scope:**
+Existing reachable Git history satisfies the P01-002 baseline and provenance requirement. Initial reachable commit `9c15cb1c976041229f78ef4548588618ac983a0e` contains `soc-project-skeleton-v10.3.zip`, representative base files, the required forensic scaffold, and TODO-marker history. Existing annotated tag `v10.3-phase-00` was examined without mutation. Later commits `14f9620abbde0d555305705833fae1574199e8e0` and `abbc7a233c61c0cecb309c8c6fdb9e8727cbc9c5` respectively added then deleted the unrelated tracked path `saleem`; they do not affect the baseline determination. No Git initialization, duplicate/empty commit, history rewrite, tag mutation, or skeleton modification is justified.
+
+**Audit evidence:**
+
+- Repository boundary before and after the audit showed only `?? docs/.backup/`; the audit introduced no tracked-file changes.
+- Initial reachable commit `9c15cb1c976041229f78ef4548588618ac983a0e` (`docs: initialize v10.3 checklist and project handoff`, 2026-09-28) introduced the archive, sampled root baseline files, required forensic paths, and TODO-marker history.
+- File-specific history traced `soc-project-skeleton-v10.3.zip`, `README.md`, `docker-compose.yml`, `package.json`, and `requirements.txt` to that initial reachable commit.
+- Baseline-tree inspection confirmed `config/opa/`, `src/forensics/`, `test/forensics/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+- TODO-marker history reached `9c15cb1c976041229f78ef4548588618ac983a0e`; `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` later recorded P01-001 reconciliation evidence.
+- Annotated tag `v10.3-phase-00` was observed without mutation; it resolved to tag object `5e7075fcaf9b58bff3dabeabcaddc5c1d44d3f3d` with subject `Phase 0 environment and prerequisites verified`.
+- Later commit `14f9620abbde0d555305705833fae1574199e8e0` added tracked path `saleem`; later commit `abbc7a233c61c0cecb309c8c6fdb9e8727cbc9c5` deleted it. Neither changed the required baseline provenance.
+- At audit time, `HEAD`, `main`, `gitlab/main`, and `origin/main` all resolved to `abbc7a233c61c0cecb309c8c6fdb9e8727cbc9c5`.
+
+**Scope intentionally not completed:**
 
 - `git init`, empty or duplicate commits, remote changes, history rewrite, force push, tag movement, archive extraction, cache cleanup, Docker, dependency installation, CI configuration change, and P01-003 through P01-009 work.
 - Evidence-vault, signing-key, token, credential, certificate, or raw-evidence access.
 
-**Expected files:**
+**Files changed:**
 
-- None during the initial read-only provenance audit.
-- `docs/CHECKLIST.md` and `docs/HANDOFF.md` only if factual audit results require task-state documentation.
+- No technical skeleton, Git-history, tag, remote, or configuration files changed.
+- Documentation reconciliation is limited to `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
 
-**Acceptance criteria:**
-
-- Historical provenance for the skeleton archive, representative base files, forensic scaffold, and TODO stubs is collected from Git history.
-- Existing tags and earliest reachable history are examined without mutation.
-- A factual decision is recorded: existing baseline commit/tag satisfies the task, or a specific bounded documentation/baseline gap remains.
-- No Git repository initialization, history rewrite, duplicate/empty commit, tag mutation, or skeleton modification occurs without separately approved evidence.
-
-**Validation commands:**
+**Validation commands used:**
 
 ```bash
 git status --short
-git rev-parse HEAD
-git log --reverse --format='%H%x09%s'
-git log --follow --format='%H%x09%s' -- soc-project-skeleton-v10.3.zip
-git log -1 --format='%h%x09%s' -- README.md docker-compose.yml package.json requirements.txt
+git rev-parse HEAD main gitlab/main origin/main
+git log --all --reverse --format='%H%x09%ad%x09%s' --date=short
+git log --follow --format='%H%x09%ad%x09%s' --date=short -- <single-path>
+git log --all --format='%H%x09%ad%x09%s' --date=short -- <multiple-paths>
+git ls-tree -r --name-only 9c15cb1c976041229f78ef4548588618ac983a0e -- <baseline-paths>
+git diff-tree --no-commit-id --name-status -r <commit>
 git tag --list --sort=creatordate
+git rev-parse v10.3-phase-00
 ```
 
-**Dependencies:**
+**Security constraints retained:**
 
-- P01-001 is complete and verified at `85b3872c078f8748bee5d3eb3d4d6a7e572f1fff`.
-- GitLab remains the CI gate and GitHub remains a manual secondary publication target.
+- Preserve `docs/.backup/` as untracked; do not inspect, stage, delete, or commit it.
+- Do not expose credentials, SSH keys, tokens, evidence-vault material, raw evidence, private signing material, or unrelated parent archives.
+- Do not modify Git history, tags, remotes, or the skeleton based on this audit.
+- Do not change host shell configuration as part of P01-002.
+
+**RUNBOOK.md:** Not changed. The audit records project-specific historical facts; it does not create or alter a reusable operator procedure.
+
+## Immediate next task
+
+### P01-003 — Confirm required base layout contracts
+
+**Scope:**
+
+- Confirm that the required repository layout exists: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, `docs/`, and `.gitlab/`.
+- Verify the paths as a read-only layout contract against the tracked baseline and working tree.
+- Record any missing path or bounded discrepancy without creating, deleting, moving, or populating directories.
+
+**Explicitly out of scope:**
+
+- Modifying layout paths, extracting archives, changing Git history/tags/remotes, Docker/dependency operations, CI configuration changes, cache cleanup, and P01-004 through P01-009 work.
+- Evidence-vault, signing-key, token, credential, certificate, or raw-evidence access.
+
+**Expected files:**
+
+- None during the initial read-only layout audit.
+- `docs/CHECKLIST.md` and `docs/HANDOFF.md` only if factual layout-audit results require task-state documentation.
+
+**Acceptance criteria:**
+
+- Each required path is verified as present in both the working tree and Git baseline where applicable.
+- The Move scaffold state is recorded accurately, including intentionally empty directories where present.
+- Any gap is factual, bounded, and documented without speculative repair.
+- No layout or skeleton modification occurs without separately approved evidence.
 
 **Security constraints:**
 
-- Use read-only Git commands only.
+- Use read-only filesystem and Git commands only.
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
 - Do not expose credentials, SSH keys, tokens, evidence-vault material, raw evidence, private signing material, or unrelated parent archives.
-- Use the repaired interactive Zsh PATH, but do not change host shell configuration as part of P01-002.
+- Do not change host shell configuration as part of P01-003.
 
-**RUNBOOK.md:** Not expected to change. This initial audit does not create or alter a reusable operator procedure.
+**RUNBOOK.md:** Not expected to change. This audit validates the project’s current layout; it does not establish a reusable operator procedure.
 
 ## Subsequent task queue
 
-1. `P01-002` — Initialize Git and commit the full skeleton with every TODO stub.
-2. `P01-003` — Confirm required base layout contracts, Move, test, scripts, src, config, dashboard, docs, and `.gitlab`.
-3. `P01-004` — Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+1. `P01-003` — Confirm required base layout contracts, Move, test, scripts, src, config, dashboard, docs, and `.gitlab`.
+2. `P01-004` — Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+3. `P01-005` — Add baseline config files and `.env.example` with `TODO(phase-2)` markers.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
