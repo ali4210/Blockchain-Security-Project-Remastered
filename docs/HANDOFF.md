@@ -262,7 +262,7 @@ Exact commands must be selected only after identifying the actual certificate to
 
 ### P01-001 — Unpack/create the project skeleton in the Kali VM project directory
 
-**Task status:** 🟧 Implemented but needs verification.
+**Task status:** ✅ Complete and verified.
 
 **Scope completed:**
 
@@ -275,17 +275,21 @@ Exact commands must be selected only after identifying the actual certificate to
 - Reviewed the permitted metadata files `.gitignore`, `.gitlab-ci.yml`, `docker-compose.yml`, `package.json`, and `requirements.txt`.
 - Inventoried `TODO(phase-N)` markers across tracked decodable scaffold text files.
 - Confirmed final pre-documentation repository boundary: only `?? docs/.backup/` was untracked; tracked and staged diff summaries were empty.
+- Created local evidence/documentation commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` — `docs(phase-01): record P01-001 skeleton reconciliation`.
+- Published the evidence commit to GitLab `main`; GitLab CI passed with green status (pipeline ID/URL not captured).
+- Published the same commit to GitHub `origin/main`.
+- Fetched both remotes and verified `main == gitlab/main == origin/main == c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`.
 
 **Scope intentionally not completed:**
 
-- ZIP extraction or overwrite; inspection or use of `../boot-orchestrator-FULL.tar.gz`; Docker Compose/Redis startup; `npm install`; `pip install -r requirements.txt`; test, scanner, CI, deployment, source, configuration, cache-cleanup, shell/PATH-repair, Git remote, or tag work.
+- ZIP extraction or overwrite; inspection or use of `../boot-orchestrator-FULL.tar.gz`; Docker Compose/Redis startup; `npm install`; `pip install -r requirements.txt`; test, scanner, CI configuration, deployment, source, configuration, cache-cleanup, Git remote, or tag work.
 - P01-002 through P01-009.
 - Any evidence-vault, P00-013, signing-key, secret, credential, certificate, or token handling.
 
 **Files changed:**
 
-- None during technical reconciliation.
-- Pending documentation-only reconciliation: `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- No technical skeleton files changed.
+- Documentation/evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`: `docs/CHECKLIST.md`, `docs/HANDOFF.md`.
 
 **Validation evidence:**
 
@@ -299,6 +303,9 @@ Exact commands must be selected only after identifying the actual certificate to
   /usr/bin/git --no-pager diff --cached --stat
   ```
   returned only `?? docs/.backup/` and empty tracked/staged summaries.
+- GitLab CI passed for `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`; pipeline ID/URL was not captured.
+- GitHub publication succeeded for the same commit.
+- Fetched verification proved `main == gitlab/main == origin/main == c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`.
 
 **Tracked-artifact observations:**
 
@@ -311,13 +318,13 @@ Exact commands must be selected only after identifying the actual certificate to
 - Keep `docs/.backup/` untracked and do not inspect, stage, delete, or commit it.
 - Do not extract `soc-project-skeleton-v10.3.zip` or inspect the unrelated parent archive.
 - Do not start Docker Compose, install dependencies, run tests/scans, change remotes, force-push, move tags, or access evidence, private signing material, tokens, keys, credentials, or certificates.
-- Continue using absolute binaries or a process-local safe `PATH`; the host-local interactive prompt still cannot resolve ordinary utilities such as `wc`.
+- The host-local Zsh PATH guard was repaired outside the repository; it is not a P01-001 project artifact.
 
 **RUNBOOK.md:** Not required. P01-001 reconciled a project-specific skeleton state and did not create, change, or verify a reusable user-executable operational procedure.
 
-**Git/publication status:** Pending. No local P01-001 documentation/evidence commit exists yet. GitLab post and CI, GitHub post, and three-way SHA verification remain required before `✅ Complete and verified`.
+**Git/publication status:** Published and verified. Evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` was published to GitLab and GitHub; GitLab CI passed; fetched three-way SHA synchronization was verified.
 
-**Next action:** Apply the scoped documentation reconciliation, review the exact diff and secret boundary, create the local evidence/documentation commit, then push GitLab first and wait for factual CI evidence.
+**Next action:** P01-002 — Initialize Git and commit the full skeleton with every TODO stub. Begin with read-only Git-history and provenance reconciliation; do not reinitialize Git, create an empty commit, rewrite history, or modify the skeleton until evidence establishes a required gap.
 
 ## Subsequent task queue
 

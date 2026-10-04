@@ -571,21 +571,21 @@ resolve to the same full SHA.
 
 ### P01-001 — Skeleton reconciliation audit
 
-- **Status:** 🟧 Implemented but needs verification.
+- **Status:** ✅ Complete and verified.
 - **Scope completed:** Completed a controlled read-only reconciliation of the existing tracked repository skeleton against `soc-project-skeleton-v10.3.zip`. No archive extraction or overwrite occurred.
 - **Scope not completed:** No source, configuration, dependency, CI, Docker Compose, test, cache-cleanup, or application implementation work. P01-002 through P01-009 were not started.
 - **Archive evidence:** `soc-project-skeleton-v10.3.zip` SHA-256: `ba7b16c8ccc792079dd8592a4af6617ac210bd8ea97523d7418dde9ed41859b4`. The archive is rootless and maps directly to repository-root paths. It contains 160 file members; all 160 are tracked in Git.
 - **Layout evidence:** Verified required base roots: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, and `docs/`. Verified `move/`, `move/modules/`, and `move/packages/` as present intentionally empty filesystem scaffold directories. Verified `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
 - **Metadata and TODO evidence:** `.gitignore`, `.gitlab-ci.yml`, `docker-compose.yml`, `package.json`, and `requirements.txt` were present and tracked. `TODO(phase-N)` markers were inventoried across tracked decodable scaffold text files. Docker Compose, dependency installation, and CI execution were intentionally not performed because they belong to P01-006 through P01-008.
 - **Tracked-artifact observations:** The ZIP baseline and Git index contain 65 tracked Python generated-cache paths, while `.gitignore` ignores future `__pycache__/` and `*.py[cod]` artifacts. The tracked non-archive file `e version` is an ANSI-formatted historical Docker service-status capture. Both observations are deferred to separately scoped cleanup/hygiene work and were not modified.
-- **Validation commands actually run:** Read-only Git status/index comparisons; ZIP SHA-256/listing; non-extracting ZIP membership comparison; bounded metadata/TODO inventory; tracked-layout check; Move filesystem-metadata check; and final `git status --short`, `git --no-pager diff --stat`, and `git --no-pager diff --cached --stat`.
-- **Factual result:** Final pre-documentation boundary check showed only `?? docs/.backup/`; tracked and staged diff summaries were empty.
-- **Files changed:** None during the technical audit. Pending documentation reconciliation changes only `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
-- **Security checks:** No archive extraction, parent-archive access, Docker startup, dependency installation, test/scanner execution, secret/evidence-vault access, key handling, CI execution, remote configuration, or Git publication occurred. `docs/.backup/` remains intentionally untracked.
-- **Dependencies and limitations:** The interactive shell/PATH and prompt integration issue remains host-local; task commands used absolute binaries and a process-local safe `PATH`. P01-001 does not authorize cache cleanup or Move-package initialization.
+- **Validation commands actually run:** Read-only Git status/index comparisons; ZIP SHA-256/listing; non-extracting ZIP membership comparison; bounded metadata/TODO inventory; tracked-layout check; Move filesystem-metadata check; final `git status --short`, `git --no-pager diff --stat`, and `git --no-pager diff --cached --stat`; GitLab CI passed; GitHub publication; and fetched three-way SHA verification.
+- **Factual result:** Final pre-documentation boundary check showed only `?? docs/.backup/`; tracked and staged diff summaries were empty. Evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` passed GitLab CI (green observed; pipeline ID/URL not captured), was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`.
+- **Files changed:** The technical audit changed no files. Documentation/evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` changed `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Security checks:** No archive extraction, parent-archive access, Docker startup, dependency installation, test/scanner execution, secret/evidence-vault access, key handling, CI configuration change, remote configuration, or force push occurred. `docs/.backup/` remains intentionally untracked.
+- **Dependencies and limitations:** The interactive shell/PATH and prompt integration issue was repaired separately as user-local Zsh maintenance outside the repository. P01-001 does not authorize cache cleanup or Move-package initialization.
 - **Runbook impact:** Not required; no reusable operational procedure was created or changed.
-- **Git commit and publication:** Pending. No local P01-001 evidence/documentation commit, GitLab post/CI result, GitHub post, or three-way SHA verification exists yet.
-- **Next recommended task after P01-001 publication:** P01-002 — Initialize Git and commit the full skeleton with every TODO stub.
+- **Git commit and publication:** Evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` — `docs(phase-01): record P01-001 skeleton reconciliation`; published to GitLab `main`, GitLab CI passed (pipeline ID/URL not captured), published to GitHub `origin/main`, and fetched three-way synchronization was verified.
+- **Next recommended task:** P01-002 — Initialize Git and commit the full skeleton with every TODO stub.
 
 ## P01-GATE — Phase 1 completion gate
 
