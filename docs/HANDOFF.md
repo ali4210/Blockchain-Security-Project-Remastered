@@ -376,47 +376,97 @@ git rev-parse v10.3-phase-00
 
 **RUNBOOK.md:** Not changed. The audit records project-specific historical facts; it does not create or alter a reusable operator procedure.
 
-## Immediate next task
+## Completed P01-003 record
 
 ### P01-003 — Confirm required base layout contracts
 
+**Task status:** ✅ Audit complete with bounded layout-contract/documentation gap recorded on 2026-10-04.
+
+**Decision:**
+
+The required tracked root layout is verified for `contracts/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, and `docs/`. The working tree additionally contains an untracked-empty Move scaffold (`move/`, `move/modules/`, `move/packages/`) with no tracked files at initial baseline `9c15cb1c976041229f78ef4548588618ac983a0e` or `HEAD`, which is consistent with Git’s inability to preserve empty directories. The literal `.gitlab/` directory is absent from both working tree and baseline. A root `.gitlab-ci.yml` is tracked at `HEAD` but was introduced after the initial baseline, so it cannot be treated as evidence that the literal `.gitlab/` baseline layout requirement is met. This is a bounded task-specification/baseline documentation gap. No directory creation, skeleton modification, Git history rewrite, tag mutation, remote change, or cleanup is justified within this read-only audit.
+
+**Audit evidence:**
+
+- Audit boundary before and after the inspection showed only `?? docs/.backup/`; no tracked files were changed.
+- Working tree and baseline tree `9c15cb1c976041229f78ef4548588618ac983a0e` both contain `contracts/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, and `docs/`.
+- Working tree `move/` contains only `move/modules/` and `move/packages/`; both child directories had zero direct entries.
+- Neither baseline nor `HEAD` has tracked files beneath `move/`; Git does not represent empty directories as tree entries.
+- Literal `.gitlab/` is absent from both working tree and baseline.
+- Root `.gitlab-ci.yml` is tracked at `HEAD` as blob `1f6165b40935daea82bb34d981027491de4e54fb`; its visible tracked history includes `0933e472e04363fa2ad46a0f78aad6b7bcd1e705` (`ci: add GitLab runner smoke test`) and `e577fd290882a50e83e7fbac9afa7e25b4d660e8` (`Update .gitlab-ci.yml file`), both after the initial baseline.
+- `node_modules/` is present but ignored by `.gitignore` rule `node_modules/`; `package-lock.json` is tracked and was not changed.
+- At audit start, `HEAD`, `main`, `gitlab/main`, and `origin/main` resolved to `07c0a85d801f3dd6dc41de74407266f832d89858`.
+
+**Scope intentionally not completed:**
+
+- Creating `.gitlab/`, adding placeholder files to preserve empty Move directories, modifying `.gitlab-ci.yml`, moving or populating directories, archive extraction, cache cleanup, Docker/dependency operations, CI configuration change, Git history/tag/remote changes, and P01-004 through P01-009 work.
+- Evidence-vault, signing-key, token, credential, certificate, or raw-evidence access.
+
+**Files changed:**
+
+- No technical layout, skeleton, CI configuration, Git-history, tag, remote, cache, or dependency files changed.
+- Documentation reconciliation is limited to `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+
+**Validation commands used:**
+
+```bash
+git status --short
+git rev-parse HEAD main gitlab/main origin/main
+git ls-tree <baseline-or-HEAD> -- <layout-path>
+git ls-tree -r --name-only <baseline-or-HEAD> -- move
+git ls-files --stage -- <layout-and-root-paths>
+git check-ignore -v -- <root-path>
+git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
+```
+
+**Security constraints retained:**
+
+- Preserve `docs/.backup/` as untracked; do not inspect, stage, delete, or commit it.
+- Do not expose credentials, SSH keys, tokens, evidence-vault material, raw evidence, private signing material, or unrelated parent archives.
+- Do not modify layout paths, `.gitlab-ci.yml`, Git history, tags, remotes, or the skeleton based on this audit.
+- Do not change host shell configuration as part of P01-003.
+
+**RUNBOOK.md:** Not changed. The audit records a project-specific layout fact and bounded contract gap; it does not create or alter a reusable operator procedure.
+
+## Immediate next task
+
+### P01-004 — Add forensic scaffold paths
+
 **Scope:**
 
-- Confirm that the required repository layout exists: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, `docs/`, and `.gitlab/`.
-- Verify the paths as a read-only layout contract against the tracked baseline and working tree.
-- Record any missing path or bounded discrepancy without creating, deleting, moving, or populating directories.
+- Read-only verification of the existing forensic scaffold: `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+- Establish each path’s working-tree and Git-baseline provenance before deciding whether any separate implementation gap exists.
+- Record factual findings without creating, deleting, moving, populating, or changing forensic files.
 
 **Explicitly out of scope:**
 
-- Modifying layout paths, extracting archives, changing Git history/tags/remotes, Docker/dependency operations, CI configuration changes, cache cleanup, and P01-004 through P01-009 work.
-- Evidence-vault, signing-key, token, credential, certificate, or raw-evidence access.
+- Creating or changing forensic code, tests, policies, templates, evidence-vault content, case material, signatures, credentials, tokens, certificates, Git history/tags/remotes, Docker/dependency operations, CI changes, cache cleanup, and P01-005 through P01-009 work.
 
 **Expected files:**
 
-- None during the initial read-only layout audit.
-- `docs/CHECKLIST.md` and `docs/HANDOFF.md` only if factual layout-audit results require task-state documentation.
+- None during the initial read-only forensic-scaffold audit.
+- `docs/CHECKLIST.md` and `docs/HANDOFF.md` only if factual audit results require task-state documentation.
 
 **Acceptance criteria:**
 
-- Each required path is verified as present in both the working tree and Git baseline where applicable.
-- The Move scaffold state is recorded accurately, including intentionally empty directories where present.
-- Any gap is factual, bounded, and documented without speculative repair.
-- No layout or skeleton modification occurs without separately approved evidence.
+- Each required forensic path is verified in the working tree and its history/baseline provenance is established.
+- Any missing or divergent path is documented as a bounded gap without speculative repair.
+- No forensic, skeleton, Git, CI, dependency, or evidence-material change occurs without separately approved evidence.
 
 **Security constraints:**
 
 - Use read-only filesystem and Git commands only.
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
-- Do not expose credentials, SSH keys, tokens, evidence-vault material, raw evidence, private signing material, or unrelated parent archives.
-- Do not change host shell configuration as part of P01-003.
+- Do not expose or access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
+- Do not change host shell configuration as part of P01-004.
 
-**RUNBOOK.md:** Not expected to change. This audit validates the project’s current layout; it does not establish a reusable operator procedure.
+**RUNBOOK.md:** Not expected to change. This initial audit verifies project-specific scaffold state and does not establish a reusable operator procedure.
 
 ## Subsequent task queue
 
-1. `P01-003` — Confirm required base layout contracts, Move, test, scripts, src, config, dashboard, docs, and `.gitlab`.
-2. `P01-004` — Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
-3. `P01-005` — Add baseline config files and `.env.example` with `TODO(phase-2)` markers.
+1. `P01-004` — Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
+2. `P01-005` — Add baseline config files and `.env.example` with `TODO(phase-2)` markers.
+3. `P01-006` — Add Docker Compose (Redis + placeholder services) with `TODO(phase-2)` markers.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
