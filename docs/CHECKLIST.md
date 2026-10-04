@@ -559,7 +559,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P01-001 | Unpack/create the project skeleton in the Kali VM project directory. | 🟧 | Technical reconciliation completed 2026-10-04. ZIP SHA-256 `ba7b16c8ccc792079dd8592a4af6617ac210bd8ea97523d7418dde9ed41859b4`; all 160 ZIP file members tracked; required base and forensic layout verified. Documentation/commit/publication verification pending. |
+| P01-001 | Unpack/create the project skeleton in the Kali VM project directory. | ✅ | Complete and verified 2026-10-04: technical reconciliation evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` passed GitLab CI (pipeline ID/URL not captured), was published to GitHub, and final completion-status reconciliation `85b3872c078f8748bee5d3eb3d4d6a7e572f1fff` was also GitLab-CI-passed, published to GitHub, and verified as `main == gitlab/main == origin/main`. |
 | P01-002 | Initialize Git and commit the full skeleton with every TODO stub. | ⬜ | — |
 | P01-003 | Confirm required base layout: `contracts/`, `move/`, `test/`, `scripts/`, `src/`, `config/`, `dashboard/`, `docs/`, `.gitlab/`. | ⬜ | — |
 | P01-004 | Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`. | ⬜ | — |

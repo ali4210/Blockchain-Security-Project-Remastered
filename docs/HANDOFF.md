@@ -258,7 +258,7 @@ Exact commands must be selected only after identifying the actual certificate to
 - **Open maintenance observation:** The interactive shell/PATH and prompt integration remains unable to resolve ordinary utilities. Use known absolute paths or a process-local safe `PATH` until separately remediated; do not modify it as part of P01-001 unless it blocks scoped work.
 - **Phase 1 gate:** Not started. Do not claim Phase 1 verification until its own requirements, commit, CI, remote posts, and synchronization are evidenced.
 
-## Immediate next task
+## Completed P01-001 record
 
 ### P01-001 — Unpack/create the project skeleton in the Kali VM project directory
 
@@ -275,10 +275,8 @@ Exact commands must be selected only after identifying the actual certificate to
 - Reviewed the permitted metadata files `.gitignore`, `.gitlab-ci.yml`, `docker-compose.yml`, `package.json`, and `requirements.txt`.
 - Inventoried `TODO(phase-N)` markers across tracked decodable scaffold text files.
 - Confirmed final pre-documentation repository boundary: only `?? docs/.backup/` was untracked; tracked and staged diff summaries were empty.
-- Created local evidence/documentation commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` — `docs(phase-01): record P01-001 skeleton reconciliation`.
-- Published the evidence commit to GitLab `main`; GitLab CI passed with green status (pipeline ID/URL not captured).
-- Published the same commit to GitHub `origin/main`.
-- Fetched both remotes and verified `main == gitlab/main == origin/main == c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`.
+- Created evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` — `docs(phase-01): record P01-001 skeleton reconciliation`; GitLab CI passed, the same commit was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`.
+- Created completion-status reconciliation commit `85b3872c078f8748bee5d3eb3d4d6a7e572f1fff` — `docs(phase-01): verify P01-001 publication status`; GitLab CI passed, the same commit was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 85b3872c078f8748bee5d3eb3d4d6a7e572f1fff`.
 
 **Scope intentionally not completed:**
 
@@ -289,7 +287,7 @@ Exact commands must be selected only after identifying the actual certificate to
 **Files changed:**
 
 - No technical skeleton files changed.
-- Documentation/evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`: `docs/CHECKLIST.md`, `docs/HANDOFF.md`.
+- Documentation/evidence commits `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` and `85b3872c078f8748bee5d3eb3d4d6a7e572f1fff`: `docs/CHECKLIST.md`, `docs/HANDOFF.md`.
 
 **Validation evidence:**
 
@@ -303,9 +301,9 @@ Exact commands must be selected only after identifying the actual certificate to
   /usr/bin/git --no-pager diff --cached --stat
   ```
   returned only `?? docs/.backup/` and empty tracked/staged summaries.
-- GitLab CI passed for `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`; pipeline ID/URL was not captured.
-- GitHub publication succeeded for the same commit.
-- Fetched verification proved `main == gitlab/main == origin/main == c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e`.
+- GitLab CI passed for both P01-001 documentation commits; pipeline IDs/URLs were not captured.
+- Both commits were published to GitHub.
+- Final fetched verification proved `main == gitlab/main == origin/main == 85b3872c078f8748bee5d3eb3d4d6a7e572f1fff`.
 
 **Tracked-artifact observations:**
 
@@ -322,16 +320,65 @@ Exact commands must be selected only after identifying the actual certificate to
 
 **RUNBOOK.md:** Not required. P01-001 reconciled a project-specific skeleton state and did not create, change, or verify a reusable user-executable operational procedure.
 
-**Git/publication status:** Published and verified. Evidence commit `c6d5017d44eaa2c12f5b2520a6d9d5fe49cfce7e` was published to GitLab and GitHub; GitLab CI passed; fetched three-way SHA synchronization was verified.
+**Git/publication status:** Published and verified. Both P01-001 documentation commits passed GitLab CI, were published to GitHub, and were verified by fetched three-way SHA synchronization.
 
-**Next action:** P01-002 — Initialize Git and commit the full skeleton with every TODO stub. Begin with read-only Git-history and provenance reconciliation; do not reinitialize Git, create an empty commit, rewrite history, or modify the skeleton until evidence establishes a required gap.
+## Immediate next task
+
+### P01-002 — Initialize Git and commit the full skeleton with every TODO stub
+
+**Scope:**
+
+- Perform a read-only Git-history and provenance reconciliation because Git is already initialized and the skeleton is already tracked.
+- Establish which historical commits introduced the skeleton archive, baseline files, TODO stubs, forensic paths, and relevant initial repository state.
+- Determine whether a baseline skeleton commit/tag already exists, and document any factual gap before modifying repository history.
+
+**Explicitly out of scope:**
+
+- `git init`, empty or duplicate commits, remote changes, history rewrite, force push, tag movement, archive extraction, cache cleanup, Docker, dependency installation, CI configuration change, and P01-003 through P01-009 work.
+- Evidence-vault, signing-key, token, credential, certificate, or raw-evidence access.
+
+**Expected files:**
+
+- None during the initial read-only provenance audit.
+- `docs/CHECKLIST.md` and `docs/HANDOFF.md` only if factual audit results require task-state documentation.
+
+**Acceptance criteria:**
+
+- Historical provenance for the skeleton archive, representative base files, forensic scaffold, and TODO stubs is collected from Git history.
+- Existing tags and earliest reachable history are examined without mutation.
+- A factual decision is recorded: existing baseline commit/tag satisfies the task, or a specific bounded documentation/baseline gap remains.
+- No Git repository initialization, history rewrite, duplicate/empty commit, tag mutation, or skeleton modification occurs without separately approved evidence.
+
+**Validation commands:**
+
+```bash
+git status --short
+git rev-parse HEAD
+git log --reverse --format='%H%x09%s'
+git log --follow --format='%H%x09%s' -- soc-project-skeleton-v10.3.zip
+git log -1 --format='%h%x09%s' -- README.md docker-compose.yml package.json requirements.txt
+git tag --list --sort=creatordate
+```
+
+**Dependencies:**
+
+- P01-001 is complete and verified at `85b3872c078f8748bee5d3eb3d4d6a7e572f1fff`.
+- GitLab remains the CI gate and GitHub remains a manual secondary publication target.
+
+**Security constraints:**
+
+- Use read-only Git commands only.
+- Preserve `docs/.backup/` as untracked; do not inspect or stage it.
+- Do not expose credentials, SSH keys, tokens, evidence-vault material, raw evidence, private signing material, or unrelated parent archives.
+- Use the repaired interactive Zsh PATH, but do not change host shell configuration as part of P01-002.
+
+**RUNBOOK.md:** Not expected to change. This initial audit does not create or alter a reusable operator procedure.
 
 ## Subsequent task queue
 
-1. `P01-001` — Unpack/create the project skeleton in the Kali VM project directory.
-2. `P01-002` — Initialize Git and commit the full skeleton with every TODO stub.
-3. `P01-003` — Confirm required base layout contracts, Move, test, scripts, src, config, dashboard, docs, and `.gitlab`.
-
+1. `P01-002` — Initialize Git and commit the full skeleton with every TODO stub.
+2. `P01-003` — Confirm required base layout contracts, Move, test, scripts, src, config, dashboard, docs, and `.gitlab`.
+3. `P01-004` — Add `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md`.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
