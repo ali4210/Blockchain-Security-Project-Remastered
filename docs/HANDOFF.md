@@ -430,6 +430,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Completed task
 
+### P01-005 — Add `# TODO(phase-10)` to each newly created forensic file — ✅ Complete and verified 2026-10-04
+
+**Decision:** Read-only verification at `ceacc1289322241de4c54bbfa9f0339b2558aa3e` confirmed that all 17 required human-readable forensic files already contain specific `TODO(phase-10...)` markers: ten implementation modules, four tests, the forensics OPA policy, MCP forensic middleware registration, and the forensic report template.
+
+- The existing `TODO(phase-10a)` through `TODO(phase-10e)` taxonomy, including `TODO(phase-10c/10d)`, is more specific than a duplicate generic marker.
+- No marker, forensic code, test, policy, template, middleware, cache, Git-history, tag, remote, credential, or skeleton change was justified.
+- Tracked `__pycache__` artifacts were excluded as binary baseline material and were not modified.
+- `docs/.backup/` remained untracked and was not inspected or staged.
+- `RUNBOOK.md` remained unchanged because this verification did not create or alter a reusable runnable procedure.
+
 ### P01-004 — Add forensic scaffold paths — ✅ Complete and verified 2026-10-04
 
 **Decision:** The required forensic scaffold already existed in the working tree and was fully tracked. `src/forensics/`, `test/forensics/`, `config/opa/`, `src/mcp_middleware/forensic_tools.py`, and `docs/forensic-report-template.md` were present in baseline commit `9c15cb1c976041229f78ef4548588618ac983a0e` and retained identical tree/blob identities at `HEAD` `b066b41d1ef8b598724c53a38234788da01812e2`.
@@ -442,17 +452,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P01-005 — Add `# TODO(phase-10)` to each newly created forensic file
+### P01-006 — Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly
 
 **Scope:**
 
-- Add the checklist-defined `# TODO(phase-10)` markers to the existing forensic scaffold files only.
-- Preserve P01-004 provenance findings: the required forensic scaffold was already present and tracked before this task begins.
-- Update task-state documentation only when the P01-005 work and verification are complete.
+- Verify the existing skeleton Docker Compose stack can start and that its Redis stub starts cleanly.
+- Use the checklist wording as authoritative.
+- Record task-state documentation only after execution evidence is captured and reviewed.
 
 **Explicitly out of scope:**
 
-- Any work beyond adding and verifying the checklist-defined P01-005 TODO markers, including unrelated configuration, Docker, dependency, CI, evidence-vault, credential, Git-history, tag, remote, or cache-cleanup changes.
+- Docker Compose creation or redesign, service implementation, dependency installation, unrelated configuration changes, CI changes, evidence-vault access, credential handling, Git-history/tag/remote changes, cache cleanup, and P01-007 or later work.
 
 **Security constraints:**
 
@@ -460,13 +470,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - Do not expose or access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
 - Do not change host shell configuration.
 
-**RUNBOOK.md:** Not expected to change unless P01-005 establishes a reusable runnable operational procedure.
+**RUNBOOK.md:** Update only if P01-006 produces a reusable, successful operator procedure worth recording.
 
 ## Subsequent task queue
 
-1. `P01-005` — Add `# TODO(phase-10)` to each newly created forensic file.
-2. `P01-006` — Add Docker Compose (Redis + placeholder services) with `TODO(phase-2)` markers.
-3. `P01-007` — Follow the checklist-defined P01-007 scope.
+1. `P01-006` — Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly.
+2. `P01-007` — Run `npm install` and `pip install -r requirements.txt` without errors.
+3. `P01-008` — Follow the checklist-defined P01-008 scope.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
