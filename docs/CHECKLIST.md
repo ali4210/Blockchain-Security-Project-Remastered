@@ -768,7 +768,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | ⬜ | — |
+| P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | 🟪 | Blocked 2026-10-05: safe local policy gate implemented and verified; actual scanner/prover execution requires separately approved local compiler/image provisioning and, for Certora, authorized credential handling. |
 | P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | ⬜ | — |
 | P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ⬜ | — |
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ⬜ | — |
@@ -780,6 +780,16 @@ resolve to the same full SHA.
 | P03-010 | Create `src/agents/upgrade5_defi_attacks.py` front-running detector interface/tests as a safe stub pending Phase 11 mempool data. | ⬜ | — |
 | P03-011 | Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls. | ⬜ | — |
 | P03-012 | Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions. | ⬜ | — |
+
+### P03-001 — Formal-tool policy gate and prerequisite assessment
+
+- **Status:** 🟪 Blocked 2026-10-05 after local policy-gate validation.
+- **Scope completed:** Added `scripts/verify-formal-tools.mts` and `test/hardhat/formal-tools.test.js`. The policy gate validates the approved local fixture identity and safety notice, evaluates only tool/prerequisite availability, and emits structured schema-version-1 `status: "partial"` JSON. It does not execute Slither, Mythril, Certora, a compiler, or a Docker container.
+- **Approved validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/formal-tools.test.js` exited `0`, reported one passing test, and wrote empty stderr. The test confirmed all formal tools were reported blocked without scanner or credential execution.
+- **Prerequisite facts:** Slither `0.11.6` and Certora CLI `8.19.2` are installed through pipx. No `solc` command, installed `solc-select` compiler version, or local Solidity compiler cache was found. `CERTORAKEY` is not set and was not displayed, persisted, or used. Mythril local-image metadata was not confirmed by read-only inspection.
+- **Blocker:** Actual Slither execution requires a local Solidity `0.8.24` compiler; Mythril execution requires a confirmed local image and a separately approved hardened execution plan; Certora proof execution requires separately authorized credential handling outside Git and chat. No compiler/image download, scanner/prover execution, Docker container start, network/RPC, Anvil, deployment, funding, wallet/key operation, CI change, dependency/lockfile change, or secret handling occurred.
+- **Files changed:** `scripts/verify-formal-tools.mts` and `test/hardhat/formal-tools.test.js`; this blocker/evidence update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
+- **Unblock requirement:** Approve a bounded tool-provisioning and hardened execution plan, including provenance verification for Solc `0.8.24` and the Mythril image, before any actual analysis. Certora remains an optional credential-gated alternative and is not authorized by this record.
 
 ## P03-GATE — Phase 3 completion gate
 

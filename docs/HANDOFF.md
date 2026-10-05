@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
 | Current task | P03-001 — Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract |
-| Current thread | P02-GATE is ✅ Complete and verified 2026-10-05: all four acceptance criteria are documented with P02-004 through P02-008 evidence; P02-008 reconciliation `aded10c3ac964783ef22104d82ce8e167c6de69c` passed reported green GitLab CI and fetched verification proved `main == gitlab/main == origin/main == aded10c3ac964783ef22104d82ce8e167c6de69c`. P03-001 is next; begin with read-only scope inspection only. Preserve untracked `docs/.backup/`. |
+| Current thread | P02-GATE is ✅ Complete and verified. P03-001 is 🟪 Blocked after a passed no-execution formal-tool policy gate: Slither lacks a local Solidity compiler, Mythril image availability is unconfirmed, and `CERTORAKEY` is not set. No scanner, compiler, container, network, or credential action occurred. P03-002 remains deferred until P03-001 is unblocked or its blocker is explicitly resolved. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,9 +576,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
-### Phase 2 gate closure
+### P03-001 — Formal-tool policy gate — 🟪 Blocked
 
-P02-GATE is complete and verified. All Phase 2 task evidence is reconciled; the next task is P03-001. No Phase 3 source, configuration, dependency, CI, network, scanner, Docker, or contract action occurred during this documentation-only transition.
+- **Implemented safe boundary:** Added `scripts/verify-formal-tools.mts` and `test/hardhat/formal-tools.test.js`. The verifier confirms the approved local fixture and emits a schema-version-1 partial result reporting formal-tool prerequisites without invoking Slither, Mythril, Certora, Solc, a Docker container, network access, or credentials.
+- **Validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/formal-tools.test.js` exited `0`, produced one passing test, and wrote empty stderr.
+- **Blockers:** Slither `0.11.6` and Certora CLI `8.19.2` are installed, but no local Solidity compiler or compiler cache was found. `CERTORAKEY` is not set and was not used. Mythril image metadata was not confirmed. No provisioning, scan, proof, compiler, Docker run, CI, network/RPC, wallet, deployment, or secret action occurred.
+- **Unblock condition:** A separately approved, provenance-checked local Solc `0.8.24` and Mythril-image provisioning/execution plan is required before actual scanner analysis. Certora remains credential-gated outside Git and chat.
+- **Current sequencing:** P03-002 and later Phase 3 implementation remain deferred while P03-001 is blocked. `docs/.backup/` remains untracked and excluded.
 
 ### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — ✅ Complete and verified
 
@@ -591,8 +595,8 @@ P02-GATE is complete and verified. All Phase 2 task evidence is reconciled; the 
 
 ## Subsequent task queue
 
-1. `P03-001` — Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract.
-2. `P03-002` — Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup.
+1. `P03-001` — 🟪 Unblock formal-tool execution through separately approved local compiler/image provisioning.
+2. `P03-002` — Deferred pending P03-001 unblock or explicit scope decision.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
