@@ -1,9 +1,20 @@
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 type TomlValue = string | string[];
 type TomlSections = Record<string, Record<string, TomlValue>>;
+
+type IntegrityResult = {
+  files: Record<string, string>;
+  lockfileVersion: number;
+  toolchains: {
+    foundrySolcVersion: string;
+    hardhatSolidityVersion: string;
+    movePackageVersion: string;
+  };
+};
 
 export type IngestionResult = {
   schemaVersion: 1;
@@ -32,6 +43,7 @@ export type IngestionResult = {
       dependencies: Record<string, never>;
     };
   };
+  integrity: IntegrityResult;
 };
 
 export class ManifestValidationError extends Error {
@@ -240,16 +252,176 @@ async function validateMove(path: string): Promise<IngestionResult["manifests"][
   };
 }
 
+const EXPECTED_FILE_HASHES = {
+  "package.json": "e5814463f435a5ccb4f7901c09cd3935125b8fc32bd59f094c087ca2f61506df",
+  "package-lock.json": "89915039b15e0ec12a7e491ef5b9d2e2e2a4d63e669c5053c1f6cf469e548a8c",
+  "config/foundry.toml": "71c0b047c483a4e0c5aca70b5bc0315a75d2b3d73edd8c86e7c944a2bcb358bf",
+  "config/hardhat.config.js": "9f210a2ce515df82925e28642dfac959cc3f99b7ced3c3a2a23e6fd65f6a62b5",
+  "config/Move.toml": "52211ca389cb1353cd04c32ba21b2052e62fec320f7de8e4b759ddb4f6671f71",
+  "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
+} as const;
+
+const EXPECTED_COMPILER_TOOLCHAINS = {
+  foundrySolcVersion: "0.8.24",
+  hardhatSolidityVersion: "0.8.24",
+  movePackageVersion: "0.0.1",
+} as const;
+
+class IntegrityValidationError extends Error {
+  constructor(public readonly component: string, message: string) {
+    super(message);
+    this.name = "IntegrityValidationError";
+  }
+}
+
+function sha256(content: string | Buffer): string {
+  return createHash("sha256").update(content).digest("hex");
+}
+
+async function verifyFileHashes(root: string): Promise<Record<string, string>> {
+  const observed: Record<string, string> = {};
+
+  for (const [relativePath, expected] of Object.entries(EXPECTED_FILE_HASHES)) {
+    const actual = sha256(await readFile(resolve(root, relativePath)));
+    if (actual !== expected) {
+      throw new IntegrityValidationError(
+        relativePath,
+        `sha256 mismatch: expected ${expected}, received ${actual}`,
+      );
+    }
+    observed[relativePath] = actual;
+  }
+
+  return observed;
+}
+
+async function verifyLockfile(root: string): Promise<number> {
+  let lockfile: unknown;
+  try {
+    lockfile = JSON.parse(await readFile(resolve(root, "package-lock.json"), "utf8"));
+  } catch (error) {
+    throw new IntegrityValidationError(
+      "package-lock.json",
+      `invalid JSON: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  if (typeof lockfile !== "object" || lockfile === null || Array.isArray(lockfile)) {
+    throw new IntegrityValidationError("package-lock.json", "must be an object");
+  }
+
+  const rootLockfile = lockfile as Record<string, unknown>;
+  if (rootLockfile.lockfileVersion !== 3) {
+    throw new IntegrityValidationError("package-lock.json", "lockfileVersion must equal 3");
+  }
+
+  const packages = rootLockfile.packages;
+  if (typeof packages !== "object" || packages === null || Array.isArray(packages)) {
+    throw new IntegrityValidationError("package-lock.json", "packages must be an object");
+  }
+
+  const rootPackage = (packages as Record<string, unknown>)[""];
+  if (typeof rootPackage !== "object" || rootPackage === null || Array.isArray(rootPackage)) {
+    throw new IntegrityValidationError("package-lock.json", "root package entry is required");
+  }
+
+  const devDependencies = (rootPackage as Record<string, unknown>).devDependencies;
+  if (typeof devDependencies !== "object" || devDependencies === null || Array.isArray(devDependencies)) {
+    throw new IntegrityValidationError("package-lock.json", "root devDependencies must be an object");
+  }
+
+  const expectedDependencies = {
+    hardhat: "^2.22.0",
+    tsx: "^4.0.0",
+    typescript: "^5.5.0",
+  };
+
+  for (const [name, expected] of Object.entries(expectedDependencies)) {
+    if ((devDependencies as Record<string, unknown>)[name] !== expected) {
+      throw new IntegrityValidationError(
+        "package-lock.json",
+        `root devDependency ${name} must equal ${expected}`,
+      );
+    }
+  }
+
+  for (const [path, entry] of Object.entries(packages as Record<string, unknown>)) {
+    if (path === "" || typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      continue;
+    }
+    const packageEntry = entry as Record<string, unknown>;
+    const resolved = packageEntry.resolved;
+    if (resolved === undefined) {
+      continue;
+    }
+    if (typeof resolved !== "string" || !resolved.startsWith("https://registry.npmjs.org/")) {
+      throw new IntegrityValidationError(
+        "package-lock.json",
+        `package ${path} resolved URL must use https://registry.npmjs.org/`,
+      );
+    }
+    if (typeof packageEntry.integrity !== "string" || !packageEntry.integrity.startsWith("sha512-")) {
+      throw new IntegrityValidationError(
+        "package-lock.json",
+        `package ${path} must declare sha512 integrity`,
+      );
+    }
+  }
+
+  return 3;
+}
+
+function verifyCompilerToolchains(
+  manifests: IngestionResult["manifests"],
+): IntegrityResult["toolchains"] {
+  const observed = {
+    foundrySolcVersion: manifests.foundry.solcVersion,
+    hardhatSolidityVersion: manifests.hardhat.solidityVersion,
+    movePackageVersion: manifests.move.package.version,
+  };
+
+  if (
+    observed.foundrySolcVersion !== EXPECTED_COMPILER_TOOLCHAINS.foundrySolcVersion ||
+    observed.hardhatSolidityVersion !== EXPECTED_COMPILER_TOOLCHAINS.hardhatSolidityVersion ||
+    observed.movePackageVersion !== EXPECTED_COMPILER_TOOLCHAINS.movePackageVersion
+  ) {
+    throw new IntegrityValidationError(
+      "compiler-toolchain",
+      `compiler-toolchain mismatch: ${JSON.stringify(observed)}`,
+    );
+  }
+
+  return observed;
+}
+
+async function verifyIntegrity(
+  root: string,
+  manifests: IngestionResult["manifests"],
+): Promise<IntegrityResult> {
+  return {
+    files: await verifyFileHashes(root),
+    lockfileVersion: await verifyLockfile(root),
+    toolchains: verifyCompilerToolchains(manifests),
+  };
+}
+
 export async function ingestManifests(root = process.cwd()): Promise<IngestionResult> {
   const configDir = resolve(root, "config");
+  const foundry = await validateFoundry(resolve(configDir, "foundry.toml"));
+  const hardhat = validateHardhat(resolve(configDir, "hardhat.config.js"));
+  const move = await validateMove(resolve(configDir, "Move.toml"));
+
+  const manifests = {
+    foundry,
+    hardhat,
+    move,
+  };
+
   return {
     schemaVersion: 1,
     status: "valid",
-    manifests: {
-      foundry: await validateFoundry(resolve(configDir, "foundry.toml")),
-      hardhat: validateHardhat(resolve(configDir, "hardhat.config.js")),
-      move: await validateMove(resolve(configDir, "Move.toml")),
-    },
+    manifests,
+    integrity: await verifyIntegrity(root, manifests),
   };
 }
 
@@ -260,7 +432,9 @@ async function main(): Promise<void> {
   } catch (error) {
     const result = error instanceof ManifestValidationError
       ? { schemaVersion: 1, status: "invalid", manifest: error.manifest, error: error.message }
-      : { schemaVersion: 1, status: "error", error: error instanceof Error ? error.message : String(error) };
+      : error instanceof IntegrityValidationError
+        ? { schemaVersion: 1, status: "invalid", component: error.component, error: error.message }
+        : { schemaVersion: 1, status: "error", error: error instanceof Error ? error.message : String(error) };
     process.stderr.write(`${JSON.stringify(result)}\n`);
     process.exitCode = 1;
   }

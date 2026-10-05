@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
 | Current task | P02-004 — Implement dependency and compiler-toolchain hash verification |
-| Current thread | P02-003 is complete and synchronized at `008dcdd078fb04c5e4b75f8cfdf6412674523692` after reported green GitLab CI and matching local, GitLab, and GitHub `main` SHA verification. `scripts/ingest-manifests.mts` deterministically validates approved local Foundry/Hardhat/Move samples and rejects controlled invalid copies. P02-004 is next; implementation has not started. |
+| Current thread | P02-004 implementation and local evidence are complete in the working tree; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification are pending. `scripts/ingest-manifests.mts` now validates committed SHA-256 baselines, package-lock metadata, and declared Foundry/Hardhat/Move compiler-toolchain values without network access or compiler execution. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -545,24 +545,29 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P02-004 — Implement dependency and compiler-toolchain hash verification
+### P02-004 lifecycle completion — GitLab CI and publication reconciliation
 
-**Scope:**
+**Current status:** 🟡 Implementation and local evidence are complete; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification remain pending.
 
-- Read the exact P02-004 tracker requirements and inspect the current local dependency/compiler metadata before changing source.
-- Implement deterministic local dependency and compiler-toolchain hash verification without downloading, installing, or updating dependencies.
-- Define factual success and failure behavior suitable for later ingestion and CI integration, without beginning P02-005 through P02-008 work.
+**Required sequence:**
+
+1. Review and commit exactly `scripts/ingest-manifests.mts`, `docs/CHECKLIST.md`, and `docs/HANDOFF.md`; do not stage `docs/.backup/`.
+2. Push the implementation/evidence commit to GitLab `main` first.
+3. Verify the corresponding GitLab pipeline is green.
+4. Create and commit a documentation-only reconciliation that marks P02-004 ✅ Complete and verified with the pipeline, GitLab, GitHub, and exact three-way SHA evidence.
+5. Push the reconciliation commit to GitLab, verify its pipeline is green, then publish the same verified reconciliation commit to GitHub.
+6. Fetch both remotes and prove `main == gitlab/main == origin/main`.
+7. Only after all steps are complete, advance to P02-005 — verified repository asset-map JSON.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
-- Do not access networks, registry endpoints, RPC endpoints, accounts, wallets, keys, tokens, credentials, evidence-vault material, or raw evidence.
-- Do not compile, test, deploy, fund, scan, or alter `contracts/solidity/VulnerableVault.sol`.
-- Do not change CI configuration, remotes, tags, Git history, dependency manifests, lockfiles, or host shell configuration.
+- Do not access network/registry services from the verifier or run package installation, compiler, tests, scans, Docker/Anvil, deployment, funding, RPC, account, wallet, key, token, credential, or evidence-vault operations.
+- Do not alter dependency manifests, lockfiles, CI configuration, remotes, tags, Git history, or host shell configuration.
 
 ## Subsequent task queue
 
-1. `P02-004` — Implement dependency and compiler-toolchain hash verification.
+1. `P02-004` — Complete GitLab CI and GitHub publication reconciliation for dependency/compiler-toolchain hash verification.
 2. `P02-005` — Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts.
 ## Known dependencies and planned stubs
 
