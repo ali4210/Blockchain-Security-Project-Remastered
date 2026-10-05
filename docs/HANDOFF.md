@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values — implementation/documentation commit pending |
-| Current thread | Phase 1 is complete and verified at `76c54cd5f3fd850721eb17285604aaa1226fc707`. P02-001 sample configuration is implemented and locally validated: Foundry/Hardhat Solidity `0.8.24` paths and settings, plus structural Move TOML validation, with no networks, credentials, dependency changes, or external activity. Commit, GitLab CI, publication, and synchronization remain pending. |
+| Current task | P02-002 — Add a deliberately flawed sample contract under `contracts/solidity/` — implementation/documentation commit pending |
+| Current thread | P02-001 is complete and synchronized at `e61ee99e5912de6748114eb7d960d465a96d18ff` after reported green GitLab CI and matching local, GitLab, and GitHub `main` SHA verification. P02-002 is implemented and locally structurally validated: `contracts/solidity/VulnerableVault.sol` intentionally places an ETH `call` before balance decrement, contains no network/credential/deployment content, and has not been compiled, tested, deployed, or scanned. Commit, GitLab CI, publication, and synchronization remain pending. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -508,34 +508,46 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Completed in this handoff
 
-### P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values — 🟡 Implemented and locally validated 2026-10-05
+### P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values — ✅ Complete and verified 2026-10-05
 
 - Configured Foundry source/test/output/library paths and Solidity `0.8.24`.
 - Configured Hardhat Solidity `0.8.24`, disabled optimizer, repository-local paths, and no networks/accounts/RPC configuration.
 - Configured a local Move package name/version, non-secret `0x0` placeholder address, and empty dependencies.
 - Foundry resolved the configuration; Node structural checks and Hardhat `2.29.1` validation passed; Move TOML structural validation passed.
-- No compiler build, contract test, Move build, service startup, package/dependency change, CI change, network access, or P02-002 work occurred.
+- Implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` (`feat(phase-02): configure sample manifest toolchains`) was published GitLab-first, GitLab CI was reported green, then the same commit was published to GitHub.
+- Fetched synchronization verified `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`.
+- No compiler build, contract test, Move build, service startup, package/dependency change, CI change, network access, or P02-002 work occurred during P02-001.
 - `docs/.backup/` remained untracked and was not inspected or staged. `RUNBOOK.md` was not updated because this project-specific configuration is not a verified reusable operator procedure.
+
+### P02-002 — Add a deliberately flawed sample contract under `contracts/solidity/` — 🟡 Implemented and locally structurally validated 2026-10-05
+
+- Added `contracts/solidity/VulnerableVault.sol` as the sole new Solidity source fixture.
+- The fixture deliberately makes `msg.sender.call{value: amount}("")` before decrementing `balances[msg.sender]`, creating an explicit educational reentrancy flaw.
+- Structural source validation passed: SPDX MIT, exact Solidity `0.8.24`, explicit local-only warning, expected ledger/call/update sequence, and no URL/RPC/key/mnemonic/API-key/address-like content.
+- SHA-256: `31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a`.
+- No compile, test, scanner/formal-verification run, service startup, Anvil/Docker process, deployment, RPC access, account/wallet/key use, funding, dependency change, CI change, or P02-003 work occurred.
+- `docs/.backup/` remains untracked and is not inspected or staged. `RUNBOOK.md` is unchanged because the fixture is not a verified reusable operator procedure.
+
 ## Immediate next task
 
-### P02-001 publication closeout — commit, GitLab CI, GitHub publication, and synchronization
+### P02-002 publication closeout — commit, GitLab CI, GitHub publication, and synchronization
 
 **Scope:**
 
-- Review the exact P02-001 implementation and documentation diff, stage only the three configuration files plus the two documentation files, and create the implementation/evidence commit.
+- Review the exact P02-002 fixture and documentation diff, stage only `contracts/solidity/VulnerableVault.sol`, `docs/CHECKLIST.md`, and `docs/HANDOFF.md`, and create the implementation/evidence commit.
 - Publish that exact commit GitLab-first, wait for factual green GitLab CI, then publish the same commit to GitHub and verify three-way SHA synchronization.
-- Do not begin P02-002 until the P02-001 commit lifecycle is complete and documented.
+- Do not begin P02-003 until the P02-002 commit lifecycle is complete and documented.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
+- Do not compile, test, deploy, fund, scan, or connect the deliberately flawed fixture to any RPC endpoint, account, wallet, key, network, or public target during closeout.
 - Do not change CI configuration, remotes, tags, Git history, dependency manifests, or host shell configuration.
-- Do not begin P02-002 or add Solidity source until P02-001 publication and synchronization are factually verified.
 
 ## Subsequent task queue
 
-1. Complete P02-001 commit, GitLab CI, GitHub publication, and three-way synchronization.
-2. `P02-002` — Add a deliberately flawed sample contract under `contracts/solidity/`.
+1. Complete P02-002 commit, GitLab CI, GitHub publication, and three-way synchronization.
+2. `P02-003` — Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

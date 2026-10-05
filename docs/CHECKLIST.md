@@ -639,8 +639,8 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | 🟡 | Implemented and locally validated 2026-10-05: offline-safe sample toolchain paths and Solidity `0.8.24` configuration validated at pre-commit baseline `76c54cd5f3fd850721eb17285604aaa1226fc707`; implementation/documentation commit and publication lifecycle pending. |
-| P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ⬜ | — |
+| P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`. |
+| P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | 🟡 | Implemented and locally structurally validated 2026-10-05: `contracts/solidity/VulnerableVault.sol` intentionally performs an external ETH call before balance accounting; commit and publication lifecycle pending. |
 | P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ⬜ | — |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ⬜ | — |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ⬜ | — |
@@ -651,7 +651,7 @@ resolve to the same full SHA.
 
 ### P02-001 — Sample Foundry, Hardhat, and Move configuration
 
-- **Status:** 🟡 Implemented and locally validated 2026-10-05; implementation/documentation commit and publication lifecycle pending.
+- **Status:** ✅ Complete and verified 2026-10-05. Implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`.
 - **Scope completed:** Replaced Phase 2 placeholders with local sample configuration for Foundry, Hardhat, and Move.
 - **Files changed:** `config/foundry.toml`, `config/hardhat.config.js`, and `config/Move.toml`; this closeout also changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
 - **Configuration result:** Foundry uses `contracts/solidity`, `test/foundry`, `out`, `lib`, and Solidity `0.8.24`. Hardhat uses Solidity `0.8.24`, optimizer disabled with `runs: 200`, repository-local source/test/cache/artifact paths, and no `networks` object. Move defines package `MoveTargetPackage` version `0.0.1`, local placeholder address `blockchain_soc = "0x0"`, and empty dependencies.
@@ -662,6 +662,18 @@ resolve to the same full SHA.
 - **Dependencies and limitations:** Foundry `1.8.3`, Hardhat `2.29.1`, Node `v24.19.0`, and npm `12.0.2` were available. Move validation was TOML structural validation only; no Move toolchain was asserted or used.
 - **Runbook impact:** Not required. This is a project-specific sample configuration and has not established a new reusable operator procedure.
 - **Next recommended task after P02-001 publication:** P02-002 — Add a deliberately flawed sample contract under `contracts/solidity/`.
+
+### P02-002 — Deliberately flawed Solidity reentrancy fixture
+
+- **Status:** 🟡 Implemented and locally structurally validated 2026-10-05; compiler/test execution, implementation/documentation commit, and publication lifecycle pending.
+- **Scope completed:** Added exactly one intentionally vulnerable local coursework fixture: `contracts/solidity/VulnerableVault.sol`.
+- **Vulnerability pattern:** `withdraw(uint256 amount)` checks the ledger balance, performs `msg.sender.call{value: amount}("")`, then decrements `balances[msg.sender]`. The external interaction therefore precedes effects and deliberately exposes a reentrancy condition.
+- **Safety boundary:** The source declares itself an intentionally vulnerable local coursework fixture that must never be deployed or funded. It contains no network configuration, RPC URL, address, account, key, token, credential, or deployment instruction.
+- **Validation commands and factual results:** Python structural validation confirmed SPDX MIT, exact Solidity `0.8.24` pragma, local-only safety notice, balance ledger, external call, and post-call balance update. The validation confirmed the external call appears before balance decrement and found no URL, RPC, private-key, mnemonic, API-key, or address-like content.
+- **File identity evidence:** SHA-256 `contracts/solidity/VulnerableVault.sol` `31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a`.
+- **Scope not completed:** No compiler build, Foundry/Hardhat test, attacker or exploit fixture, scanner/formal-verification execution, service startup, Anvil/Docker startup, deployment, funding, RPC access, account/wallet/key use, dependency change, CI change, or P02-003 work occurred.
+- **Runbook impact:** Not required. This intentionally unsafe coursework fixture is not a verified user-operational procedure.
+- **Next recommended task after P02-002 publication:** P02-003 — Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests.
 
 ## P02-GATE — Phase 2 completion gate
 
