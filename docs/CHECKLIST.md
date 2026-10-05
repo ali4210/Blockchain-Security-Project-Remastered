@@ -641,7 +641,7 @@ resolve to the same full SHA.
 |---|---|---|---|
 | P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`. |
 | P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e34bf30ed06820d4ec122552fa0703d556098ff5` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e34bf30ed06820d4ec122552fa0703d556098ff5`. |
-| P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ⬜ | — |
+| P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | 🟧 | Implemented and locally validated 2026-10-05: deterministic local validation accepts approved Foundry/Hardhat/Move samples and rejects controlled invalid copies; evidence commit and publication lifecycle pending. |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ⬜ | — |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ⬜ | — |
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ⬜ | — |
@@ -674,6 +674,18 @@ resolve to the same full SHA.
 - **Scope not completed:** No compiler build, Foundry/Hardhat test, attacker or exploit fixture, scanner/formal-verification execution, service startup, Anvil/Docker startup, deployment, funding, RPC access, account/wallet/key use, dependency change, CI change, or P02-003 work occurred.
 - **Runbook impact:** Not required. This intentionally unsafe coursework fixture is not a verified user-operational procedure.
 - **Next recommended task after P02-002 publication:** P02-003 — Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests.
+
+### P02-003 — Local manifest schema parsing and validation
+
+- **Status:** 🟧 Implemented and locally validated 2026-10-05; implementation/documentation commit and publication lifecycle pending.
+- **Scope completed:** Replaced the Phase 2 `scripts/ingest-manifests.mts` stub with deterministic local schema parsing and validation for `config/foundry.toml`, `config/hardhat.config.js`, and `config/Move.toml`.
+- **Validation behavior:** The CLI emits stable JSON with `schemaVersion: 1` and `status: "valid"` for approved local manifests. It accepts an optional local root directory for controlled fixture validation. Invalid configurations emit stable JSON to stderr with `schemaVersion: 1`, `status: "invalid"`, affected manifest, and message, then exit nonzero.
+- **Approved success result:** `./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts` exited `0` and returned the expected Foundry paths/compiler, Hardhat compiler/optimizer/paths with no networks, and Move package/address/empty-dependency data.
+- **Controlled failure validation:** Disposable copied configs were used and removed. Foundry `solc_version = "0.8.25"` was rejected with `profile.default.solc_version must equal "0.8.24"`; a Hardhat `networks` object was rejected with `networks must be absent`; a non-empty Move dependencies section was rejected with `dependencies must be empty`.
+- **Scope not completed:** No dependency/compiler hash verification, asset-map emission, CI ingestion job, Hardhat smoke-test replacement, push/webhook/on-chain entrypoint validation, contract compilation/testing, scanner/formal-verification run, service startup, Anvil/Docker operation, deployment, funding, network/RPC access, account/wallet/key use, dependency/lockfile change, CI change, or P02-004 work occurred.
+- **Security boundary:** The implementation reads only the selected local configuration root. It defines no RPC endpoint, network, account, wallet, token, key, credential, deployment action, or external dependency retrieval.
+- **Runbook impact:** Not required. This is an internal local implementation; a verified operator/CI procedure is deferred to P02-006 and P02-007.
+- **Next recommended task after P02-003 publication:** P02-004 — Implement dependency and compiler-toolchain hash verification.
 
 ## P02-GATE — Phase 2 completion gate
 
