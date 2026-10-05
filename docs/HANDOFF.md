@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry |
-| Current thread | P02-007 is implemented, published, and synchronized at reconciliation commit `0065e4c08a66698db75263dd2a1e95b6b82c56f9`; P02-008 remains 🟡 pending remediation CI. Initial GitLab-first implementation commit `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in `ingest_manifests` on the strict `tests.hardhat` inventory; the local remediation explicitly approves only the P02-008 test, validates valid ingestion and both smoke regressions, and preserves rejection of an unapproved extra test. Commit and validate this remediation GitLab-first before GitHub publication. Preserve untracked `docs/.backup/`. |
+| Current task | P02-GATE — Reconcile Phase 2 completion evidence before beginning Phase 3 |
+| Current thread | P02-008 is ✅ Complete and verified 2026-10-05: initial implementation `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in GitLab `ingest_manifests` under strict Hardhat inventory enforcement; remediation `2325e5541f3b2df65ad6d54b8e683d806a8c8d15` explicitly approved the intended P02-008 test asset and passed reported green GitLab CI. Pipeline identifiers and job URLs were not captured. A documentation-only reconciliation is pending publication and final three-way ref synchronization; reconcile P02-GATE before beginning Phase 3. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -580,18 +580,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 P02-007 is published and synchronized. P02-008 is active: verify Developer Push, webhook, and on-chain-event stub routing to the pipeline entry using bounded local fixtures and GitLab-first CI evidence.
 
-### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — 🟡 Implemented and locally verified
+### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — ✅ Complete and verified
 
 - **Implementation state:** Added `scripts/verify-pipeline-entrypoints.mts` and `test/hardhat/pipeline-entrypoints.test.js`. The verifier accepts three schema-constrained local fixtures—`developer_push`, `webhook`, and `on_chain_event_stub`—and normalizes each to `pipelineEntry: "verify"` with required jobs `runner_smoke_test` and `ingest_manifests`.
 - **Positive validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/pipeline-entrypoints.test.js` exited `0` with two passing tests; direct `tsx` checks emitted accepted schema-version-1 JSON for all three fixtures. After remediation, the ingestion verifier returned valid schema-version-1 JSON with exactly the approved two-file Hardhat test inventory; P02-007 and P02-008 smoke regressions passed.
 - **Negative validation:** An unsupported webhook fixture exited `1`, emitted no stdout, and returned exact structured invalid JSON stating `webhook payload must declare manifest_ingestion version 1`. Initial GitLab-first implementation commit `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in `ingest_manifests` because the strict Hardhat inventory expected only `placeholder.test.js`. The remediation explicitly permits the approved `pipeline-entrypoints.test.js`; a disposable unapproved `unexpected.test.js` remained rejected with `tests.hardhat` and `asset inventory mismatch`. Temporary fixtures and copied roots were deleted.
 - **Limitations:** The developer-push source is represented by the existing GitLab push-to-pipeline contract and a typed local fixture. Webhook and on-chain sources are local stubs only; no public endpoint, trigger API, webhook secret, RPC, wallet, account, key, live subscription, deployment, funding, service, Docker, dependency installation, lockfile change, or CI configuration change occurred.
 - **Hygiene:** `git diff --check` passed. `docs/.backup/` remains untracked and excluded.
-- **Pending closeout:** Commit the approved inventory remediation in `scripts/ingest-manifests.mts` with this factual documentation; publish GitLab-first; verify the remediation pipeline; then publish the GitLab-validated result to GitHub and prove `main == gitlab/main == origin/main` before marking P02-008 ✅.
+- **Completion evidence:** Initial implementation `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in GitLab `ingest_manifests` because the strict inventory did not yet approve the new test. Remediation `2325e5541f3b2df65ad6d54b8e683d806a8c8d15` explicitly added the approved P02-008 test path and passed reported green GitLab CI; the unapproved-extra-test negative control remains rejected. Record this outcome in a documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-validated history to GitHub, and confirm `main == gitlab/main == origin/main`.
 
 ## Subsequent task queue
 
-1. `P02-008` — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — 🟡 implementation/evidence pending GitLab CI verification.
+1. `P02-GATE` — Reconcile Phase 2 completion evidence and confirm the documented gate criteria before beginning Phase 3.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
