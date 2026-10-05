@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-005 — Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts |
-| Current thread | P02-005 implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` was GitLab-first published and GitLab CI was reported green. GitHub publication, a GitLab-validated reconciliation commit, and three-way synchronization verification remain pending. `scripts/ingest-manifests.mts` emits a deterministic approved local asset inventory map after manifest and integrity validation, rejects unexpected Solidity assets and symlinked test assets, and performs no compiler, test, package, network, or Git subprocess operation. Preserve untracked `docs/.backup/`. |
+| Current task | P02-006 — Add the ingestion job to `.gitlab-ci.yml` |
+| Current thread | P02-005 is ✅ Complete and verified: implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and GitLab-CI evidence reconciliation `63d425d5ac04f6fdb108b95b6e3206098db8af83` were GitLab-first published with reported green GitLab CI; the reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`. P02-006 is next. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -545,9 +545,20 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P02-005 lifecycle completion — GitHub publication and reconciliation
+### P02-005 — Verified repository asset-map JSON — ✅ Complete and verified
 
-**Current status:** 🟡 Implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` was GitLab-first published and GitLab CI was reported green. GitHub publication, a GitLab-validated reconciliation commit, and three-way synchronization verification remain pending.
+- **Implementation/evidence commit:** `e4a266119513ba9b34832d4fdb69e45c76c25e6b` — `feat(phase-02): emit verified asset map`.
+- **GitLab-CI evidence reconciliation:** `63d425d5ac04f6fdb108b95b6e3206098db8af83` — `docs(phase-02): record P02-005 GitLab CI evidence`.
+- **GitLab CI:** Both commits were GitLab-first published and their corresponding pipelines were reported green; pipeline identifiers and job URLs were not captured.
+- **GitHub publication and synchronization:** The GitLab-validated reconciliation was published to `origin/main`. Fetched verification proved `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`.
+- **Functional evidence:** The ingestion verifier emits a deterministic approved asset map after manifest and integrity validation. Disposable unexpected Solidity asset and symlinked Hardhat test controls failed closed at the expected component and error text; temporary validation roots were removed.
+- **Security boundary:** No compiler/test/package/network/Git-subprocess/CI configuration/service/deployment/account/wallet/key/token/credential operation occurred. `docs/.backup/` remains untracked and excluded.
+
+### Immediate next task
+
+### P02-006 — Add the ingestion job to `.gitlab-ci.yml`
+
+Begin only with an inspection of the existing CI configuration and the established ingestion verifier command. Preserve `docs/.backup/` as untracked; do not alter dependency manifests, lockfiles, remotes, tags, Git history, or host shell configuration.
 
 **Verified local behavior:**
 
@@ -558,12 +569,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 **Required sequence:**
 
-1. Record the GitLab-first publication of implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and its reported green GitLab CI result; do not stage `docs/.backup/`.
-2. Commit the documentation reconciliation locally.
-3. Push the reconciliation commit to GitLab `main` and verify its corresponding GitLab pipeline is green.
-4. Publish the GitLab-validated reconciliation commit to GitHub `origin/main`.
-5. Fetch both remotes and prove `main == gitlab/main == origin/main` at the reconciliation commit SHA.
-6. Only then mark P02-005 ✅ Complete and verified and advance to P02-006 — add the ingestion job to `.gitlab-ci.yml`.
+P02-005 lifecycle is complete. Begin P02-006 only after preserving the repository boundary and inspecting the existing `.gitlab-ci.yml`; do not stage or inspect `docs/.backup/`.
 
 **Security constraints:**
 
@@ -573,8 +579,8 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P02-005` — Complete GitHub publication and three-way synchronization reconciliation for verified repository asset-map JSON.
-2. `P02-006` — Add the ingestion job to `.gitlab-ci.yml`.
+1. `P02-006` — Add the ingestion job to `.gitlab-ci.yml`.
+2. `P02-007` — Replace the Hardhat placeholder with an ingestion smoke test.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
