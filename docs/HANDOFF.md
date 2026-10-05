@@ -430,6 +430,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Completed task
 
+### P01-006 — Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly — ✅ Complete and verified 2026-10-05
+
+**Decision:** The existing `redis:7` skeleton Compose service for project `blockchain-security-project-remastered` was validated and executed successfully.
+
+- `docker compose config --quiet` succeeded before startup.
+- `compose-up-exit=0`; only the expected Redis service and project network were created.
+- `redis-cli ping` returned `PONG` on readiness attempt 1.
+- Redis logged `Ready to accept connections tcp`.
+- `compose-down-exit=0`; the verification container and project network were removed, and post-stop project status was empty.
+- The Compose top-level `version` deprecation warning and Redis `vm.overcommit_memory` warning were observed but did not prevent successful startup or readiness; no Compose or host-sysctl modification was made.
+- No repository files changed, `docs/.backup/` remained untracked and uninspected, and the reusable verification procedure was recorded in `docs/RUNBOOK.md`.
+
 ### P01-005 — Add `# TODO(phase-10)` to each newly created forensic file — ✅ Complete and verified 2026-10-04
 
 **Decision:** Read-only verification at `ceacc1289322241de4c54bbfa9f0339b2558aa3e` confirmed that all 17 required human-readable forensic files already contain specific `TODO(phase-10...)` markers: ten implementation modules, four tests, the forensics OPA policy, MCP forensic middleware registration, and the forensic report template.
@@ -452,17 +464,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P01-006 — Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly
+### P01-007 — Run `npm install` and `pip install -r requirements.txt` without errors
 
 **Scope:**
 
-- Verify the existing skeleton Docker Compose stack can start and that its Redis stub starts cleanly.
-- Use the checklist wording as authoritative.
-- Record task-state documentation only after execution evidence is captured and reviewed.
+- Run and verify the checklist-defined Node.js and Python dependency installation commands.
+- Preserve the P01-006 Compose verification procedure and avoid unrelated Docker operations.
+- Record task-state documentation only after sanitized execution evidence is reviewed.
 
 **Explicitly out of scope:**
 
-- Docker Compose creation or redesign, service implementation, dependency installation, unrelated configuration changes, CI changes, evidence-vault access, credential handling, Git-history/tag/remote changes, cache cleanup, and P01-007 or later work.
+- Package upgrades outside the required commands, lockfile regeneration without evidence, application implementation, Docker Compose changes, CI changes, evidence-vault access, credential handling, Git-history/tag/remote changes, cache cleanup, and P01-008 or later work.
 
 **Security constraints:**
 
@@ -470,13 +482,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - Do not expose or access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
 - Do not change host shell configuration.
 
-**RUNBOOK.md:** Update only if P01-006 produces a reusable, successful operator procedure worth recording.
+**RUNBOOK.md:** Update only if P01-007 produces a reusable, successful operator procedure worth recording.
 
 ## Subsequent task queue
 
-1. `P01-006` — Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly.
-2. `P01-007` — Run `npm install` and `pip install -r requirements.txt` without errors.
-3. `P01-008` — Follow the checklist-defined P01-008 scope.
+1. `P01-007` — Run `npm install` and `pip install -r requirements.txt` without errors.
+2. `P01-008` — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green.
+3. `P01-009` — Follow the checklist-defined P01-009 scope.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

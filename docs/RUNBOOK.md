@@ -844,32 +844,95 @@ For every completed phase or operational component, add:
 
 ## Start procedure
 
-> No verified project-wide runtime command has been recorded yet.
+### P01-006 — Docker Compose Redis stub verification
 
-Add the exact tested startup procedure only after the relevant service stack
-exists and is validated.
+**Status:** ✅ Verified on 2026-10-05
+**Scope:** Local development-skeleton verification only; not a production deployment procedure.
+
+**Purpose**
+
+Validate the existing `docker-compose.yml` Redis stub without changing Compose
+configuration, host sysctl settings, application code, evidence material, or
+unrelated containers.
+
+**Prerequisites**
+
+- Run from the repository root.
+- Docker Engine and the Docker Compose plugin are available to the current user.
+- The Docker daemon is reachable.
+- No unrelated container is using host port `6379`.
+- Preserve `docs/.backup/` as untracked; do not inspect or stage it.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+DOCKER=/usr/bin/docker
+PROJECT=blockchain-security-project-remastered
+COMPOSE_FILE=docker-compose.yml
+
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" config --quiet
+
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" up -d redis
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" ps
+
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" \
+  exec -T redis redis-cli ping
+
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" \
+  logs --no-color --tail=100 redis
+```
+
+**Expected successful result**
+
+- Configuration validation succeeds.
+- Only the named project’s `redis` service and network are created.
+- `redis-cli ping` prints `PONG`.
+- Redis logs include `Ready to accept connections tcp`.
+
+**Warnings and limitations**
+
+- Docker Compose may warn that the top-level `version` attribute is obsolete.
+  This warning is non-blocking for the validated existing skeleton file; do not
+  alter `docker-compose.yml` solely during verification.
+- Redis may warn that `vm.overcommit_memory` is not enabled. Record the
+  warning, but do not change host sysctl configuration as part of this
+  verification.
+- A successful `PONG` verifies basic Redis readiness only; it does not establish
+  production hardening, persistence, authentication, TLS, policy enforcement,
+  or evidence-vault behavior.
 
 ## Health checks and validation
 
-> No verified project-wide health-check command has been recorded yet.
+Use the in-container health check rather than treating a running container
+state as sufficient:
 
-For each component, document:
-
-```text
-Component:
-Prerequisite:
-Command:
-Expected healthy result:
-Failure indicator:
-Evidence to retain:
+```bash
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" \
+  exec -T redis redis-cli ping
 ```
+
+Treat `PONG` together with the Redis readiness log as the P01-006 success
+condition. Preserve sanitized status and log output if startup or readiness
+fails; do not change unrelated Docker, Compose, host, or repository settings
+while diagnosing.
 
 ## Shutdown and cleanup
 
-> No verified project-wide shutdown procedure has been recorded yet.
+After status and logs have been captured, remove only the named verification
+project’s containers and network:
 
-Before adding shutdown commands, verify that they do not delete required
-evidence, local volumes, fixtures, or configuration.
+```bash
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" \
+  down --remove-orphans
+
+"$DOCKER" compose --project-name "$PROJECT" -f "$COMPOSE_FILE" ps -a
+```
+
+Expected result: the named project has no remaining containers. Do not add
+volume-removal flags, remove images, prune Docker resources, or stop unrelated
+containers as part of this verification.
 
 ## GitLab and GitHub synchronization
 
