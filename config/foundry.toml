@@ -1,5 +1,6 @@
-# TODO(phase-2): configure src/out/libs paths once contracts/ is populated
 [profile.default]
 src = "contracts/solidity"
+test = "test/foundry"
 out = "out"
 libs = ["lib"]
+solc_version = "0.8.24"

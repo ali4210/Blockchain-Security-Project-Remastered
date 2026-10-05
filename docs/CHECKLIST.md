@@ -639,7 +639,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | ⬜ | — |
+| P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | 🟡 | Implemented and locally validated 2026-10-05: offline-safe sample toolchain paths and Solidity `0.8.24` configuration validated at pre-commit baseline `76c54cd5f3fd850721eb17285604aaa1226fc707`; implementation/documentation commit and publication lifecycle pending. |
 | P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ⬜ | — |
 | P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ⬜ | — |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ⬜ | — |
@@ -647,6 +647,21 @@ resolve to the same full SHA.
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ⬜ | — |
 | P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ⬜ | — |
 | P02-008 | Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry. | ⬜ | — |
+
+
+### P02-001 — Sample Foundry, Hardhat, and Move configuration
+
+- **Status:** 🟡 Implemented and locally validated 2026-10-05; implementation/documentation commit and publication lifecycle pending.
+- **Scope completed:** Replaced Phase 2 placeholders with local sample configuration for Foundry, Hardhat, and Move.
+- **Files changed:** `config/foundry.toml`, `config/hardhat.config.js`, and `config/Move.toml`; this closeout also changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Configuration result:** Foundry uses `contracts/solidity`, `test/foundry`, `out`, `lib`, and Solidity `0.8.24`. Hardhat uses Solidity `0.8.24`, optimizer disabled with `runs: 200`, repository-local source/test/cache/artifact paths, and no `networks` object. Move defines package `MoveTargetPackage` version `0.0.1`, local placeholder address `blockchain_soc = "0x0"`, and empty dependencies.
+- **Validation commands and factual results:** `forge config --root . --config-path config/foundry.toml` resolved the configured paths, compiler, and disabled optimizer. Node structural validation loaded `config/hardhat.config.js` and verified compiler/settings/paths with no networks configuration. `npx --no-install hardhat --version` returned `2.29.1`. Python `tomllib` structural validation passed for `config/Move.toml`.
+- **File identity evidence:** SHA-256 `config/foundry.toml` `71c0b047c483a4e0c5aca70b5bc0315a75d2b3d73edd8c86e7c944a2bcb358bf`; `config/hardhat.config.js` `9f210a2ce515df82925e28642dfac959cc3f99b7ced3c3a2a23e6fd65f6a62b5`; `config/Move.toml` `52211ca389cb1353cd04c32ba21b2052e62fec320f7de8e4b759ddb4f6671f71`.
+- **Scope not completed:** No Solidity contract compilation, Hardhat test execution, Move package initialization/build, Anvil/Docker/service startup, network/RPC access, package installation, dependency/lockfile change, CI modification, or P02-002 work.
+- **Security checks:** No accounts, private keys, tokens, RPC URLs, network definitions, credentials, evidence-vault material, raw evidence, or secret-bearing configuration was added. `docs/.backup/` remained untracked and was not inspected or staged.
+- **Dependencies and limitations:** Foundry `1.8.3`, Hardhat `2.29.1`, Node `v24.19.0`, and npm `12.0.2` were available. Move validation was TOML structural validation only; no Move toolchain was asserted or used.
+- **Runbook impact:** Not required. This is a project-specific sample configuration and has not established a new reusable operator procedure.
+- **Next recommended task after P02-001 publication:** P02-002 — Add a deliberately flawed sample contract under `contracts/solidity/`.
 
 ## P02-GATE — Phase 2 completion gate
 

@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values |
-| Current thread | Phase 1 is complete and verified pending this documentation closeout commit lifecycle. P01-GATE reconciled green placeholder CI, layout, TODO mapping, and baseline provenance using evidence through `96751fc5eff2fa523ce3c2bf3b69199d853a5086`. Phase 2 begins with P02-001 only after this closeout is committed, GitLab-CI-verified, published, and synchronized. |
+| Current task | P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values — implementation/documentation commit pending |
+| Current thread | Phase 1 is complete and verified at `76c54cd5f3fd850721eb17285604aaa1226fc707`. P02-001 sample configuration is implemented and locally validated: Foundry/Hardhat Solidity `0.8.24` paths and settings, plus structural Move TOML validation, with no networks, credentials, dependency changes, or external activity. Commit, GitLab CI, publication, and synchronization remain pending. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -506,25 +506,35 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - Skeleton provenance is anchored by baseline commit `9c15cb1c976041229f78ef4548588618ac983a0e`. The existing annotated Phase 0 tag `v10.3-phase-00` resolves to `68f97d8d63f859969fc2762f7a30ea653791e44e`; it is not represented as the Phase 1 skeleton baseline tag.
 - `docs/.backup/` remained untracked and was not inspected or staged. `RUNBOOK.md` remains unchanged because the gate is a project-state reconciliation, not a new reusable operational procedure.
 
+## Completed in this handoff
+
+### P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values — 🟡 Implemented and locally validated 2026-10-05
+
+- Configured Foundry source/test/output/library paths and Solidity `0.8.24`.
+- Configured Hardhat Solidity `0.8.24`, disabled optimizer, repository-local paths, and no networks/accounts/RPC configuration.
+- Configured a local Move package name/version, non-secret `0x0` placeholder address, and empty dependencies.
+- Foundry resolved the configuration; Node structural checks and Hardhat `2.29.1` validation passed; Move TOML structural validation passed.
+- No compiler build, contract test, Move build, service startup, package/dependency change, CI change, network access, or P02-002 work occurred.
+- `docs/.backup/` remained untracked and was not inspected or staged. `RUNBOOK.md` was not updated because this project-specific configuration is not a verified reusable operator procedure.
 ## Immediate next task
 
-### P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values
+### P02-001 publication closeout — commit, GitLab CI, GitHub publication, and synchronization
 
 **Scope:**
 
-- Read the exact P02-001 tracker and its Phase 2 acceptance criteria before changing any configuration file.
-- Preserve all Phase 1 evidence and boundaries; do not begin P02-002 or later work.
-- Establish allowed files, expected values, validation commands, and any simulation limitations before implementation.
+- Review the exact P02-001 implementation and documentation diff, stage only the three configuration files plus the two documentation files, and create the implementation/evidence commit.
+- Publish that exact commit GitLab-first, wait for factual green GitLab CI, then publish the same commit to GitHub and verify three-way SHA synchronization.
+- Do not begin P02-002 until the P02-001 commit lifecycle is complete and documented.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
-- Do not access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
-- Do not change CI configuration, remotes, tags, Git history, dependency manifests, or host shell configuration unless explicitly required and approved for P02-001.
+- Do not change CI configuration, remotes, tags, Git history, dependency manifests, or host shell configuration.
+- Do not begin P02-002 or add Solidity source until P02-001 publication and synchronization are factually verified.
 
 ## Subsequent task queue
 
-1. `P02-001` — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values.
+1. Complete P02-001 commit, GitLab CI, GitHub publication, and three-way synchronization.
 2. `P02-002` — Add a deliberately flawed sample contract under `contracts/solidity/`.
 ## Known dependencies and planned stubs
 
