@@ -619,14 +619,17 @@ resolve to the same full SHA.
 
 ## P01-GATE — Phase 1 completion gate
 
-- [ ] Skeleton pipeline is green in GitLab.
-- [x] Repository tree matches the expected base and forensic layout. Verified during P01-001 reconciliation; task documentation/publication remains pending.
-- [x] TODO markers are accounted for. Inventory completed during P01-001; detailed future-phase mapping remains P01-009.
-- [ ] Baseline skeleton commit/tag exists.
-- [ ] `docs/HANDOFF.md` is updated for Phase 2.
+- [x] Skeleton pipeline is green in GitLab. Verified by green GitLab pipelines for P01-008 and P01-009 documentation closeouts; most recent verified pre-gate evidence commit `96751fc5eff2fa523ce3c2bf3b69199d853a5086`.
+- [x] Repository tree matches the expected base and forensic layout. Required tracked roots and forensic paths were verified. Documented caveat: literal `.gitlab/` is absent while root `.gitlab-ci.yml` is tracked; `move/` is a worktree-only empty scaffold because Git does not preserve empty directories.
+- [x] TODO markers are accounted for. P01-009 mapped every tracked `TODO(phase-N)` marker to its future implementation phase and retained explicit cross-phase dependencies.
+- [x] Baseline skeleton commit/tag exists. Initial reachable skeleton baseline commit is `9c15cb1c976041229f78ef4548588618ac983a0e`. Existing annotated Phase 0 tag `v10.3-phase-00` resolves to `68f97d8d63f859969fc2762f7a30ea653791e44e`; the tag and baseline commit are distinct provenance anchors.
+- [x] `docs/HANDOFF.md` is updated for Phase 2. This P01-GATE closeout advances the current phase to Phase 2 and identifies P02-001 as the next task.
 
-**Gate status:** ⬜ Not ready  
-**Gate commit/tag:**  
+**Gate status:** ✅ Complete and verified 2026-10-05
+
+**Pre-closeout evidence baseline:** `96751fc5eff2fa523ce3c2bf3b69199d853a5086`. The gate-close documentation commit will record this reconciliation after its own GitLab-CI and publication lifecycle.
+
+**Known limitations:** The documented literal-`.gitlab/` and empty-Move-directory layout gaps remain bounded baseline/task-specification facts. No layout, CI, Git-history, tag, remote, cache, or skeleton change is authorized by this gate.
 
 ---
 

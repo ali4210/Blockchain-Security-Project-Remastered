@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 1 — Skeleton scaffold |
-| Current task | P01-GATE — Reconcile the Phase 1 completion gate against completed P01-001 through P01-009 evidence |
-| Current thread | P01-001 through P01-009 are complete and verified. P01-009 read-only TODO-marker inventory mapped tracked markers to the planned implementation phases at `91476785ac05621e0256edad38263168b20ca8a8`; no TODO-bearing file changed. P01-GATE reconciliation is next. |
+| Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
+| Current task | P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values |
+| Current thread | Phase 1 is complete and verified pending this documentation closeout commit lifecycle. P01-GATE reconciled green placeholder CI, layout, TODO mapping, and baseline provenance using evidence through `96751fc5eff2fa523ce3c2bf3b69199d853a5086`. Phase 2 begins with P02-001 only after this closeout is committed, GitLab-CI-verified, published, and synchronized. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -496,25 +496,36 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - `docs/.backup/` remained untracked and was not inspected or staged.
 - `RUNBOOK.md` was not updated because the mapping exercise did not create a reusable operational procedure.
 
+## Completed in this handoff
+
+### P01-GATE — Phase 1 completion gate — ✅ Complete and verified 2026-10-05
+
+- Green private-GitLab placeholder CI evidence was confirmed for P01-008 and P01-009 closeouts; P01-009 evidence baseline is `96751fc5eff2fa523ce3c2bf3b69199d853a5086`.
+- The expected tracked base and forensic layout was reconfirmed. The literal `.gitlab/` absence and Git-untracked empty `move/` scaffold remain documented bounded baseline/task-specification gaps; no structural mutation is justified.
+- P01-009 accounts for every tracked `TODO(phase-N)` marker, including intentional cross-phase dependencies.
+- Skeleton provenance is anchored by baseline commit `9c15cb1c976041229f78ef4548588618ac983a0e`. The existing annotated Phase 0 tag `v10.3-phase-00` resolves to `68f97d8d63f859969fc2762f7a30ea653791e44e`; it is not represented as the Phase 1 skeleton baseline tag.
+- `docs/.backup/` remained untracked and was not inspected or staged. `RUNBOOK.md` remains unchanged because the gate is a project-state reconciliation, not a new reusable operational procedure.
+
 ## Immediate next task
 
-### P01-GATE — Reconcile the Phase 1 completion gate
+### P02-001 — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values
 
 **Scope:**
 
-- Reconcile every P01-GATE acceptance checkbox against P01-001 through P01-009 factual evidence.
-- Confirm that the baseline skeleton commit/tag, green placeholder pipeline, TODO mapping, expected base/forensic layout, and Phase 2 handoff requirements are each supported by evidence.
-- Do not mark the gate complete or change implementation until the exact gate criteria, evidence gaps, allowed files, and validation commands are established.
+- Read the exact P02-001 tracker and its Phase 2 acceptance criteria before changing any configuration file.
+- Preserve all Phase 1 evidence and boundaries; do not begin P02-002 or later work.
+- Establish allowed files, expected values, validation commands, and any simulation limitations before implementation.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
 - Do not access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
-- Do not change host shell configuration, CI configuration, remotes, tags, or Git history outside an explicitly approved P01-GATE requirement.
+- Do not change CI configuration, remotes, tags, Git history, dependency manifests, or host shell configuration unless explicitly required and approved for P02-001.
 
 ## Subsequent task queue
 
-1. `P01-GATE` — Reconcile the Phase 1 completion gate against completed P01-001 through P01-009 evidence.
+1. `P02-001` — Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values.
+2. `P02-002` — Add a deliberately flawed sample contract under `contracts/solidity/`.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
