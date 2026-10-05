@@ -641,7 +641,7 @@ resolve to the same full SHA.
 |---|---|---|---|
 | P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`. |
 | P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e34bf30ed06820d4ec122552fa0703d556098ff5` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e34bf30ed06820d4ec122552fa0703d556098ff5`. |
-| P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | 🟧 | Implemented and locally validated 2026-10-05: deterministic local validation accepts approved Foundry/Hardhat/Move samples and rejects controlled invalid copies; evidence commit and publication lifecycle pending. |
+| P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `008dcdd078fb04c5e4b75f8cfdf6412674523692` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 008dcdd078fb04c5e4b75f8cfdf6412674523692`. |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ⬜ | — |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ⬜ | — |
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ⬜ | — |
@@ -677,7 +677,7 @@ resolve to the same full SHA.
 
 ### P02-003 — Local manifest schema parsing and validation
 
-- **Status:** 🟧 Implemented and locally validated 2026-10-05; implementation/documentation commit and publication lifecycle pending.
+- **Status:** ✅ Complete and verified 2026-10-05. Implementation/evidence commit `008dcdd078fb04c5e4b75f8cfdf6412674523692` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 008dcdd078fb04c5e4b75f8cfdf6412674523692`.
 - **Scope completed:** Replaced the Phase 2 `scripts/ingest-manifests.mts` stub with deterministic local schema parsing and validation for `config/foundry.toml`, `config/hardhat.config.js`, and `config/Move.toml`.
 - **Validation behavior:** The CLI emits stable JSON with `schemaVersion: 1` and `status: "valid"` for approved local manifests. It accepts an optional local root directory for controlled fixture validation. Invalid configurations emit stable JSON to stderr with `schemaVersion: 1`, `status: "invalid"`, affected manifest, and message, then exit nonzero.
 - **Approved success result:** `./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts` exited `0` and returned the expected Foundry paths/compiler, Hardhat compiler/optimizer/paths with no networks, and Move package/address/empty-dependency data.
