@@ -842,6 +842,70 @@ For every completed phase or operational component, add:
 8. Known limitations and coursework simulations.
 9. Troubleshooting steps.
 
+### P01-007 — Project dependency installation with PEP 668-safe Python isolation
+
+**Status:** ✅ Verified on 2026-10-05
+**Scope:** Local development dependency verification only; not a dependency-upgrade, audit-remediation, or production packaging procedure.
+
+**Purpose**
+
+Install the existing Node.js and Python requirements while preserving tracked
+manifests, avoiding system-Python modification, and respecting the repository's
+ignored local dependency directories.
+
+**Prerequisites**
+
+- Run from the repository root with `node`, `npm`, and `/usr/bin/python3`
+  available.
+- Confirm `package.json`, `package-lock.json`, and `requirements.txt` are
+  tracked and review `git status` before installation.
+- Preserve `docs/.backup/` as untracked; do not inspect or stage it.
+- Do not use `sudo`, `--break-system-packages`, `npm audit fix`,
+  `npm audit fix --force`, or lifecycle-script approval as part of this
+  procedure.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+
+/usr/bin/npm install
+/usr/bin/npm ls --depth=0
+
+/usr/bin/python3 -m pip install -r requirements.txt
+```
+
+On Kali, the system pip command can be correctly blocked by PEP 668. If that
+occurs, use the ignored project-local virtual environment instead:
+
+```bash
+/usr/bin/python3 -m venv .venv
+
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip show requests langgraph
+.venv/bin/python -c 'import requests, langgraph; print(requests.__version__); print("langgraph=import-ok")'
+```
+
+**Expected successful result**
+
+- `npm install` and `npm ls --depth=0` return zero.
+- The existing Node dependency tree resolves without changing tracked
+  `package.json` or `package-lock.json`.
+- Either system pip succeeds, or PEP 668 safely blocks system installation and
+  the `.venv/` fallback succeeds.
+- `requests` and `langgraph` are present and import successfully from `.venv/`.
+- `requirements.txt` remains unchanged, and `.venv/` remains ignored.
+
+**Warnings and limitations**
+
+- `npm install` may report known vulnerabilities or blocked lifecycle scripts.
+  Record those facts, but do not run audit remediation, force remediation, or
+  approve blocked scripts without separate scope and review.
+- PEP 668 blocking system pip is expected protection on Kali; do not override
+  it with `--break-system-packages`.
+- This procedure does not pin, upgrade, remove, or audit dependencies, nor does
+  it validate application behavior beyond dependency presence and imports.
+
 ## Start procedure
 
 ### P01-006 — Docker Compose Redis stub verification

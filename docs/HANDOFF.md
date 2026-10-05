@@ -430,6 +430,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Completed task
 
+### P01-007 — Run `npm install` and `pip install -r requirements.txt` without errors — ✅ Complete and verified 2026-10-05
+
+**Decision:** Project dependency installation completed without tracked repository mutations.
+
+- `npm install` exited `0`, and `npm ls --depth=0` verified `hardhat@2.29.1`, `tsx@4.23.15`, and `typescript@5.9.3`.
+- npm reported 19 dependency vulnerabilities and blocked lifecycle scripts for `esbuild@0.28.2` and `keccak@3.0.4` under the existing allow-scripts policy; no audit fix, forced audit fix, or script approval was performed.
+- The initial system `pip install -r requirements.txt` was safely blocked by Kali's PEP 668 externally managed environment protection; no system-Python override was used.
+- Ignored project-local `.venv/` was created with `/usr/bin/python3 -m venv .venv`; `.venv/bin/python -m pip install -r requirements.txt` exited `0`.
+- `requests 2.34.2` and `langgraph 1.2.12` were present and imported successfully from `.venv/`.
+- `package.json`, `package-lock.json`, and `requirements.txt` retained their pre-install SHA-256 identities; `docs/.backup/` remained untracked and uninspected.
+- The reusable dependency-installation procedure was recorded in `docs/RUNBOOK.md`.
+
 ### P01-006 — Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly — ✅ Complete and verified 2026-10-05
 
 **Decision:** The existing `redis:7` skeleton Compose service for project `blockchain-security-project-remastered` was validated and executed successfully.
@@ -464,17 +476,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P01-007 — Run `npm install` and `pip install -r requirements.txt` without errors
+### P01-008 — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green
 
 **Scope:**
 
-- Run and verify the checklist-defined Node.js and Python dependency installation commands.
-- Preserve the P01-006 Compose verification procedure and avoid unrelated Docker operations.
-- Record task-state documentation only after sanitized execution evidence is reviewed.
+- Verify the checklist-defined private GitLab push and placeholder pipeline result using factual remote and pipeline evidence.
+- Preserve the completed P01-007 dependency state; do not run additional package operations.
+- Record task-state documentation only after remote and pipeline evidence is captured and reviewed.
 
 **Explicitly out of scope:**
 
-- Package upgrades outside the required commands, lockfile regeneration without evidence, application implementation, Docker Compose changes, CI changes, evidence-vault access, credential handling, Git-history/tag/remote changes, cache cleanup, and P01-008 or later work.
+- CI configuration changes, pipeline redesign, dependency upgrades, application implementation, Docker Compose changes, evidence-vault access, credential handling, Git-history/tag/remote changes, cache cleanup, and P01-009 or later work.
 
 **Security constraints:**
 
@@ -482,13 +494,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - Do not expose or access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
 - Do not change host shell configuration.
 
-**RUNBOOK.md:** Update only if P01-007 produces a reusable, successful operator procedure worth recording.
+**RUNBOOK.md:** Update only if P01-008 produces a reusable, successful operator procedure worth recording.
 
 ## Subsequent task queue
 
-1. `P01-007` — Run `npm install` and `pip install -r requirements.txt` without errors.
-2. `P01-008` — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green.
-3. `P01-009` — Follow the checklist-defined P01-009 scope.
+1. `P01-008` — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green.
+2. `P01-009` — Read and map every `TODO(phase-N)` marker to the relevant future phase.
+3. `P01-010` — Follow the checklist-defined P01-010 scope.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
