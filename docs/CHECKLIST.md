@@ -642,7 +642,7 @@ resolve to the same full SHA.
 | P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`. |
 | P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e34bf30ed06820d4ec122552fa0703d556098ff5` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e34bf30ed06820d4ec122552fa0703d556098ff5`. |
 | P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `008dcdd078fb04c5e4b75f8cfdf6412674523692` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 008dcdd078fb04c5e4b75f8cfdf6412674523692`. |
-| P02-004 | Implement dependency and compiler-toolchain hash verification. | 🟡 | Implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` is GitLab-first published and reported green in GitLab CI on 2026-10-05; GitHub publication and final three-way synchronization remain pending. |
+| P02-004 | Implement dependency and compiler-toolchain hash verification. | ✅ | Complete and verified 2026-10-05: implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`. |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ⬜ | — |
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ⬜ | — |
 | P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ⬜ | — |
@@ -689,7 +689,7 @@ resolve to the same full SHA.
 
 ### P02-004 — Dependency and compiler-toolchain hash verification
 
-- **Status:** 🟡 Implementation/evidence commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` was GitLab-first published and reported green in GitLab CI on 2026-10-05; GitHub publication and final three-way synchronization verification remain pending.
+- **Status:** ✅ Complete and verified 2026-10-05. Implementation/evidence commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; the reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`.
 - **Scope completed:** Extended `scripts/ingest-manifests.mts` with deterministic local integrity validation for dependency metadata, selected repository inputs, and compiler-toolchain declarations.
 - **Integrity baseline:** Exact SHA-256 baselines are enforced for `package.json`, `package-lock.json`, `config/foundry.toml`, `config/hardhat.config.js`, `config/Move.toml`, and `contracts/solidity/VulnerableVault.sol`.
 - **Dependency validation:** Requires lockfile version `3`; validates the expected root `hardhat`, `tsx`, and `typescript` development dependency ranges; permits only `https://registry.npmjs.org/` resolution metadata; and requires `sha512-` integrity metadata for resolved lockfile entries. This performs no registry access or package installation.
@@ -699,7 +699,7 @@ resolve to the same full SHA.
 - **Security boundary:** No network, registry, RPC, account, wallet, token, credential, key, evidence-vault, raw-evidence, compiler execution, test, scanner, Docker, Anvil, service, deployment, or funding operation occurred. The `https://registry.npmjs.org/` literal is only a local lockfile metadata prefix check.
 - **Files changed:** `scripts/ingest-manifests.mts`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
 - **Runbook impact:** Not required. The verifier is local implementation evidence; CI integration is deferred to P02-006.
-- **Next required lifecycle step:** Commit this GitLab-CI evidence reconciliation, publish it to GitLab, verify its pipeline is green, publish that verified reconciliation commit to GitHub, fetch both remotes, and only then reconcile P02-004 to ✅ Complete and verified with exact three-way SHA evidence.
+- **Completion evidence:** The implementation/evidence commit and its GitLab-CI reconciliation are published and synchronized at `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`; P02-004 has no remaining task-specific publication or verification gap.
 
 ## P02-GATE — Phase 2 completion gate
 

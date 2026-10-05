@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-004 — Implement dependency and compiler-toolchain hash verification |
-| Current thread | P02-004 implementation/evidence commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` is GitLab-first published and reported green in GitLab CI. GitHub publication, final reconciliation, and three-way SHA synchronization remain pending. `scripts/ingest-manifests.mts` validates committed SHA-256 baselines, package-lock metadata, and declared Foundry/Hardhat/Move compiler-toolchain values without network access or compiler execution. Preserve untracked `docs/.backup/`. |
+| Current task | P02-005 — Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts |
+| Current thread | P02-004 is ✅ Complete and verified: implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; reconciliation publication and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`. P02-005 has not started. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -545,20 +545,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P02-004 lifecycle completion — GitLab CI verified; final publication reconciliation pending
+### P02-004 — Dependency and compiler-toolchain hash verification — ✅ Complete and verified
 
-**Current status:** 🟡 Implementation/evidence commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` is GitLab-first published and reported green in GitLab CI. GitHub publication and final three-way synchronization remain pending.
-
-**Required sequence:**
-
-1. Commit this documentation-only GitLab-CI evidence reconciliation; stage only `docs/CHECKLIST.md` and `docs/HANDOFF.md`, never `docs/.backup/`.
-2. Push the reconciliation commit to GitLab `main`.
-3. Verify the reconciliation commit’s GitLab pipeline is green.
-4. Push that exact GitLab-validated reconciliation commit to GitHub `origin/main`.
-5. Fetch GitLab and GitHub, then verify `main == gitlab/main == origin/main`.
-6. Create a final documentation-only reconciliation, if needed, that records the exact final SHA and changes P02-004 to ✅ Complete and verified.
-7. Verify the final reconciliation commit’s GitLab pipeline, publish it to GitHub, and re-prove three-way equality.
-8. Only after the final status is fully reconciled, advance to P02-005 — verified repository asset-map JSON.
+- Implementation/evidence commit: `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` — `feat(phase-02): verify dependency and toolchain integrity`.
+- GitLab-CI evidence reconciliation: `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` — `docs(phase-02): record P02-004 GitLab CI evidence`.
+- GitLab CI: both commits were reported green after GitLab-first publication.
+- GitHub publication: the GitLab-validated reconciliation was published to `origin/main`.
+- Synchronization: fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`.
+- Functional evidence: approved local integrity verification returned valid JSON and exit `0`; disposable source and lockfile tampering failed closed at exact SHA-256 gates; a changed Foundry compiler declaration was rejected by manifest policy; all temporary copies were removed.
+- Security boundary: no dependency modification/install, registry/RPC access, compiler/test/scan execution, service/Docker/Anvil operation, deployment/funding, account/wallet/key/token/credential operation, CI change, or `docs/.backup/` staging occurred.
 
 **Security constraints:**
 
@@ -568,8 +563,8 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P02-004` — Complete GitHub publication and final three-way synchronization reconciliation for dependency/compiler-toolchain hash verification.
-2. `P02-005` — Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts.
+1. `P02-005` — Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts.
+2. `P02-006` — Add the ingestion job to `.gitlab-ci.yml`.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
