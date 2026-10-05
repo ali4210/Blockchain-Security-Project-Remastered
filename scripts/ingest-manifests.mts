@@ -456,7 +456,10 @@ const EXPECTED_ASSET_MAP = {
       "test/foundry/Exploit.t.sol",
       "test/foundry/Invariants.t.sol",
     ],
-    hardhat: ["test/hardhat/placeholder.test.js"],
+    hardhat: [
+    "test/hardhat/pipeline-entrypoints.test.js",
+    "test/hardhat/placeholder.test.js",
+  ],
   },
 } as const;
 
