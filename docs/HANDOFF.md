@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
 | Current task | P02-004 — Implement dependency and compiler-toolchain hash verification |
-| Current thread | P02-004 implementation and local evidence are complete in the working tree; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification are pending. `scripts/ingest-manifests.mts` now validates committed SHA-256 baselines, package-lock metadata, and declared Foundry/Hardhat/Move compiler-toolchain values without network access or compiler execution. Preserve untracked `docs/.backup/`. |
+| Current thread | P02-004 implementation/evidence commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` is GitLab-first published and reported green in GitLab CI. GitHub publication, final reconciliation, and three-way SHA synchronization remain pending. `scripts/ingest-manifests.mts` validates committed SHA-256 baselines, package-lock metadata, and declared Foundry/Hardhat/Move compiler-toolchain values without network access or compiler execution. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -545,19 +545,20 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-### P02-004 lifecycle completion — GitLab CI and publication reconciliation
+### P02-004 lifecycle completion — GitLab CI verified; final publication reconciliation pending
 
-**Current status:** 🟡 Implementation and local evidence are complete; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification remain pending.
+**Current status:** 🟡 Implementation/evidence commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` is GitLab-first published and reported green in GitLab CI. GitHub publication and final three-way synchronization remain pending.
 
 **Required sequence:**
 
-1. Review and commit exactly `scripts/ingest-manifests.mts`, `docs/CHECKLIST.md`, and `docs/HANDOFF.md`; do not stage `docs/.backup/`.
-2. Push the implementation/evidence commit to GitLab `main` first.
-3. Verify the corresponding GitLab pipeline is green.
-4. Create and commit a documentation-only reconciliation that marks P02-004 ✅ Complete and verified with the pipeline, GitLab, GitHub, and exact three-way SHA evidence.
-5. Push the reconciliation commit to GitLab, verify its pipeline is green, then publish the same verified reconciliation commit to GitHub.
-6. Fetch both remotes and prove `main == gitlab/main == origin/main`.
-7. Only after all steps are complete, advance to P02-005 — verified repository asset-map JSON.
+1. Commit this documentation-only GitLab-CI evidence reconciliation; stage only `docs/CHECKLIST.md` and `docs/HANDOFF.md`, never `docs/.backup/`.
+2. Push the reconciliation commit to GitLab `main`.
+3. Verify the reconciliation commit’s GitLab pipeline is green.
+4. Push that exact GitLab-validated reconciliation commit to GitHub `origin/main`.
+5. Fetch GitLab and GitHub, then verify `main == gitlab/main == origin/main`.
+6. Create a final documentation-only reconciliation, if needed, that records the exact final SHA and changes P02-004 to ✅ Complete and verified.
+7. Verify the final reconciliation commit’s GitLab pipeline, publish it to GitHub, and re-prove three-way equality.
+8. Only after the final status is fully reconciled, advance to P02-005 — verified repository asset-map JSON.
 
 **Security constraints:**
 
@@ -567,7 +568,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P02-004` — Complete GitLab CI and GitHub publication reconciliation for dependency/compiler-toolchain hash verification.
+1. `P02-004` — Complete GitHub publication and final three-way synchronization reconciliation for dependency/compiler-toolchain hash verification.
 2. `P02-005` — Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts.
 ## Known dependencies and planned stubs
 
