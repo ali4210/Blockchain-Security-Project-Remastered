@@ -645,8 +645,8 @@ resolve to the same full SHA.
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ✅ | Complete and verified 2026-10-05: implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`. |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and GitLab-CI evidence reconciliation `63d425d5ac04f6fdb108b95b6e3206098db8af83` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`. |
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` and GitLab-CI evidence reconciliation `35771ea80843c0c6ee4fd67228fb131395fd5741` were GitLab-first published with reported green GitLab CI, including `ingest_manifests`; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 35771ea80843c0c6ee4fd67228fb131395fd5741`. |
-| P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` passed reported green GitLab CI. GitHub publication and three-way ref synchronization remain pending reconciliation publication. |
-| P02-008 | Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry. | ⬜ | — |
+| P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` passed reported green GitLab CI; reconciliation commit `0065e4c08a66698db75263dd2a1e95b6b82c56f9` was published to GitLab and GitHub, and fetched verification proved `main == gitlab/main == origin/main == 0065e4c08a66698db75263dd2a1e95b6b82c56f9`. |
+| P02-008 | Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry. | 🟡 | Implemented and locally verified 2026-10-05; pending GitLab CI verification. |
 
 
 ### P02-001 — Sample Foundry, Hardhat, and Move configuration
@@ -729,7 +729,7 @@ resolve to the same full SHA.
 
 ### P02-007 — Hardhat manifest-ingestion smoke test
 
-- **Status:** ✅ Complete and verified 2026-10-05. Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was GitLab-first published and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. GitHub publication and three-way ref synchronization remain pending reconciliation publication.
+- **Status:** ✅ Complete and verified 2026-10-05. Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was GitLab-first published and passed reported green GitLab CI. Reconciliation commit `0065e4c08a66698db75263dd2a1e95b6b82c56f9` was published to GitLab and GitHub; fetched verification proved `main == gitlab/main == origin/main == 0065e4c08a66698db75263dd2a1e95b6b82c56f9`. Pipeline identifiers and job URLs were not captured.
 - **Scope completed:** Replaced the Hardhat placeholder with an isolated smoke test in `test/hardhat/placeholder.test.js` that invokes the manifest-ingestion verifier and checks its valid integrity and asset-map result.
 - **Invocation hardening:** The test resolves the supported repository-local wrapper `node_modules/.bin/tsx`, not the internal `node_modules/tsx/dist/cli.mjs` implementation path. The verified test invocation explicitly uses `--config config/hardhat.config.js` and `--no-compile`.
 - **Approved success result:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js` exited `0`; suite `manifest ingestion smoke test` ran `emits a valid integrity and asset-map result`; output reported `1 passing`; stderr was empty.
@@ -737,7 +737,18 @@ resolve to the same full SHA.
 - **Security boundary:** No dependency or lockfile change/install, compiler execution, network/RPC, deployment, funding, account, wallet, key, token, credential, Docker, service, CI configuration, remotes, tags, Git-history, or host-shell change occurred. `docs/.backup/` remains untracked and excluded.
 - **Files changed:** `test/hardhat/placeholder.test.js`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
 - **Runbook impact:** Not required until CI evidence is captured.
-- **Completion reconciliation pending:** Record this verified status in a documentation-only reconciliation commit, publish it GitLab-first, verify that reconciliation pipeline, publish the GitLab-verified reconciliation to GitHub, and then verify `main == gitlab/main == origin/main`.
+- **Completion evidence:** Documentation reconciliation commit `0065e4c08a66698db75263dd2a1e95b6b82c56f9` was published to GitLab and GitHub. Fetched refs proved `main == gitlab/main == origin/main == 0065e4c08a66698db75263dd2a1e95b6b82c56f9`. The reconciliation commit’s GitLab pipeline should remain recorded as reported green when its result is observed; no pipeline identifier or job URL was captured.
+
+### P02-008 — Pipeline entrypoint routing verification
+
+- **Status:** 🟡 Implemented and locally verified 2026-10-05; pending GitLab CI verification.
+- **Scope completed:** Added a deterministic local routing verifier in `scripts/verify-pipeline-entrypoints.mts` and a Hardhat smoke test in `test/hardhat/pipeline-entrypoints.test.js`. The verifier maps accepted developer-push, webhook, and on-chain-event-stub fixtures to the shared tracked GitLab pipeline entry `verify`, requiring `runner_smoke_test` and `ingest_manifests`.
+- **Approved success result:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/pipeline-entrypoints.test.js` exited `0`; suite `pipeline entrypoint routing smoke test` reported two passing tests and empty stderr. The accepted local fixtures for `developer_push`, `webhook`, and `on_chain_event_stub` each emitted schema-version-1 `status: "accepted"` JSON with `pipelineEntry: "verify"` and the two required jobs.
+- **Controlled failure validation:** An unsupported webhook fixture exited `1`, emitted no stdout, and wrote exact structured stderr JSON with `schemaVersion: 1`, `status: "invalid"`, and `error: "webhook payload must declare manifest_ingestion version 1"`. Temporary fixture files were removed.
+- **Boundary and limitation:** Developer push is represented by the observed GitLab push-to-pipeline route plus a local `developer_push` fixture. Webhook and on-chain input are typed local fixtures only; no public listener, GitLab trigger API, CI secret, deployed webhook, RPC endpoint, wallet, account, key, live blockchain subscription, deployment, funding, Docker/service, dependency or lockfile change, or CI configuration change occurred.
+- **Files changed:** `scripts/verify-pipeline-entrypoints.mts` and `test/hardhat/pipeline-entrypoints.test.js`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
+- **Runbook impact:** Not required. No reusable live operational procedure was added.
+- **Next required evidence:** Publish the implementation/evidence commit GitLab-first, confirm its GitLab pipeline is green, publish the verified reconciliation to GitHub, and verify `main == gitlab/main == origin/main` before changing this task to ✅.
 
 ## P02-GATE — Phase 2 completion gate
 
