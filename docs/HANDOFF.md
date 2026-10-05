@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
 | Current task | P02-007 — Replace the Hardhat placeholder with an ingestion smoke test |
-| Current thread | P02-006 is ✅ Complete and verified: implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` and GitLab-CI evidence reconciliation `35771ea80843c0c6ee4fd67228fb131395fd5741` were GitLab-first published with reported green GitLab CI, including `ingest_manifests`; the reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 35771ea80843c0c6ee4fd67228fb131395fd5741`. P02-007 is next. Preserve untracked `docs/.backup/`. |
+| Current thread | P02-006 is ✅ Complete and verified. P02-007 is 🟡 Implemented and locally verified 2026-10-05; its implementation/evidence commit is pending GitLab-first publication and GitLab CI verification. The test replaces the Hardhat placeholder with manifest-ingestion smoke coverage using `node_modules/.bin/tsx`, explicit Hardhat config, and `--no-compile`; a disposable SHA-256 tampering control failed closed. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -567,26 +567,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-### P02-007 — Replace the Hardhat placeholder with an ingestion smoke test
+### P02-007 — Replace the Hardhat placeholder with an ingestion smoke test — 🟡 Implemented and locally verified
 
-Begin with read-only inspection of the existing Hardhat placeholder and the committed ingestion-job contract. Preserve `docs/.backup/` as untracked; do not alter dependency manifests, lockfiles, CI configuration, remotes, tags, Git history, or host shell configuration.
+- **Implementation state:** Replaced `test/hardhat/placeholder.test.js` with a manifest-ingestion smoke test. It uses the supported local `node_modules/.bin/tsx` wrapper to invoke `scripts/ingest-manifests.mts`; it does not rely on `node_modules/tsx/dist/cli.mjs`.
+- **Positive validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js` exited `0`. The `manifest ingestion smoke test` suite produced one passing test, `emits a valid integrity and asset-map result`, and empty stderr.
+- **Negative validation:** A temporary copied repository root with a comment appended to `contracts/solidity/VulnerableVault.sol` made ingestion exit `1`, emit no stdout success result, and return structured stderr JSON identifying the component and a `sha256 mismatch`. The temporary root was deleted.
+- **Hygiene:** `git diff --check` passed. `docs/.backup/` remains untracked and excluded.
+- **Pending closeout:** Stage only `test/hardhat/placeholder.test.js`, `docs/CHECKLIST.md`, and `docs/HANDOFF.md`; commit and publish GitLab-first; verify the resulting GitLab pipeline; publish the verified reconciliation to GitHub; then confirm `main == gitlab/main == origin/main` before marking P02-007 ✅.
+- **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
-**Verified local behavior:**
+### Immediate next task
 
-- `.gitlab-ci.yml` adds `ingest_manifests` in the existing `verify` stage and preserves `runner_smoke_test`.
-- The job uses `node:24.19.0-bookworm-slim`, `soc-docker`, and `npm ci --ignore-scripts --no-audit --fund=false`, then runs the approved `tsx` ingestion verifier and validates `schemaVersion: 1`, `status: "valid"`, `integrity`, and `assetMap`.
-- A valid local job-equivalent run exited `0`; a disposable integrity-tampered root failed closed with the expected SHA-256 mismatch and no success artifact.
-- The CI job retains `artifacts/ingestion-result.json` for 7 days only on successful verification.
-
-**Required sequence:**
-
-P02-006 lifecycle is complete. Begin P02-007 only after preserving the repository boundary and inspecting the existing Hardhat placeholder plus the committed ingestion-job contract; do not stage or inspect `docs/.backup/`.
-
-**Security constraints:**
-
-- Preserve `docs/.backup/` as untracked; do not inspect or stage it.
-- Do not alter dependency manifests, lockfiles, remotes, tags, Git history, host shell configuration, CI secrets, or runner configuration.
-- The CI bootstrap uses the committed lockfile with `npm ci --ignore-scripts --no-audit --fund=false`; do not add unrestricted package installation, lifecycle scripts, test/compiler/scan execution, Docker-in-Docker, services, RPC, deployment, funding, account, wallet, key, token, credential, or evidence-vault operations.
+P02-007 awaits CI closeout. After its implementation/evidence commit is GitLab-validated and synchronized, begin P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry.
 
 ## Subsequent task queue
 

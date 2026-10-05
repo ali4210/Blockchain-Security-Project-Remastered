@@ -645,7 +645,7 @@ resolve to the same full SHA.
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ✅ | Complete and verified 2026-10-05: implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`. |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and GitLab-CI evidence reconciliation `63d425d5ac04f6fdb108b95b6e3206098db8af83` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`. |
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` and GitLab-CI evidence reconciliation `35771ea80843c0c6ee4fd67228fb131395fd5741` were GitLab-first published with reported green GitLab CI, including `ingest_manifests`; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 35771ea80843c0c6ee4fd67228fb131395fd5741`. |
-| P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ⬜ | — |
+| P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | 🟡 | Implemented and locally verified 2026-10-05; pending GitLab CI verification. |
 | P02-008 | Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry. | ⬜ | — |
 
 
@@ -726,6 +726,18 @@ resolve to the same full SHA.
 - **Files changed:** `scripts/ingest-manifests.mts`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
 - **Runbook impact:** Not required. This internal local implementation is not yet a reusable CI procedure; P02-006 owns ingestion-job integration.
 - **Publication evidence:** Implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and GitLab-CI evidence reconciliation `63d425d5ac04f6fdb108b95b6e3206098db8af83` were pushed GitLab-first to `gitlab/main`; both corresponding GitLab pipelines were reported green. No pipeline identifier or job URL was captured. The GitLab-validated reconciliation was published to `origin/main`, and fetched refs verified `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`.
+
+### P02-007 — Hardhat manifest-ingestion smoke test
+
+- **Status:** 🟡 Implemented and locally verified 2026-10-05; pending GitLab CI verification.
+- **Scope completed:** Replaced the Hardhat placeholder with an isolated smoke test in `test/hardhat/placeholder.test.js` that invokes the manifest-ingestion verifier and checks its valid integrity and asset-map result.
+- **Invocation hardening:** The test resolves the supported repository-local wrapper `node_modules/.bin/tsx`, not the internal `node_modules/tsx/dist/cli.mjs` implementation path. The verified test invocation explicitly uses `--config config/hardhat.config.js` and `--no-compile`.
+- **Approved success result:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js` exited `0`; suite `manifest ingestion smoke test` ran `emits a valid integrity and asset-map result`; output reported `1 passing`; stderr was empty.
+- **Controlled failure validation:** In a disposable copied root, a comment appended to `contracts/solidity/VulnerableVault.sol` caused `./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts <temporary-root>` to exit `1`, emit no stdout success output, and write structured stderr JSON with `schemaVersion: 1`, `status: "invalid"`, component `contracts/solidity/VulnerableVault.sol`, and `sha256 mismatch`. The temporary root was removed.
+- **Security boundary:** No dependency or lockfile change/install, compiler execution, network/RPC, deployment, funding, account, wallet, key, token, credential, Docker, service, CI configuration, remotes, tags, Git-history, or host-shell change occurred. `docs/.backup/` remains untracked and excluded.
+- **Files changed:** `test/hardhat/placeholder.test.js`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Runbook impact:** Not required until CI evidence is captured.
+- **Next required evidence:** Publish the implementation/evidence commit GitLab-first, confirm its GitLab pipeline is green, publish the verified reconciliation to GitHub, and verify `main == gitlab/main == origin/main` before changing this task to ✅.
 
 ## P02-GATE — Phase 2 completion gate
 
