@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
 | Current task | P02-006 — Add the ingestion job to `.gitlab-ci.yml` |
-| Current thread | P02-005 is ✅ Complete and verified: implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and GitLab-CI evidence reconciliation `63d425d5ac04f6fdb108b95b6e3206098db8af83` were GitLab-first published with reported green GitLab CI; the reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`. P02-006 is next. Preserve untracked `docs/.backup/`. |
+| Current thread | P02-006 implementation and local evidence are complete in the working tree; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification are pending. `.gitlab-ci.yml` now adds a locked dependency-bootstrap ingestion job that runs the existing local verifier, validates its JSON contract, and retains the successful result artifact. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -543,7 +543,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - No hash verification, asset-map emission, CI job, Hardhat smoke-test change, contract compilation/test, scan, service startup, deployment, funding, RPC/network access, account/wallet/key use, dependency change, CI change, or P02-004 work occurred.
 - `docs/.backup/` remains untracked and is not inspected or staged. `RUNBOOK.md` is unchanged because P02-003 has not established a verified operator or CI procedure.
 
-## Immediate next task
+## Recently completed task
 
 ### P02-005 — Verified repository asset-map JSON — ✅ Complete and verified
 
@@ -556,30 +556,35 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-### P02-006 — Add the ingestion job to `.gitlab-ci.yml`
+### P02-006 — GitLab ingestion job lifecycle completion
 
-Begin only with an inspection of the existing CI configuration and the established ingestion verifier command. Preserve `docs/.backup/` as untracked; do not alter dependency manifests, lockfiles, remotes, tags, Git history, or host shell configuration.
+**Current status:** 🟡 Implementation and local evidence are complete; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification remain pending.
 
 **Verified local behavior:**
 
-- `scripts/ingest-manifests.mts` emits a deterministic `assetMap` after P02-003 manifest validation and P02-004 integrity verification.
-- The approved baseline maps `contracts/solidity/VulnerableVault.sol`, `config/Move.toml`, empty Move module/package arrays, Foundry `Exploit.t.sol` and `Invariants.t.sol`, and Hardhat `placeholder.test.js`.
-- Disposable additions are rejected: unexpected Solidity source produces `asset inventory mismatch`; symlinked Hardhat test produces `symlink is not permitted`.
-- Temporary validation roots were removed; no compiler/test/package/network/Git-subprocess/CI/service/deployment/account or credential operation occurred.
+- `.gitlab-ci.yml` adds `ingest_manifests` in the existing `verify` stage and preserves `runner_smoke_test`.
+- The job uses `node:24.19.0-bookworm-slim`, `soc-docker`, and `npm ci --ignore-scripts --no-audit --fund=false`, then runs the approved `tsx` ingestion verifier and validates `schemaVersion: 1`, `status: "valid"`, `integrity`, and `assetMap`.
+- A valid local job-equivalent run exited `0`; a disposable integrity-tampered root failed closed with the expected SHA-256 mismatch and no success artifact.
+- The CI job retains `artifacts/ingestion-result.json` for 7 days only on successful verification.
 
 **Required sequence:**
 
-P02-005 lifecycle is complete. Begin P02-006 only after preserving the repository boundary and inspecting the existing `.gitlab-ci.yml`; do not stage or inspect `docs/.backup/`.
+1. Review and commit exactly `.gitlab-ci.yml`, `docs/CHECKLIST.md`, and `docs/HANDOFF.md`; do not stage `docs/.backup/`.
+2. Push the implementation/evidence commit to GitLab `main` first.
+3. Verify the GitLab pipeline and the `ingest_manifests` job are green; record any runner/image/registry limitation factually if they are not.
+4. Reconcile documentation to ✅ Complete and verified only after green GitLab CI.
+5. Push the reconciliation to GitLab, verify its pipeline is green, publish the GitLab-validated reconciliation to GitHub, and prove `main == gitlab/main == origin/main`.
+6. Only then advance to P02-007 — replace the Hardhat placeholder with an ingestion smoke test.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
-- Do not access network/registry services from the verifier or run package installation, compiler, tests, scans, Docker/Anvil, deployment, funding, RPC, account, wallet, key, token, credential, or evidence-vault operations.
-- Do not alter dependency manifests, lockfiles, CI configuration, remotes, tags, Git history, or host shell configuration.
+- Do not alter dependency manifests, lockfiles, remotes, tags, Git history, host shell configuration, CI secrets, or runner configuration.
+- The CI bootstrap uses the committed lockfile with `npm ci --ignore-scripts --no-audit --fund=false`; do not add unrestricted package installation, lifecycle scripts, test/compiler/scan execution, Docker-in-Docker, services, RPC, deployment, funding, account, wallet, key, token, credential, or evidence-vault operations.
 
 ## Subsequent task queue
 
-1. `P02-006` — Add the ingestion job to `.gitlab-ci.yml`.
+1. `P02-006` — Complete GitLab CI and GitHub publication reconciliation for the ingestion job.
 2. `P02-007` — Replace the Hardhat placeholder with an ingestion smoke test.
 ## Known dependencies and planned stubs
 

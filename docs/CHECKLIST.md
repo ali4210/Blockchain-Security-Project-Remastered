@@ -644,7 +644,7 @@ resolve to the same full SHA.
 | P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `008dcdd078fb04c5e4b75f8cfdf6412674523692` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 008dcdd078fb04c5e4b75f8cfdf6412674523692`. |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ✅ | Complete and verified 2026-10-05: implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`. |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` and GitLab-CI evidence reconciliation `63d425d5ac04f6fdb108b95b6e3206098db8af83` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 63d425d5ac04f6fdb108b95b6e3206098db8af83`. |
-| P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ⬜ | — |
+| P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | 🟡 | Implemented with local evidence 2026-10-05; GitLab CI, publication, and synchronization verification pending. |
 | P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ⬜ | — |
 | P02-008 | Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry. | ⬜ | — |
 
@@ -700,6 +700,19 @@ resolve to the same full SHA.
 - **Files changed:** `scripts/ingest-manifests.mts`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
 - **Runbook impact:** Not required. The verifier is local implementation evidence; CI integration is deferred to P02-006.
 - **Completion evidence:** The implementation/evidence commit and its GitLab-CI reconciliation are published and synchronized at `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`; P02-004 has no remaining task-specific publication or verification gap.
+
+### P02-006 — GitLab ingestion job
+
+- **Status:** 🟡 Implemented with local evidence 2026-10-05; GitLab CI, publication, and three-way synchronization verification pending.
+- **Scope completed:** Added a separate `ingest_manifests` job to `.gitlab-ci.yml` in the existing `verify` stage, while preserving the existing `runner_smoke_test` unchanged.
+- **Runtime and provisioning:** The job uses `node:24.19.0-bookworm-slim` on the existing `soc-docker` runner tag. It runs `npm ci --ignore-scripts --no-audit --fund=false` from the committed lockfile to provision the ignored TypeScript dependency tree. This is controlled CI bootstrap provisioning; the ingestion verifier itself reads only the checked-out local repository.
+- **Verification behavior:** The job creates `artifacts/ingestion-result.json`, runs `./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts`, then uses a Node assertion to require `schemaVersion: 1`, `status: "valid"`, `integrity`, and `assetMap`.
+- **Artifact behavior:** On successful verification, `artifacts/ingestion-result.json` is retained for 7 days. On verifier failure, the job fails closed and its structured stderr diagnostic remains in the GitLab job log; no success artifact is retained.
+- **Local validation:** PyYAML structural validation passed for the exact CI job contract. The local job-equivalent verifier and Node assertion returned `0` and accepted valid JSON. A disposable copied-root mutation of `contracts/solidity/VulnerableVault.sol` exited nonzero with component `contracts/solidity/VulnerableVault.sol` and `sha256 mismatch`, emitted no stdout success artifact, and was removed after validation.
+- **Security boundary:** No dependency manifest or lockfile change, compiler/test/scanner execution, RPC/network/deployment/funding/account/wallet/key/token/credential operation, Docker-in-Docker/service startup, CI secret, or `docs/.backup/` access occurred. Network access is limited to the future GitLab runner’s locked dependency bootstrap, if its configured registry path permits it.
+- **Files changed:** `.gitlab-ci.yml`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
+- **Runbook impact:** Not required yet. A verified operator/CI procedure is deferred until the GitLab pipeline result is captured.
+- **Next required lifecycle step:** Commit the reviewed CI implementation/evidence, push GitLab-first, verify the `ingest_manifests` job and full pipeline are green, reconcile status, publish the GitLab-validated reconciliation to GitHub, and prove `main == gitlab/main == origin/main`.
 
 ### P02-005 — Verified repository asset-map JSON
 

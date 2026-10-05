@@ -15,3 +15,26 @@ runner_smoke_test:
     - 'test -f docs/CHECKLIST.md'
     - 'test -f docs/HANDOFF.md'
     - 'uname -a'
+
+ingest_manifests:
+  stage: verify
+  image: node:24.19.0-bookworm-slim
+  tags:
+    - soc-docker
+  script:
+    - 'npm ci --ignore-scripts --no-audit --fund=false'
+    - 'mkdir -p artifacts'
+    - './node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts > artifacts/ingestion-result.json'
+    - >
+      node -e 'const fs = require("node:fs");
+      const result = JSON.parse(fs.readFileSync("artifacts/ingestion-result.json", "utf8"));
+      if (result.schemaVersion !== 1 || result.status !== "valid" ||
+          !result.integrity || !result.assetMap) {
+        throw new Error(`Unexpected ingestion result: ${JSON.stringify(result)}`);
+      }
+      console.log("PASS: valid schemaVersion-1 ingestion result with integrity and assetMap.");'
+  artifacts:
+    when: on_success
+    expire_in: 7 days
+    paths:
+      - artifacts/ingestion-result.json
