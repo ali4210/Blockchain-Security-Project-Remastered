@@ -567,7 +567,23 @@ resolve to the same full SHA.
 | P01-006 | Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly. | ✅ Complete and verified 2026-10-05 | Existing `redis:7` Compose stub validated: `compose-up-exit=0`, `redis-cli ping` returned `PONG` on attempt 1, logs reported `Ready to accept connections tcp`, and `compose-down-exit=0` removed the project container/network; no repository files changed and `docs/.backup/` remained untracked. |
 | P01-007 | Run `npm install` and `pip install -r requirements.txt` without errors. | ✅ Complete and verified 2026-10-05 | `npm install` and `npm ls --depth=0` succeeded without manifest/lockfile changes; Kali PEP 668 safely blocked system pip, then ignored project-local `.venv/` installed `requests 2.34.2` and `langgraph 1.2.12` with successful imports; `package.json`, `package-lock.json`, and `requirements.txt` SHA-256 identities were unchanged. |
 | P01-008 | Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green. | ✅ | Complete and verified 2026-10-05: existing private GitLab publication was verified for `0e070d56caa7e2b0842cd422552574a91c9136e2`; GitLab UI showed the placeholder pipeline passed/green (pipeline ID/URL not captured); `HEAD == main == gitlab/main == origin/main == 0e070d56caa7e2b0842cd422552574a91c9136e2`. No CI, remote, dependency, or application change was made. |
-| P01-009 | Read and map every `TODO(phase-N)` marker to the relevant future phase. | ⬜ | — |
+| P01-009 | Read and map every `TODO(phase-N)` marker to the relevant future phase. | ✅ | Complete and verified 2026-10-05: tracked marker inventory was mapped to the checklist phases at `91476785ac05621e0256edad38263168b20ca8a8`; cross-phase markers were retained as intentional dependencies; no TODO marker, source, CI, dependency, or configuration file was changed. |
+
+
+
+### P01-009 — TODO marker inventory and future-phase mapping
+
+- **Status:** ✅ Complete and verified 2026-10-05.
+- **Scope completed:** Read-only inventory and mapping of every tracked `TODO(phase-N)` marker to the corresponding implementation phase in this checklist.
+- **Evidence baseline:** `HEAD == main == gitlab/main == origin/main == 91476785ac05621e0256edad38263168b20ca8a8` before the inventory. The final repository boundary showed only `?? docs/.backup/`.
+- **Mapping result:** Markers map coherently to Phase 1 (skeleton/deployment target), Phase 2 (manifest ingestion), Phase 3 (DevSecOps scanning and fixtures), Phase 4 (storage/MCP), Phase 5 (LLM transport and agents), Phase 6 (consensus), Phase 8 (observability/RASP), Phase 9 (mitigation/egress/OPA), Phase 10 (forensics/evidence integrity and related benchmark/dashboard/paper scaffolding), Phase 11 (consensus attack detection), Phase 12 (wallet/key security), Phase 13 (compliance), and Phase 14 (executive reporting).
+- **Cross-phase markers retained:** `phase-1/7` hardened deployment target; `phase-3, activated in phase-11` DeFi detector interface/activation dependency; `phase-4/6` Anvil-sandbox middleware/reproduction dependency; and `phase-10c/10d` on-chain-forensics collection/tooling sub-workstreams.
+- **Files changed:** No TODO-bearing implementation, configuration, CI, dependency, test, policy, template, or runtime file changed. This documentation closeout changes only `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Validation evidence:** Read-only tracked-file `git grep` inventory, phase-count summary, checklist phase-section review, and final Git boundary check. The raw scan included documentation references to TODO markers; the detailed per-file inventory and mapping, rather than aggregate counts alone, is authoritative.
+- **Security checks:** `docs/.backup/` remained untracked and was not inspected or staged. No evidence-vault material, raw evidence, credentials, keys, tokens, certificates, remotes, Git history, tags, CI configuration, or host shell configuration was accessed or changed.
+- **Dependencies and limitations:** P01-009 records planned implementation ownership; it does not implement, remove, rename, or validate the TODO work. The user-local prompt warning after the completed scan did not alter repository state and is outside P01-009 scope.
+- **Runbook impact:** No update required; this project-specific documentation inventory does not add a reusable operator procedure.
+- **Next recommended task:** P01-GATE — Reconcile the Phase 1 completion gate against the completed P01-001 through P01-009 evidence.
 
 
 ### P01-008 — Private GitLab publication and placeholder-pipeline verification

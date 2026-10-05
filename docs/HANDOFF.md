@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 1 — Skeleton scaffold |
-| Current task | P01-009 — Read and map every `TODO(phase-N)` marker to the relevant future phase |
-| Current thread | P01-001 through P01-008 are complete and verified. P01-008 publication evidence confirmed the existing private GitLab placeholder pipeline was green for `0e070d56caa7e2b0842cd422552574a91c9136e2`; pipeline ID/URL was not captured. P01-009 is next. |
+| Current task | P01-GATE — Reconcile the Phase 1 completion gate against completed P01-001 through P01-009 evidence |
+| Current thread | P01-001 through P01-009 are complete and verified. P01-009 read-only TODO-marker inventory mapped tracked markers to the planned implementation phases at `91476785ac05621e0256edad38263168b20ca8a8`; no TODO-bearing file changed. P01-GATE reconciliation is next. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -486,26 +486,35 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - `docs/.backup/` remained untracked and was not inspected or staged.
 - `RUNBOOK.md` was not updated because the existing GitLab-first publication and synchronization procedure remains applicable.
 
+## Completed in this handoff
+
+### P01-009 — Read and map every `TODO(phase-N)` marker to the relevant future phase — ✅ Complete and verified 2026-10-05
+
+- Read-only tracked-marker inventory was collected at `91476785ac05621e0256edad38263168b20ca8a8`, with `HEAD == main == gitlab/main == origin/main`.
+- Markers were mapped to their checklist implementation phases; cross-phase markers were preserved as explicit planned dependencies.
+- No TODO marker, application file, test, configuration, policy, dependency, CI file, remote, tag, or Git history changed.
+- `docs/.backup/` remained untracked and was not inspected or staged.
+- `RUNBOOK.md` was not updated because the mapping exercise did not create a reusable operational procedure.
+
 ## Immediate next task
 
-### P01-009 — Read and map every `TODO(phase-N)` marker to the relevant future phase
+### P01-GATE — Reconcile the Phase 1 completion gate
 
 **Scope:**
 
-- Inventory every tracked `TODO(phase-N)` marker and map it to the named future implementation phase.
-- Preserve the completed P01-001 through P01-008 state; use read-only inspection unless the task specification explicitly requires a documentation-only mapping update.
-- Record task-state documentation only after evidence is captured and reviewed.
+- Reconcile every P01-GATE acceptance checkbox against P01-001 through P01-009 factual evidence.
+- Confirm that the baseline skeleton commit/tag, green placeholder pipeline, TODO mapping, expected base/forensic layout, and Phase 2 handoff requirements are each supported by evidence.
+- Do not mark the gate complete or change implementation until the exact gate criteria, evidence gaps, allowed files, and validation commands are established.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
 - Do not access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
-- Do not change host shell configuration, CI configuration, remotes, tags, or Git history.
+- Do not change host shell configuration, CI configuration, remotes, tags, or Git history outside an explicitly approved P01-GATE requirement.
 
 ## Subsequent task queue
 
-1. `P01-009` — Read and map every `TODO(phase-N)` marker to the relevant future phase.
-2. `P01-010` — Follow the checklist-defined P01-010 scope.
+1. `P01-GATE` — Reconcile the Phase 1 completion gate against completed P01-001 through P01-009 evidence.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
