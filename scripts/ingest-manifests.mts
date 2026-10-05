@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { lstat, readdir, readFile } from "node:fs/promises";
+import { relative, resolve, sep } from "node:path";
 
 type TomlValue = string | string[];
 type TomlSections = Record<string, Record<string, TomlValue>>;
@@ -13,6 +13,22 @@ type IntegrityResult = {
     foundrySolcVersion: string;
     hardhatSolidityVersion: string;
     movePackageVersion: string;
+  };
+};
+
+type AssetMap = {
+  schemaVersion: 1;
+  contracts: {
+    solidity: string[];
+  };
+  move: {
+    manifest: "config/Move.toml";
+    modules: string[];
+    packages: string[];
+  };
+  tests: {
+    foundry: string[];
+    hardhat: string[];
   };
 };
 
@@ -44,6 +60,7 @@ export type IngestionResult = {
     };
   };
   integrity: IntegrityResult;
+  assetMap: AssetMap;
 };
 
 export class ManifestValidationError extends Error {
@@ -405,6 +422,220 @@ async function verifyIntegrity(
   };
 }
 
+class AssetMapValidationError extends Error {
+  constructor(public readonly component: string, message: string) {
+    super(message);
+    this.name = "AssetMapValidationError";
+  }
+}
+
+function toRelativePosixPath(root: string, path: string): string {
+  const relativePath = relative(root, path);
+  if (
+    relativePath === "" ||
+    relativePath === ".." ||
+    relativePath.startsWith(`..${sep}`) ||
+    relativePath.includes("\\")
+  ) {
+    throw new AssetMapValidationError("asset-map", `path escapes repository root: ${path}`);
+  }
+  return relativePath.split(sep).join("/");
+}
+
+const EXPECTED_ASSET_MAP = {
+  contracts: {
+    solidity: ["contracts/solidity/VulnerableVault.sol"],
+  },
+  move: {
+    manifest: "config/Move.toml",
+    modules: [],
+    packages: [],
+  },
+  tests: {
+    foundry: [
+      "test/foundry/Exploit.t.sol",
+      "test/foundry/Invariants.t.sol",
+    ],
+    hardhat: ["test/hardhat/placeholder.test.js"],
+  },
+} as const;
+
+async function verifyExpectedAsset(
+  root: string,
+  relativePath: string,
+  component: string,
+): Promise<void> {
+  if (
+    relativePath === "" ||
+    relativePath.startsWith("/") ||
+    relativePath.includes("\\") ||
+    relativePath.split("/").includes("..")
+  ) {
+    throw new AssetMapValidationError(component, `unsafe expected asset: ${relativePath}`);
+  }
+
+  const absolutePath = resolve(root, relativePath);
+  if (toRelativePosixPath(root, absolutePath) !== relativePath) {
+    throw new AssetMapValidationError(component, `expected asset escapes root: ${relativePath}`);
+  }
+
+  let status;
+  try {
+    status = await lstat(absolutePath);
+  } catch (error) {
+    throw new AssetMapValidationError(
+      component,
+      `expected asset is unavailable: ${relativePath}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  if (status.isSymbolicLink() || !status.isFile()) {
+    throw new AssetMapValidationError(component, `expected asset must be a non-symlink regular file: ${relativePath}`);
+  }
+}
+
+async function listVerifiedDirectoryAssets(
+  root: string,
+  relativeDirectory: string,
+  suffix: string,
+  component: string,
+): Promise<string[]> {
+  const directory = resolve(root, relativeDirectory);
+  let status;
+  try {
+    status = await lstat(directory);
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return [];
+    }
+    throw new AssetMapValidationError(
+      component,
+      `cannot inspect ${relativeDirectory}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  if (status.isSymbolicLink() || !status.isDirectory()) {
+    throw new AssetMapValidationError(component, `${relativeDirectory} must be a non-symlink directory`);
+  }
+
+  const assets: string[] = [];
+  const visit = async (currentDirectory: string): Promise<void> => {
+    const entries = await readdir(currentDirectory, { withFileTypes: true });
+    entries.sort((left, right) => left.name.localeCompare(right.name));
+
+    for (const entry of entries) {
+      const currentPath = resolve(currentDirectory, entry.name);
+      const relativePath = toRelativePosixPath(root, currentPath);
+
+      if (entry.isSymbolicLink()) {
+        throw new AssetMapValidationError(component, `symlink is not permitted: ${relativePath}`);
+      }
+
+      if (entry.isDirectory()) {
+        await visit(currentPath);
+      } else if (entry.isFile() && relativePath.endsWith(suffix)) {
+        assets.push(relativePath);
+      }
+    }
+  };
+
+  await visit(directory);
+  return assets.sort((left, right) => left.localeCompare(right));
+}
+
+async function verifyExpectedAssetList(
+  root: string,
+  actual: string[],
+  expected: readonly string[],
+  component: string,
+): Promise<string[]> {
+  const expectedList = [...expected].sort((left, right) => left.localeCompare(right));
+
+  if (
+    actual.length !== expectedList.length ||
+    actual.some((path, index) => path !== expectedList[index])
+  ) {
+    throw new AssetMapValidationError(
+      component,
+      `asset inventory mismatch: expected ${JSON.stringify(expectedList)}, received ${JSON.stringify(actual)}`,
+    );
+  }
+
+  for (const path of actual) {
+    await verifyExpectedAsset(root, path, component);
+  }
+
+  return actual;
+}
+
+async function emitAssetMap(
+  root: string,
+  manifests: IngestionResult["manifests"],
+): Promise<AssetMap> {
+  const foundrySource = manifests.foundry.src;
+  const hardhatSource = manifests.hardhat.paths.sources.replace(/^\.\//, "");
+  if (foundrySource !== hardhatSource) {
+    throw new AssetMapValidationError(
+      "contracts",
+      `Foundry and Hardhat source roots differ: ${foundrySource} versus ${hardhatSource}`,
+    );
+  }
+
+  const foundryTest = manifests.foundry.test;
+  const hardhatTest = manifests.hardhat.paths.tests.replace(/^\.\//, "");
+
+  const solidity = await verifyExpectedAssetList(
+    root,
+    await listVerifiedDirectoryAssets(root, foundrySource, ".sol", "contracts"),
+    EXPECTED_ASSET_MAP.contracts.solidity,
+    "contracts",
+  );
+
+  const modules = await verifyExpectedAssetList(
+    root,
+    await listVerifiedDirectoryAssets(root, "move/modules", ".move", "move.modules"),
+    EXPECTED_ASSET_MAP.move.modules,
+    "move.modules",
+  );
+
+  const packages = await verifyExpectedAssetList(
+    root,
+    await listVerifiedDirectoryAssets(root, "move/packages", "/Move.toml", "move.packages"),
+    EXPECTED_ASSET_MAP.move.packages,
+    "move.packages",
+  );
+
+  const foundry = await verifyExpectedAssetList(
+    root,
+    await listVerifiedDirectoryAssets(root, foundryTest, ".t.sol", "tests.foundry"),
+    EXPECTED_ASSET_MAP.tests.foundry,
+    "tests.foundry",
+  );
+
+  const hardhat = await verifyExpectedAssetList(
+    root,
+    await listVerifiedDirectoryAssets(root, hardhatTest, ".test.js", "tests.hardhat"),
+    EXPECTED_ASSET_MAP.tests.hardhat,
+    "tests.hardhat",
+  );
+
+  await verifyExpectedAsset(root, EXPECTED_ASSET_MAP.move.manifest, "move");
+
+  return {
+    schemaVersion: 1,
+    contracts: { solidity },
+    move: {
+      manifest: EXPECTED_ASSET_MAP.move.manifest,
+      modules,
+      packages,
+    },
+    tests: {
+      foundry,
+      hardhat,
+    },
+  };
+}
+
 export async function ingestManifests(root = process.cwd()): Promise<IngestionResult> {
   const configDir = resolve(root, "config");
   const foundry = await validateFoundry(resolve(configDir, "foundry.toml"));
@@ -422,6 +653,7 @@ export async function ingestManifests(root = process.cwd()): Promise<IngestionRe
     status: "valid",
     manifests,
     integrity: await verifyIntegrity(root, manifests),
+    assetMap: await emitAssetMap(root, manifests),
   };
 }
 
@@ -434,7 +666,9 @@ async function main(): Promise<void> {
       ? { schemaVersion: 1, status: "invalid", manifest: error.manifest, error: error.message }
       : error instanceof IntegrityValidationError
         ? { schemaVersion: 1, status: "invalid", component: error.component, error: error.message }
-        : { schemaVersion: 1, status: "error", error: error instanceof Error ? error.message : String(error) };
+        : error instanceof AssetMapValidationError
+          ? { schemaVersion: 1, status: "invalid", component: error.component, error: error.message }
+          : { schemaVersion: 1, status: "error", error: error instanceof Error ? error.message : String(error) };
     process.stderr.write(`${JSON.stringify(result)}\n`);
     process.exitCode = 1;
   }
