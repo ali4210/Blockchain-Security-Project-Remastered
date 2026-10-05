@@ -566,8 +566,22 @@ resolve to the same full SHA.
 | P01-005 | Add `# TODO(phase-10)` to each newly created forensic file. | ✅ Complete and verified 2026-10-04 | Read-only verification at `ceacc1289322241de4c54bbfa9f0339b2558aa3e` confirmed 17/17 required human-readable forensic files already contain specific `TODO(phase-10...)` markers; no marker, code, test, policy, template, middleware, or cache change was justified. |
 | P01-006 | Start the skeleton Docker Compose stack and verify the Redis stub starts cleanly. | ✅ Complete and verified 2026-10-05 | Existing `redis:7` Compose stub validated: `compose-up-exit=0`, `redis-cli ping` returned `PONG` on attempt 1, logs reported `Ready to accept connections tcp`, and `compose-down-exit=0` removed the project container/network; no repository files changed and `docs/.backup/` remained untracked. |
 | P01-007 | Run `npm install` and `pip install -r requirements.txt` without errors. | ✅ Complete and verified 2026-10-05 | `npm install` and `npm ls --depth=0` succeeded without manifest/lockfile changes; Kali PEP 668 safely blocked system pip, then ignored project-local `.venv/` installed `requests 2.34.2` and `langgraph 1.2.12` with successful imports; `package.json`, `package-lock.json`, and `requirements.txt` SHA-256 identities were unchanged. |
-| P01-008 | Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green. | ⬜ | — |
+| P01-008 | Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green. | ✅ | Complete and verified 2026-10-05: existing private GitLab publication was verified for `0e070d56caa7e2b0842cd422552574a91c9136e2`; GitLab UI showed the placeholder pipeline passed/green (pipeline ID/URL not captured); `HEAD == main == gitlab/main == origin/main == 0e070d56caa7e2b0842cd422552574a91c9136e2`. No CI, remote, dependency, or application change was made. |
 | P01-009 | Read and map every `TODO(phase-N)` marker to the relevant future phase. | ⬜ | — |
+
+
+### P01-008 — Private GitLab publication and placeholder-pipeline verification
+
+- **Status:** ✅ Complete and verified 2026-10-05.
+- **Scope completed:** Verified the existing private GitLab publication and the existing tracked root placeholder `.gitlab-ci.yml` pipeline for the completed P01-007 dependency-installation closeout commit.
+- **Files changed:** No implementation, CI, dependency, remote, or application files changed during verification. This documentation closeout changes only `docs/CHECKLIST.md` and `docs/HANDOFF.md`.
+- **Validation evidence:** Read-only repository and remote-ref inspection confirmed `HEAD`, `main`, `gitlab/main`, and `origin/main` each resolved to `0e070d56caa7e2b0842cd422552574a91c9136e2`. The tracked root `.gitlab-ci.yml` remained present and unchanged by the P01-007 commit. GitLab UI observation showed the placeholder pipeline completed with green/passed status.
+- **Evidence reference:** Sanitized P01-008 terminal evidence and GitLab UI observation in the implementation thread. Pipeline identifier and job URL were not captured.
+- **Security checks:** `docs/.backup/` remained intentionally untracked and was neither inspected nor staged. No credentials, tokens, private keys, evidence-vault material, raw evidence, CI variables, remote settings, Git history, tags, or shell configuration were accessed or changed.
+- **Dependencies and limitations:** The existing GitLab-first publication workflow and placeholder CI configuration were preserved. No CI redesign, dependency upgrade, Docker Compose action, package operation, application implementation, cache cleanup, or P01-009 work was performed.
+- **Runbook impact:** No update required; the existing GitLab-first publication, CI-result review, GitHub publication, and three-way synchronization procedure already applies.
+- **Next recommended task:** P01-009 — Read and map every `TODO(phase-N)` marker to the relevant future phase.
+
 
 ### P01-001 — Skeleton reconciliation audit
 

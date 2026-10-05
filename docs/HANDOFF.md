@@ -12,14 +12,14 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 1 — Skeleton scaffold |
-| Current task | P01-001 — Unpack/create the project skeleton in the Kali VM project directory |
-| Current thread | Phase 0 is complete, verified, and tagged `v10.3-phase-00` at `68f97d8d63f859969fc2762f7a30ea653791e44e`; Phase 1 has not started. This handoff reconciliation must complete its own documentation lifecycle before P01-001 begins. |
+| Current task | P01-009 — Read and map every `TODO(phase-N)` marker to the relevant future phase |
+| Current thread | P01-001 through P01-008 are complete and verified. P01-008 publication evidence confirmed the existing private GitLab placeholder pipeline was green for `0e070d56caa7e2b0842cd422552574a91c9136e2`; pipeline ID/URL was not captured. P01-009 is next. |
 | Current branch | `main` |
-| Last verified commit | `68f97d8d63f859969fc2762f7a30ea653791e44e` — `docs(phase-00): declare completion gate` |
-| Last GitLab pipeline | Passed for `68f97d8d63f859969fc2762f7a30ea653791e44e` (pipeline identifier not captured) |
-| Last GitHub post | Posted — `origin/main` resolved to `68f97d8d63f859969fc2762f7a30ea653791e44e` |
-| Synchronization | Verified — `main == gitlab/main == origin/main == 68f97d8d63f859969fc2762f7a30ea653791e44e` |
-| Last updated | 2026-10-03 |
+| P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
+| P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
+| P01-008 evidence GitHub post | Posted — `origin/main` resolved to `0e070d56caa7e2b0842cd422552574a91c9136e2` |
+| P01-008 evidence synchronization | Verified — `main == gitlab/main == origin/main == 0e070d56caa7e2b0842cd422552574a91c9136e2` |
+| Last updated | 2026-10-05 |
 
 ## Completed since previous handoff
 
@@ -474,33 +474,38 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - `docs/.backup/` remained untracked and was not inspected or staged.
 - `RUNBOOK.md` remained unchanged because this was project-specific provenance verification, not a reusable operational procedure.
 
+## Completed in this handoff
+
+### P01-008 — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green — ✅ Complete and verified 2026-10-05
+
+- Existing private GitLab publication was verified for `0e070d56caa7e2b0842cd422552574a91c9136e2` (`docs: close P01-007 dependency installation`).
+- Read-only ref evidence proved `HEAD == main == gitlab/main == origin/main == 0e070d56caa7e2b0842cd422552574a91c9136e2`.
+- The tracked root placeholder `.gitlab-ci.yml` remained present and unchanged by the P01-007 commit.
+- GitLab UI showed the placeholder pipeline passed/green. Pipeline identifier and job URL were not captured.
+- No CI configuration, remote, dependency, Docker Compose, application, Git-history, tag, credential, evidence-vault, cache-cleanup, or shell-configuration change occurred.
+- `docs/.backup/` remained untracked and was not inspected or staged.
+- `RUNBOOK.md` was not updated because the existing GitLab-first publication and synchronization procedure remains applicable.
+
 ## Immediate next task
 
-### P01-008 — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green
+### P01-009 — Read and map every `TODO(phase-N)` marker to the relevant future phase
 
 **Scope:**
 
-- Verify the checklist-defined private GitLab push and placeholder pipeline result using factual remote and pipeline evidence.
-- Preserve the completed P01-007 dependency state; do not run additional package operations.
-- Record task-state documentation only after remote and pipeline evidence is captured and reviewed.
-
-**Explicitly out of scope:**
-
-- CI configuration changes, pipeline redesign, dependency upgrades, application implementation, Docker Compose changes, evidence-vault access, credential handling, Git-history/tag/remote changes, cache cleanup, and P01-009 or later work.
+- Inventory every tracked `TODO(phase-N)` marker and map it to the named future implementation phase.
+- Preserve the completed P01-001 through P01-008 state; use read-only inspection unless the task specification explicitly requires a documentation-only mapping update.
+- Record task-state documentation only after evidence is captured and reviewed.
 
 **Security constraints:**
 
 - Preserve `docs/.backup/` as untracked; do not inspect or stage it.
-- Do not expose or access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
-- Do not change host shell configuration.
-
-**RUNBOOK.md:** Update only if P01-008 produces a reusable, successful operator procedure worth recording.
+- Do not access evidence-vault material, raw evidence, private signing material, credentials, SSH keys, tokens, certificates, or unrelated parent archives.
+- Do not change host shell configuration, CI configuration, remotes, tags, or Git history.
 
 ## Subsequent task queue
 
-1. `P01-008` — Push to private GitLab and verify the placeholder `.gitlab-ci.yml` pipeline is green.
-2. `P01-009` — Read and map every `TODO(phase-N)` marker to the relevant future phase.
-3. `P01-010` — Follow the checklist-defined P01-010 scope.
+1. `P01-009` — Read and map every `TODO(phase-N)` marker to the relevant future phase.
+2. `P01-010` — Follow the checklist-defined P01-010 scope.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
