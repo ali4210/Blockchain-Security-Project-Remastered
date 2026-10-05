@@ -640,7 +640,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P02-001 | Configure sample `foundry.toml`, `hardhat.config.js`, and `Move.toml` values. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e61ee99e5912de6748114eb7d960d465a96d18ff` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e61ee99e5912de6748114eb7d960d465a96d18ff`. |
-| P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | 🟡 | Implemented and locally structurally validated 2026-10-05: `contracts/solidity/VulnerableVault.sol` intentionally performs an external ETH call before balance accounting; commit and publication lifecycle pending. |
+| P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e34bf30ed06820d4ec122552fa0703d556098ff5` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e34bf30ed06820d4ec122552fa0703d556098ff5`. |
 | P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ⬜ | — |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ⬜ | — |
 | P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | ⬜ | — |
@@ -665,7 +665,7 @@ resolve to the same full SHA.
 
 ### P02-002 — Deliberately flawed Solidity reentrancy fixture
 
-- **Status:** 🟡 Implemented and locally structurally validated 2026-10-05; compiler/test execution, implementation/documentation commit, and publication lifecycle pending.
+- **Status:** ✅ Complete and verified 2026-10-05. Implementation/evidence commit `e34bf30ed06820d4ec122552fa0703d556098ff5` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e34bf30ed06820d4ec122552fa0703d556098ff5`.
 - **Scope completed:** Added exactly one intentionally vulnerable local coursework fixture: `contracts/solidity/VulnerableVault.sol`.
 - **Vulnerability pattern:** `withdraw(uint256 amount)` checks the ledger balance, performs `msg.sender.call{value: amount}("")`, then decrements `balances[msg.sender]`. The external interaction therefore precedes effects and deliberately exposes a reentrancy condition.
 - **Safety boundary:** The source declares itself an intentionally vulnerable local coursework fixture that must never be deployed or funded. It contains no network configuration, RPC URL, address, account, key, token, credential, or deployment instruction.

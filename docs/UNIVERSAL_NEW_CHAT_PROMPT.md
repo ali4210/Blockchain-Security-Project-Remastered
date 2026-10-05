@@ -183,11 +183,24 @@ reconciliation is incomplete.
 
 
 After the evidence/documentation commit has successfully completed the
-GitLab-first/GitHub-second workflow, update the task's tracker and handoff
-status to `✅ Complete and verified` at the next normal documentation update.
-Do not create a status-only commit solely to repeat a known successful
-publication result unless a factual correction, active-task transition, or other
-required documentation change already justifies that commit.
+GitLab-first/GitHub-second workflow, immediately reconcile every applicable
+task-status surface to `✅ Complete and verified` before declaring completion,
+using a green check mark, recommending a subsequent task, or advancing a
+phase. The reconciliation must update the tracker row, detailed task status,
+acceptance criteria where applicable, HANDOFF current task/thread,
+completed-task record, immediate-next-task section, task queue, and applicable
+RUNBOOK status. It must name the exact evidence commit SHA and record factual
+GitLab CI, GitHub publication, and fetched three-way SHA synchronization.
+
+If the original evidence commit correctly recorded publication as pending
+because those facts were not yet available, create the smallest factual
+documentation-reconciliation update immediately after they are available.
+Commit it, publish it GitLab-first, wait for factual green GitLab CI, publish
+the same reconciliation commit to GitHub, and verify fetched three-way SHA
+synchronization. Never declare the underlying task complete or begin the next
+task until this reconciliation lifecycle is complete. This required
+reconciliation is an active-task transition and is not an optional or
+status-only cleanup.
 
 
 When the publication result is available after the evidence commit, record it
