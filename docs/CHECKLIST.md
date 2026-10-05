@@ -643,7 +643,7 @@ resolve to the same full SHA.
 | P02-002 | Add a deliberately flawed sample contract under `contracts/solidity/`. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `e34bf30ed06820d4ec122552fa0703d556098ff5` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == e34bf30ed06820d4ec122552fa0703d556098ff5`. |
 | P02-003 | Implement `scripts/ingest-manifests.mts` schema parsing and validation for Foundry, Hardhat, and Move manifests. | ✅ | Complete and verified 2026-10-05: implementation/evidence commit `008dcdd078fb04c5e4b75f8cfdf6412674523692` passed reported green GitLab CI, was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 008dcdd078fb04c5e4b75f8cfdf6412674523692`. |
 | P02-004 | Implement dependency and compiler-toolchain hash verification. | ✅ | Complete and verified 2026-10-05: implementation commit `8d25e36c9ab4f635f91b8c12eae139feebd6c2c9` and GitLab-CI evidence reconciliation `1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e` were GitLab-first published with reported green GitLab CI; reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 1d6dd4c3a58f802ce88e2e8fee1eb0beed17d71e`. |
-| P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | 🟡 | Implemented with local evidence 2026-10-05; GitLab CI, publication, and synchronization verification pending. |
+| P02-005 | Emit verified repository asset-map JSON for contracts, Move modules/packages, and test layouts. | 🟡 | Implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` was GitLab-first published with reported green GitLab CI; GitHub publication and synchronization verification pending. |
 | P02-006 | Add the ingestion job to `.gitlab-ci.yml`. | ⬜ | — |
 | P02-007 | Replace the Hardhat placeholder with an ingestion smoke test. | ⬜ | — |
 | P02-008 | Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry. | ⬜ | — |
@@ -703,7 +703,7 @@ resolve to the same full SHA.
 
 ### P02-005 — Verified repository asset-map JSON
 
-- **Status:** 🟡 Implemented with local evidence 2026-10-05; GitLab CI, publication, and three-way synchronization verification pending.
+- **Status:** 🟡 Implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` was GitLab-first published with reported green GitLab CI; GitHub publication and three-way synchronization verification pending.
 - **Scope completed:** Extended `scripts/ingest-manifests.mts` to emit a deterministic `assetMap` with `schemaVersion: 1` after P02-003 manifest validation and P02-004 integrity validation.
 - **Approved inventory baseline:** Solidity contains only `contracts/solidity/VulnerableVault.sol`. Move reports `config/Move.toml` with empty `move/modules` and `move/packages` arrays. Foundry tests are `test/foundry/Exploit.t.sol` and `test/foundry/Invariants.t.sol`. Hardhat tests are `test/hardhat/placeholder.test.js`.
 - **Verification behavior:** Paths are root-relative POSIX strings, lexicographically sorted, and constrained to the validated Foundry/Hardhat roots plus the approved Move layout. Asset directories must be non-symlink directories; emitted expected assets must be non-symlink regular files. The implementation enforces the approved local inventory baseline and rejects additions, removals, path escape, and symlinks.
@@ -712,7 +712,7 @@ resolve to the same full SHA.
 - **Security boundary:** No package or dependency change/install, registry/RPC/network access, compiler/test/scanner run, Git subprocess, CI change, Docker/Anvil/service operation, deployment/funding, account/wallet/key/token/credential operation, or `docs/.backup/` access occurred.
 - **Files changed:** `scripts/ingest-manifests.mts`; this evidence/status update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
 - **Runbook impact:** Not required. This internal local implementation is not yet a reusable CI procedure; P02-006 owns ingestion-job integration.
-- **Next required lifecycle step:** Commit the reviewed implementation/evidence, publish GitLab-first, verify GitLab CI, reconcile the task status, publish the GitLab-validated reconciliation to GitHub, and prove `main == gitlab/main == origin/main`.
+- **Publication evidence:** Implementation/evidence commit `e4a266119513ba9b34832d4fdb69e45c76c25e6b` was pushed GitLab-first to `gitlab/main`; GitLab CI was reported green. No pipeline identifier or job URL was captured. GitHub publication and three-way branch synchronization remain pending.
 
 ## P02-GATE — Phase 2 completion gate
 
