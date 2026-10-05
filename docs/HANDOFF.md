@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
 | Current task | P03-001 — Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract |
-| Current thread | P02-GATE is ✅ Complete and verified. P03-001 is 🟪 Blocked after a passed no-execution formal-tool policy gate: Slither lacks a local Solidity compiler, Mythril image availability is unconfirmed, and `CERTORAKEY` is not set. No scanner, compiler, container, network, or credential action occurred. P03-002 remains deferred until P03-001 is unblocked or its blocker is explicitly resolved. Preserve untracked `docs/.backup/`. |
+| Current thread | P02-GATE is ✅ Complete and verified. P03-001 remains 🟪 Blocked: policy-gate commit `e19e035aae46efcda03142748ddff15a1693f38c` failed closed in `ingest_manifests` until its explicit Hardhat asset approval was remediated locally; scanner prerequisites remain unavailable (no local Solc, unconfirmed Mythril image, and no `CERTORAKEY`). Commit and validate the inventory remediation GitLab-first; P03-002 remains deferred. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -581,6 +581,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Implemented safe boundary:** Added `scripts/verify-formal-tools.mts` and `test/hardhat/formal-tools.test.js`. The verifier confirms the approved local fixture and emits a schema-version-1 partial result reporting formal-tool prerequisites without invoking Slither, Mythril, Certora, Solc, a Docker container, network access, or credentials.
 - **Validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/formal-tools.test.js` exited `0`, produced one passing test, and wrote empty stderr.
 - **Blockers:** Slither `0.11.6` and Certora CLI `8.19.2` are installed, but no local Solidity compiler or compiler cache was found. `CERTORAKEY` is not set and was not used. Mythril image metadata was not confirmed. No provisioning, scan, proof, compiler, Docker run, CI, network/RPC, wallet, deployment, or secret action occurred.
+- **CI failure and remediation:** Initial GitLab-first policy-gate commit `e19e035aae46efcda03142748ddff15a1693f38c` failed closed in `ingest_manifests` because the strict Hardhat inventory lacked `test/hardhat/formal-tools.test.js`. The local remediation explicitly approves only that test; valid ingestion now lists exactly three approved Hardhat tests, and a disposable unapproved `unexpected.test.js` remains rejected with `tests.hardhat` and `asset inventory mismatch`.
 - **Unblock condition:** A separately approved, provenance-checked local Solc `0.8.24` and Mythril-image provisioning/execution plan is required before actual scanner analysis. Certora remains credential-gated outside Git and chat.
 - **Current sequencing:** P03-002 and later Phase 3 implementation remain deferred while P03-001 is blocked. `docs/.backup/` remains untracked and excluded.
 
