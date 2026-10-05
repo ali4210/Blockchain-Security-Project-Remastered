@@ -752,13 +752,13 @@ resolve to the same full SHA.
 
 ## P02-GATE — Phase 2 completion gate
 
-- [ ] A push runs the ingestion job.
-- [ ] Tampering with a dependency hash fails the ingestion job.
-- [ ] Verified asset-map JSON is produced.
-- [ ] Handoff updated for Phase 3.
+- [x] A push runs the ingestion job: GitLab-first P02-008 commit `aeafa75a86726d53bf380a4e315d61884044bafa` reached `ingest_manifests`; its strict inventory rejection proved the job ran, and remediation `2325e5541f3b2df65ad6d54b8e683d806a8c8d15` passed reported green GitLab CI.
+- [x] Tampering with a dependency hash fails the ingestion job: controlled copied-root mutations of integrity-protected `contracts/solidity/VulnerableVault.sol` produced nonzero exit and structured `sha256 mismatch` diagnostics.
+- [x] Verified asset-map JSON is produced: the verifier emitted schema-version-1 valid JSON containing `integrity` and `assetMap`, including exactly `test/hardhat/pipeline-entrypoints.test.js` and `test/hardhat/placeholder.test.js` after approved remediation.
+- [x] Handoff updated for Phase 3: `docs/HANDOFF.md` identifies P03-001 as the next implementation task; no Phase 3 implementation is claimed by this gate record.
 
-**Gate status:** ⬜ Not ready  
-**Gate commit/tag:**  
+**Gate status:** ✅ Complete and verified 2026-10-05; P02-008 reconciliation `aded10c3ac964783ef22104d82ce8e167c6de69c` passed reported green GitLab CI and fetched verification proved `main == gitlab/main == origin/main == aded10c3ac964783ef22104d82ce8e167c6de69c`.  
+**Gate commit/tag:** `aded10c3ac964783ef22104d82ce8e167c6de69c`  
 
 ---
 

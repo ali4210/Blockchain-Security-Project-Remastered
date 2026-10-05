@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-GATE — Reconcile Phase 2 completion evidence before beginning Phase 3 |
-| Current thread | P02-008 is ✅ Complete and verified 2026-10-05: initial implementation `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in GitLab `ingest_manifests` under strict Hardhat inventory enforcement; remediation `2325e5541f3b2df65ad6d54b8e683d806a8c8d15` explicitly approved the intended P02-008 test asset and passed reported green GitLab CI. Pipeline identifiers and job URLs were not captured. A documentation-only reconciliation is pending publication and final three-way ref synchronization; reconcile P02-GATE before beginning Phase 3. Preserve untracked `docs/.backup/`. |
+| Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
+| Current task | P03-001 — Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract |
+| Current thread | P02-GATE is ✅ Complete and verified 2026-10-05: all four acceptance criteria are documented with P02-004 through P02-008 evidence; P02-008 reconciliation `aded10c3ac964783ef22104d82ce8e167c6de69c` passed reported green GitLab CI and fetched verification proved `main == gitlab/main == origin/main == aded10c3ac964783ef22104d82ce8e167c6de69c`. P03-001 is next; begin with read-only scope inspection only. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,9 +576,9 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
-### Immediate next task
+### Phase 2 gate closure
 
-P02-007 is published and synchronized. P02-008 is active: verify Developer Push, webhook, and on-chain-event stub routing to the pipeline entry using bounded local fixtures and GitLab-first CI evidence.
+P02-GATE is complete and verified. All Phase 2 task evidence is reconciled; the next task is P03-001. No Phase 3 source, configuration, dependency, CI, network, scanner, Docker, or contract action occurred during this documentation-only transition.
 
 ### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — ✅ Complete and verified
 
@@ -591,7 +591,8 @@ P02-007 is published and synchronized. P02-008 is active: verify Developer Push,
 
 ## Subsequent task queue
 
-1. `P02-GATE` — Reconcile Phase 2 completion evidence and confirm the documented gate criteria before beginning Phase 3.
+1. `P03-001` — Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract.
+2. `P03-002` — Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
