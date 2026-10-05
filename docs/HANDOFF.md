@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
-| Current task | P02-006 — Add the ingestion job to `.gitlab-ci.yml` |
-| Current thread | P02-006 implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` was GitLab-first published and the full GitLab pipeline plus `ingest_manifests` job were reported green. GitHub publication, a GitLab-validated reconciliation commit, and three-way synchronization verification remain pending. Preserve untracked `docs/.backup/`. |
+| Current task | P02-007 — Replace the Hardhat placeholder with an ingestion smoke test |
+| Current thread | P02-006 is ✅ Complete and verified: implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` and GitLab-CI evidence reconciliation `35771ea80843c0c6ee4fd67228fb131395fd5741` were GitLab-first published with reported green GitLab CI, including `ingest_manifests`; the reconciliation was published to GitHub, and fetched verification proved `main == gitlab/main == origin/main == 35771ea80843c0c6ee4fd67228fb131395fd5741`. P02-007 is next. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -556,9 +556,20 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-### P02-006 — GitLab ingestion job lifecycle completion
+### P02-006 — GitLab ingestion job — ✅ Complete and verified
 
-**Current status:** 🟡 Implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` was GitLab-first published and the full GitLab pipeline plus `ingest_manifests` job were reported green. GitHub publication, a GitLab-validated reconciliation commit, and three-way synchronization verification remain pending.
+- **Implementation/evidence commit:** `50ab590c4b073f57715bb366d3411c5b6045f75f` — `ci(phase-02): add manifest ingestion job`.
+- **GitLab-CI evidence reconciliation:** `35771ea80843c0c6ee4fd67228fb131395fd5741` — `docs(phase-02): record P02-006 GitLab CI evidence`.
+- **GitLab CI:** Both commits were GitLab-first published and their corresponding pipelines were reported green. The implementation pipeline included a reported-green `ingest_manifests` job. Pipeline identifiers and job URLs were not captured.
+- **GitHub publication and synchronization:** The GitLab-validated reconciliation was published to `origin/main`. Fetched verification proved `main == gitlab/main == origin/main == 35771ea80843c0c6ee4fd67228fb131395fd5741`.
+- **Functional evidence:** The CI job runs controlled lockfile provisioning with `npm ci --ignore-scripts --no-audit --fund=false`, executes the local ingestion verifier, validates `schemaVersion: 1`, `status: "valid"`, `integrity`, and `assetMap`, and retains a successful JSON artifact for 7 days. Local tampering validation failed closed with the expected SHA-256 mismatch and no success artifact.
+- **Security boundary:** No dependency-manifest/lockfile change, CI secret or runner-configuration change, compiler/test/scanner execution, RPC/deployment/account/wallet/key/token/credential action, Docker-in-Docker/service startup, or `docs/.backup/` access occurred.
+
+### Immediate next task
+
+### P02-007 — Replace the Hardhat placeholder with an ingestion smoke test
+
+Begin with read-only inspection of the existing Hardhat placeholder and the committed ingestion-job contract. Preserve `docs/.backup/` as untracked; do not alter dependency manifests, lockfiles, CI configuration, remotes, tags, Git history, or host shell configuration.
 
 **Verified local behavior:**
 
@@ -569,12 +580,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 **Required sequence:**
 
-1. Record GitLab-first publication of implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` and the reported green full pipeline plus `ingest_manifests` job; do not stage `docs/.backup/`.
-2. Commit the GitLab-CI evidence reconciliation locally.
-3. Push the reconciliation commit to GitLab `main` and verify its pipeline is green.
-4. Publish the GitLab-validated reconciliation commit to GitHub `origin/main`.
-5. Fetch both remotes and prove `main == gitlab/main == origin/main` at the reconciliation commit SHA.
-6. Only then mark P02-006 ✅ Complete and verified and advance to P02-007 — replace the Hardhat placeholder with an ingestion smoke test.
+P02-006 lifecycle is complete. Begin P02-007 only after preserving the repository boundary and inspecting the existing Hardhat placeholder plus the committed ingestion-job contract; do not stage or inspect `docs/.backup/`.
 
 **Security constraints:**
 
@@ -584,8 +590,8 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P02-006` — Complete GitLab CI and GitHub publication reconciliation for the ingestion job.
-2. `P02-007` — Replace the Hardhat placeholder with an ingestion smoke test.
+1. `P02-007` — Replace the Hardhat placeholder with an ingestion smoke test.
+2. `P02-008` — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
