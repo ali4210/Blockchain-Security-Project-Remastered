@@ -13,7 +13,7 @@
 |---|---|
 | Current phase | Phase 2 — Zone 1: Manifest-driven ingestion gateway |
 | Current task | P02-006 — Add the ingestion job to `.gitlab-ci.yml` |
-| Current thread | P02-006 implementation and local evidence are complete in the working tree; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification are pending. `.gitlab-ci.yml` now adds a locked dependency-bootstrap ingestion job that runs the existing local verifier, validates its JSON contract, and retains the successful result artifact. Preserve untracked `docs/.backup/`. |
+| Current thread | P02-006 implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` was GitLab-first published and the full GitLab pipeline plus `ingest_manifests` job were reported green. GitHub publication, a GitLab-validated reconciliation commit, and three-way synchronization verification remain pending. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -558,7 +558,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### P02-006 — GitLab ingestion job lifecycle completion
 
-**Current status:** 🟡 Implementation and local evidence are complete; GitLab CI, GitLab-first publication, GitHub publication, and three-way synchronization verification remain pending.
+**Current status:** 🟡 Implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` was GitLab-first published and the full GitLab pipeline plus `ingest_manifests` job were reported green. GitHub publication, a GitLab-validated reconciliation commit, and three-way synchronization verification remain pending.
 
 **Verified local behavior:**
 
@@ -569,12 +569,12 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 **Required sequence:**
 
-1. Review and commit exactly `.gitlab-ci.yml`, `docs/CHECKLIST.md`, and `docs/HANDOFF.md`; do not stage `docs/.backup/`.
-2. Push the implementation/evidence commit to GitLab `main` first.
-3. Verify the GitLab pipeline and the `ingest_manifests` job are green; record any runner/image/registry limitation factually if they are not.
-4. Reconcile documentation to ✅ Complete and verified only after green GitLab CI.
-5. Push the reconciliation to GitLab, verify its pipeline is green, publish the GitLab-validated reconciliation to GitHub, and prove `main == gitlab/main == origin/main`.
-6. Only then advance to P02-007 — replace the Hardhat placeholder with an ingestion smoke test.
+1. Record GitLab-first publication of implementation/evidence commit `50ab590c4b073f57715bb366d3411c5b6045f75f` and the reported green full pipeline plus `ingest_manifests` job; do not stage `docs/.backup/`.
+2. Commit the GitLab-CI evidence reconciliation locally.
+3. Push the reconciliation commit to GitLab `main` and verify its pipeline is green.
+4. Publish the GitLab-validated reconciliation commit to GitHub `origin/main`.
+5. Fetch both remotes and prove `main == gitlab/main == origin/main` at the reconciliation commit SHA.
+6. Only then mark P02-006 ✅ Complete and verified and advance to P02-007 — replace the Hardhat placeholder with an ingestion smoke test.
 
 **Security constraints:**
 
