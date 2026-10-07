@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-004 — Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review (not started; documentation closeout first) |
-| Current thread | P03-003 is ✅ complete within documented root-frame/selected-slot IAST scope at `139ff6a3310675aa6482b1c57cd9b53760d6b364`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. 61 local tests and four original-vault runtime cases passed; snapshot restored. No reentrancy exploit or security acceptance claimed. Publish and validate this documentation reconciliation before P03-004 implementation. Phase 3 gate remains not ready; preserve untracked `docs/.backup/`. |
+| Current task | P03-004 — AST parsing, literal hashing, and manual-review routing; 🟧 publication verification pending |
+| Current thread | P03-004 implemented and locally validated: 73 regressions passed, native Solc 0.8.24 masked the unchanged approved fixture into 64 nodes at depth 10, with five literal masks/four string masks and two documentation fields omitted. Strict ingestion valid. Structural projection only; no semantic/security acceptance or LLM integration claimed. Review/commit, GitLab-first verification, reconciliation, and publication remain. P03-005 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `139ff6a3310675aa6482b1c57cd9b53760d6b364` — P03-003 implementation |
-| Last GitLab pipeline | Reported green for `139ff6a3310675aa6482b1c57cd9b53760d6b364`; pipeline ID/URL and individual job logs not captured |
-| Last GitHub post | Published — fetched `origin/main` at `139ff6a3310675aa6482b1c57cd9b53760d6b364` |
-| Synchronization | Verified implementation baseline — `main == gitlab/main == origin/main == 139ff6a3310675aa6482b1c57cd9b53760d6b364` |
+| Last verified commit | `20d5d55bf8056db33c9bb21095554238ea86c67e` — P03-003 completion reconciliation |
+| Last GitLab pipeline | Reported green for `20d5d55bf8056db33c9bb21095554238ea86c67e`; pipeline ID/URL and individual job logs not captured |
+| Last GitHub post | Published — fetched `origin/main` at `20d5d55bf8056db33c9bb21095554238ea86c67e` |
+| Synchronization | Verified pre-task baseline — `main == gitlab/main == origin/main == 20d5d55bf8056db33c9bb21095554238ea86c67e` |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-07 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -96,7 +96,7 @@ resolve to the same full SHA.
 | 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ✅ | P01-GATE recorded complete and verified 2026-10-05; see detailed gate evidence. | See P01-GATE |
 | 2 | Zone 1 — Ingestion Gateway | ✅ | P02-GATE recorded complete and verified 2026-10-05. | `aded10c3ac964783ef22104d82ce8e167c6de69c` |
-| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001/P03-002/P03-003 complete within documented scopes; P03-004 not started; P03-GATE not ready. | `139ff6a3310675aa6482b1c57cd9b53760d6b364` (P03-003 implementation) |
+| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001/P03-002/P03-003 complete; P03-004 locally validated, publication pending; P03-GATE not ready. | `20d5d55bf8056db33c9bb21095554238ea86c67e` (verified baseline) |
 | 4 | Zone 3 — Compilation, Storage and MCP Middleware | ⬜ | — | — |
 | 5 | Transport Bridge, Inference Layer, and Agent Swarm A–G | ⬜ | — | — |
 | 6 | AVS Cryptographic Consensus | ⬜ | — | — |
@@ -771,7 +771,7 @@ resolve to the same full SHA.
 | P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | ✅ | Complete and verified 2026-10-07 within documented coursework scope: implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. CHC ordering unknown remains documented. |
 | P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | ✅ | Complete and verified 2026-10-07 within documented inventory/lookup scope: `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. 49 local tests passed; findings retained. |
 | P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ✅ | Complete and verified 2026-10-07 within root-frame/selected-slot coursework scope: `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green GitLab CI, GitHub publication, and fetched synchronization. 61 local tests; four vault cases; cleanup confirmed. |
-| P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ⬜ | — |
+| P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | 🟧 | Locally validated 2026-10-07: 73 tests; native fixture masked (64 nodes, depth 10, five literal masks); ingestion valid. Commit, remote CI, and publication pending. |
 | P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | ⬜ | — |
 | P03-006 | Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails. | ⬜ | — |
 | P03-007 | Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. | ⬜ | — |
@@ -834,8 +834,27 @@ resolve to the same full SHA.
 - **Evidence:** `~/.local/state/blockchain-soc/p03-003/iast-L6LCQu/`; compiler input/output/process metadata, four structured captures, cleanup, and summary remain outside Git.
 - **Safety:** No new package/compiler download, dependency/lockfile/configuration/CI/ingestion-policy change, public RPC, fork, listener, wallet/key use, real funding, Docker operation, or original-fixture edit. `docs/.backup/` remains untracked.
 - **Limitations:** No nested-call/reentrant execution, drain exploit, constructor/deployment validation, complete world-state diff, memory capture, or security acceptance. Native fixture integration is local; CI exercises wrapper and runner-boundary regressions without requiring the host-local compiler.
-- **Acceptance:** In-scope local capture, attempted-versus-committed state, success/revert cases, explicit coverage rejection, bounded processing, cleanup, regressions, and ingestion checks passed. Implementation committed at `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green in GitLab CI, published to GitHub, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
-- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub publication/synchronization before P03-004 starts; no outcome for an uncreated reconciliation commit is claimed.
+- **Acceptance:** In-scope local capture, attempted-versus-committed state, success/revert cases, explicit coverage rejection, bounded processing, cleanup, regressions, and ingestion checks passed. Implementation committed at `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green in GitLab CI, published to GitHub, and fetched synchronization verified. Completion documentation was published and verified at `20d5d55bf8056db33c9bb21095554238ea86c67e`.
+- **Completion reconciliation:** Documentation commit `20d5d55bf8056db33c9bb21095554238ea86c67e` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-004 started. Pipeline ID/URL and individual job logs not captured.
+
+### P03-004 — AST parsing, literal hashing, and manual-review routing
+
+- **Status:** 🟧 Implemented and locally validated 2026-10-07; commit, GitLab verification, completion reconciliation, publication, and synchronization pending.
+- **Files:** Replaced `scripts/ast-mask.mts` stub; added `scripts/ast-mask-core.cjs`; extended existing `test/hardhat/placeholder.test.js`; updated CHECKLIST/HANDOFF/RUNBOOK.
+- **Interface:** `maskContractAst(source, options?)` returns serialized schema-version-1 JSON. `masked` contains a versioned structural projection; `manual-review`, `invalid`, and `error` omit the AST. CLI requires `--approved-local-fixture`; exit 0 for masked, 2 for manual review, 1 for invalid/error.
+- **Parsing:** Native source API uses existing hash-pinned Solc 0.8.24, `--no-import-callback --standard-json`, `stopAfter: "parsing"`, and AST-only output selection. No imports, bytecode generation, type-correctness proof, or execution is claimed.
+- **Projection:** Retains allowlisted semantic node types, parent/child indexes, supported operators/visibility/mutability, and hashes. Raw source, names/member names, paths, literal value/hexValue, documentation, type-description text, and compiler diagnostics are not returned.
+- **Literal hashing:** SHA-256 of decoded `hexValue` bytes, not hexadecimal text; ordinary/escaped/Unicode/hexadecimal/empty strings supported. Numeric and boolean literals also receive opaque hashes. Hashing is not encryption, secret redaction, or protection against dictionary recovery.
+- **Depth and routing:** Semantic AST nodes count from SourceUnit=1; arrays/container objects do not increase semantic depth; documentation/type metadata omitted. Default maximum depth 32, hard ceiling 64. Exceeded depth/node/container/output limits, imports, inline assembly, unknown nodes/operators, and unsupported attributes cannot produce an accepted partial projection. Manual-review status is a routing decision, not a deployed human-review queue.
+- **Bounds:** Source 256 KiB; AST JSON 8 MiB; 10000 semantic nodes; 100000 traversed containers; container depth 256; compact projection limit 2 MiB. Native compiler timeout 30 seconds/maxBuffer 8 MiB; tested CLI had outer 60-second limit. Evidence formatting/parser metadata add serialization overhead; these are not complete process-memory limits.
+- **Native evidence:** Unchanged approved fixture parsed by Solc 0.8.24 into 64 projected nodes, maximum semantic depth 10, five literal masks including four string masks, and two omitted documentation fields. Native CLI exited 0 with `status: "masked"`; raw fixture error strings absent from saved projection.
+- **Regression evidence:** Full existing CI-equivalent Hardhat `test --no-compile` command reported 73 local passing tests. Twelve masking regressions cover real parser output, literal forms/bytes, metadata suppression, deterministic structure, exact depth boundary, non-partial routing, malformed input, unsupported nodes/imports, diagnostics, unsafe keys/options, size checks, and CLI mode.
+- **CI distinction:** Real parser regression examples use existing npm Solc 0.8.26 with compatible in-memory source. Original exact-0.8.24 fixture uses native Solc 0.8.24 locally; no pragma substitution or native compiler provisioning in CI. Remote validation of this implementation remains pending.
+- **Evidence:** `~/.local/state/blockchain-soc/p03-004/mask-Ytb4y1/`; `masked-result.json` and `summary.json` remain outside Git. Raw source/compiler diagnostics are not persisted by the masking CLI.
+- **Integrity:** Strict ingestion exited 0 with valid integrity and unchanged approved asset map. Dependency manifests/lockfile, original fixture, Hardhat configuration, CI definition, and ingestion policy unchanged.
+- **Safety and limitations:** No new parser/compiler install, registry/network/RPC, EVM execution by this masker, deployment, funding, wallet/key/credential use, LLM call, or tracked injection-contract fixture. Projection is not recompilable or semantically complete; security acceptance not established; P03-005 and Phase 3 gate remain pending.
+- **Acceptance:** Local parsing, literal masking, raw-field omission, depth routing, explicit non-success outcomes, bounded processing, regressions, and ingestion checks passed within documented scope. Commit, remote verification, publication, and synchronization pending.
+- **Next:** Review/commit implementation plus documentation, verify GitLab-first CI, reconcile completion, publish validated history to GitHub, and verify synchronization before P03-005.
 
 ## P03-GATE — Phase 3 completion gate
 

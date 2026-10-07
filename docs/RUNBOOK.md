@@ -1191,7 +1191,7 @@ The live run exited 0: 249 npm and 39 Python coordinates, 10 matched coordinates
 
 ## P03-003 — Local IAST state-transition evidence
 
-**Procedure status:** ✅ Verified within documented coursework scope 2026-10-07 at implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
+**Procedure status:** ✅ Verified within documented coursework scope 2026-10-07 at implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. Completion reconciliation `20d5d55bf8056db33c9bb21095554238ea86c67e` passed reported green GitLab CI, was published to GitHub, and fetched synchronization was verified before P03-004 started. Pipeline ID/URL and individual job logs not captured.
 
 ### Purpose and scope
 
@@ -1246,3 +1246,56 @@ Implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364` passed reported green 
 - Snapshot cleanup is attempted on handled execution errors; a forced process termination ends this private in-process network, but does not produce confirmed cleanup evidence.
 - Keep evidence and backups out of staging. No automatic dependency fixes, compiler download, configuration bypass, external chain connection, or real funding.
 - Existing CI runs wrapper/runner-boundary regressions; native compiler execution remains separately recorded local evidence.
+
+## P03-004 — Local Solidity AST masking
+
+**Procedure status:** 🟧 Locally validated 2026-10-07; implementation commit, remote verification, and publication pending.
+
+### Purpose and prerequisites
+
+Produce an allowlisted structural AST projection with opaque literal/name hashes and explicit manual-review/error outcomes. This is not a recompilable AST, semantic security check, secret-redaction system, or complete prompt-injection defense.
+
+Requires existing repository-local tsx and native `~/.local/share/blockchain-soc/toolchains/solc-0.8.24/solc`, SHA-256 `fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f`. The native adapter disables import callbacks and requests parsing/AST only. Do not substitute compiler versions, alter the fixture pragma, or install a parser package to bypass errors.
+
+### Tested commands
+
+From `~/Blockchain-Security-Project-Remastered`:
+
+```bash
+./node_modules/.bin/hardhat \
+  --config config/hardhat.config.js \
+  test --no-compile \
+  test/hardhat/formal-tools.test.js \
+  test/hardhat/placeholder.test.js \
+  test/hardhat/pipeline-entrypoints.test.js
+
+/usr/bin/timeout 60s ./node_modules/.bin/tsx --no-cache \
+  scripts/ast-mask.mts --approved-local-fixture
+
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+```
+
+Observed: 73 local passing tests; native fixture CLI exited 0 with `status: "masked"`; strict ingestion valid and asset inventory unchanged.
+
+### Output and evidence
+
+- `maskContractAst(source, options?)` returns serialized JSON, not rewritten source.
+- `masked` contains projection-version-1 structural nodes; non-success results omit the AST.
+- Literal hashes use decoded bytes; names/member names are also hashed. Raw source, paths, documentation, type-description text, literal value/hexValue, and diagnostics are not returned.
+- Original fixture result: 64 nodes, maximum semantic depth 10, five literal masks including four string masks, two documentation fields omitted.
+- Evidence: `~/.local/state/blockchain-soc/p03-004/mask-Ytb4y1/`; masked result and summary remain outside Git.
+- Existing CI uses npm Solc 0.8.26 on compatible in-memory parser examples; native original-fixture parsing uses Solc 0.8.24 locally.
+- Saved `taskComplete: false` is runtime evidence, not a publication-status field. Do not modify it to declare completion.
+
+### Limits and safe failure handling
+
+- Semantic depth counts AST nodes from SourceUnit=1; arrays/containers do not increase that measure; documentation/type metadata are omitted.
+- Default depth 32, hard ceiling 64; options may lower node/output limits within supported bounds.
+- Source cap 256 KiB; AST JSON cap 8 MiB; at most 10000 semantic nodes, 100000 traversed containers, and container depth 256.
+- Compact projection cap 2 MiB; final metadata/pretty evidence formatting add overhead. These are not complete process-memory guarantees.
+- Native compiler timeout 30 seconds/maxBuffer 8 MiB; tested CLI outer limit 60 seconds.
+- CLI exit 0 means masked projection, 2 means manual review, 1 means invalid/error. Nonzero results are not sanitized acceptance or empty findings.
+- Imports, inline assembly, unknown node types/operators, unsupported syntax attributes, and over-limit inputs must not produce an accepted partial AST.
+- Manual-review status requires operator handling; no production review queue or LLM forwarding is implemented.
+- Do not echo raw compiler diagnostics, weaken import controls, increase hard limits, install substitutes, or edit protected inputs to force acceptance.
+- Keep evidence and documentation backups unstaged. P03-005 owns the tracked prompt-injection fixture and its dedicated validation.

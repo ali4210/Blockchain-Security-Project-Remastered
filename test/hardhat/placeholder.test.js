@@ -581,3 +581,194 @@ describe("IAST runner boundary regressions", function () {
     assert.throws(() => validateCompiled(missing), /selector/);
   });
 });
+
+describe("AST masking regressions", function () {
+  const {
+    projectAstJson, projectCompilerOutput, parseAndMask,
+    MAX_SOURCE_BYTES, MAX_AST_BYTES,
+  } = require("../../scripts/ast-mask-core.cjs");
+  const { createHash } = require("node:crypto");
+  const solc = require("solc");
+  const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+
+  function parsed(source) {
+    return JSON.parse(solc.compile(JSON.stringify({
+      language: "Solidity",
+      sources: { "Input.sol": { content: source } },
+      settings: {
+        stopAfter: "parsing",
+        outputSelection: { "*": { "": ["ast"] } },
+      },
+    }), { import: () => ({ error: "imports disabled" }) }));
+  }
+
+  function root() {
+    return {
+      nodeType: "SourceUnit",
+      nodes: [{
+        nodeType: "ExpressionStatement",
+        expression: {
+          nodeType: "Literal", kind: "string",
+          hexValue: "414243", value: "ABC",
+        },
+      }],
+    };
+  }
+
+  it("masks real ordinary, escaped, Unicode, hexadecimal and empty literals", function () {
+    const output = parsed(`pragma solidity 0.8.26;
+      /// @notice DOC_PAYLOAD_SENTINEL
+      contract NAME_PAYLOAD_SENTINEL {
+        string constant a = "ORDINARY_PAYLOAD_SENTINEL";
+        string constant b = "line\\nnext";
+        string constant c = unicode"বাংলা";
+        bytes constant d = hex"00ff";
+        string constant e = "";
+      }`);
+    const masked = projectCompilerOutput(output);
+    assert.equal(masked.status, "masked");
+    assert.equal(masked.maskedStringLiteralCount, 5);
+    const text = JSON.stringify(masked);
+    for (const marker of [
+      "DOC_PAYLOAD_SENTINEL", "NAME_PAYLOAD_SENTINEL",
+      "ORDINARY_PAYLOAD_SENTINEL", "বাংলা", "line\\nnext",
+    ]) assert.equal(text.includes(marker), false);
+    const hashes = masked.ast.nodes
+      .filter((node) => node.literalMask)
+      .map((node) => node.literalMask.sha256);
+    for (const bytes of [
+      Buffer.from("line\nnext"),
+      Buffer.from("বাংলা"),
+      Buffer.from([0, 255]),
+      Buffer.alloc(0),
+    ]) assert.ok(hashes.includes(hash(bytes)));
+  });
+
+  it("hashes decoded bytes rather than hexadecimal text", function () {
+    const masked = projectAstJson(JSON.stringify(root()));
+    const literal = masked.ast.nodes.find((node) => node.literalMask);
+    assert.equal(literal.literalMask.sha256, hash(Buffer.from("ABC")));
+    assert.notEqual(literal.literalMask.sha256, hash(Buffer.from("414243")));
+    assert.equal(literal.literalMask.byteLength, 3);
+  });
+
+  it("omits raw names, source paths, documentation and type metadata", function () {
+    const ast = root();
+    ast.absolutePath = "PATH_PAYLOAD_SENTINEL";
+    ast.nodes[0].name = "NAME_PAYLOAD_SENTINEL";
+    ast.nodes[0].documentation = {
+      nodeType: "StructuredDocumentation", text: "DOC_PAYLOAD_SENTINEL",
+    };
+    ast.nodes[0].expression.typeDescriptions = {
+      typeString: "TYPE_PAYLOAD_SENTINEL",
+    };
+    const masked = projectAstJson(JSON.stringify(ast));
+    assert.equal(masked.status, "masked");
+    const text = JSON.stringify(masked);
+    for (const marker of [
+      "PATH_PAYLOAD_SENTINEL", "NAME_PAYLOAD_SENTINEL",
+      "DOC_PAYLOAD_SENTINEL", "TYPE_PAYLOAD_SENTINEL", "ABC", "414243",
+    ]) assert.equal(text.includes(marker), false);
+  });
+
+  it("is deterministic and does not mutate the supplied serialized AST", function () {
+    const input = JSON.stringify(root());
+    const first = projectAstJson(input);
+    assert.deepEqual(projectAstJson(input), first);
+    assert.equal(input, JSON.stringify(root()));
+    assert.equal(first.ast.nodes[0].nodeType, "SourceUnit");
+    assert.deepEqual(first.ast.nodes[0].children, [1]);
+  });
+
+  it("accepts the exact depth boundary and omits over-depth ASTs", function () {
+    const input = JSON.stringify(root());
+    assert.equal(projectAstJson(input, { maxDepth: 3 }).status, "masked");
+    const excessive = projectAstJson(input, { maxDepth: 2 });
+    assert.equal(excessive.status, "manual-review");
+    assert.equal(excessive.reason, "depth-limit");
+    assert.equal(excessive.ast, undefined);
+    assert.equal(excessive.astOmitted, true);
+  });
+
+  it("routes node and output limits without returning partial projections", function () {
+    const limited = projectAstJson(JSON.stringify(root()), { maxNodes: 2 });
+    assert.equal(limited.reason, "node-limit");
+    assert.equal(limited.ast, undefined);
+    const ast = root();
+    ast.nodes = Array.from({ length: 100 }, () => ({
+      nodeType: "Identifier", name: "bounded",
+    }));
+    const output = projectAstJson(JSON.stringify(ast), { maxOutputBytes: 1024 });
+    assert.equal(output.reason, "output-byte-limit");
+    assert.equal(output.ast, undefined);
+  });
+
+  it("rejects malformed JSON, roots and literal encoding without echoing input", function () {
+    for (const input of ["RAW_PAYLOAD_SENTINEL", "[]", '{"nodeType":null}']) {
+      const masked = projectAstJson(input);
+      assert.equal(masked.status, "invalid");
+      assert.equal(JSON.stringify(masked).includes("RAW_PAYLOAD_SENTINEL"), false);
+    }
+    const ast = root();
+    ast.nodes[0].expression.hexValue = "f";
+    assert.equal(projectAstJson(JSON.stringify(ast)).reason, "invalid-literal");
+  });
+
+  it("routes imports, inline assembly and unknown node types to manual review", function () {
+    for (const nodeType of ["ImportDirective", "InlineAssembly", "UnknownNode"]) {
+      const ast = root();
+      ast.nodes[0] = { nodeType };
+      const masked = projectAstJson(JSON.stringify(ast));
+      assert.equal(masked.status, "manual-review");
+      assert.equal(masked.ast, undefined);
+    }
+  });
+
+  it("rejects source errors and suppresses compiler diagnostic payloads", function () {
+    const output = parsed('pragma solidity 0.8.26; contract BAD_PAYLOAD_SENTINEL {');
+    const masked = projectCompilerOutput(output);
+    assert.equal(masked.status, "invalid");
+    assert.equal(masked.reason, "source-parse-error");
+    assert.equal(JSON.stringify(masked).includes("BAD_PAYLOAD_SENTINEL"), false);
+    const imported = parsed(
+      'pragma solidity 0.8.26; import "IMPORT_PAYLOAD_SENTINEL.sol";'
+    );
+    assert.notEqual(projectCompilerOutput(imported).status, "masked");
+  });
+
+  it("rejects invalid policies and unsafe AST keys", function () {
+    for (const options of [
+      { maxDepth: 0 }, { maxDepth: 65 }, { maxNodes: 10001 },
+      { maxOutputBytes: 1 }, { unexpected: true },
+    ]) {
+      assert.equal(projectAstJson(JSON.stringify(root()), options).status, "invalid");
+    }
+    const input = '{"nodeType":"SourceUnit","__proto__":{"payload":"SENTINEL"}}';
+    assert.equal(projectAstJson(input).reason, "unsafe-ast-key");
+  });
+
+  it("checks source and AST byte limits before compiler execution", function () {
+    assert.equal(
+      parseAndMask("x".repeat(MAX_SOURCE_BYTES + 1)).reason,
+      "source-byte-limit"
+    );
+    assert.equal(
+      projectAstJson("x".repeat(MAX_AST_BYTES + 1)).reason,
+      "ast-byte-limit"
+    );
+    assert.equal(parseAndMask("bad\0encoding").reason, "invalid-source-encoding");
+  });
+
+  it("requires explicit approved-fixture CLI mode", function () {
+    const execution = spawnSync(process.execPath, [
+      resolve(__dirname, "../../node_modules/.bin/tsx"),
+      "--no-cache",
+      resolve(__dirname, "../../scripts/ast-mask.mts"),
+    ], { encoding: "utf8", timeout: 20000 });
+    assert.equal(execution.error, undefined);
+    assert.equal(execution.status, 1);
+    assert.equal(execution.stderr, "");
+    const masked = JSON.parse(execution.stdout);
+    assert.equal(masked.reason, "explicit-approved-fixture-mode-required");
+  });
+});
