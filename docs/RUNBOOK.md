@@ -1249,7 +1249,7 @@ Implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364` passed reported green 
 
 ## P03-004 — Local Solidity AST masking
 
-**Procedure status:** 🟧 Locally validated 2026-10-07; implementation commit, remote verification, and publication pending.
+**Procedure status:** ✅ Verified within documented scope 2026-10-07 at implementation `42384867ed4a8f2fcda2b58e806ce967a802cd37`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
 
 ### Purpose and prerequisites
 
@@ -1276,6 +1276,8 @@ From `~/Blockchain-Security-Project-Remastered`:
 ```
 
 Observed: 73 local passing tests; native fixture CLI exited 0 with `status: "masked"`; strict ingestion valid and asset inventory unchanged.
+
+Implementation `42384867ed4a8f2fcda2b58e806ce967a802cd37` passed reported green GitLab CI. Pipeline ID/URL, individual job logs, and remote test count were not captured. Native Solc 0.8.24 fixture parsing remains separately recorded local evidence.
 
 ### Output and evidence
 
