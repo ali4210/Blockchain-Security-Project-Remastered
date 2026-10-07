@@ -1414,7 +1414,7 @@ Both runs used implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, main, 
 
 ## P03-007 — Coursework job-plane runtime audit
 
-**Procedure status:** ✅ Verified 2026-10-07 within explicitly accepted 🔒 coursework job-plane scope; P03-007 is ✅ Complete and verified within that scope. Evidence/documentation commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation pipeline ID not captured. This final status correction awaits its own commit/CI/publication; manager and other isolation limitations remain unchanged.
+**Procedure status:** ✅ Verified within explicitly accepted 🔒 coursework job-plane scope 2026-10-07. Evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` and final green-status correction `6779157de76e2a6f821568e49b6d18901eb71d3b` completed user-reported green GitLab CI, GitHub publication, and fetched synchronization. Pipeline IDs not captured. Manager and other isolation limitations unchanged; Task 7 publication is complete and Task 8 is current.
 
 ### Purpose and accepted boundary
 
@@ -1486,4 +1486,123 @@ Audit creation used the normal installed application service and verified projec
 - Do not retroactively change runtime snapshots, report booleans, or manager limitations to obtain acceptance.
 - Inspect saved evidence before authorizing another run. No cleanup of manager volumes or unrelated containers is part of this procedure.
 - A future manager-hardening, service, rootless, dedicated-network, or stronger isolation claim requires separate scope and factual validation.
-- P03-007 evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` is published and fetched-synchronized after reported green GitLab CI. The separately prepared final ✅ status correction still requires review/commit/CI/publication. Do not begin P03-008 until that correction is verified; no further runtime audit is required for the accepted scope.
+- P03-007 evidence and final status publication are complete at fetched-synchronized final commit `6779157de76e2a6f821568e49b6d18901eb71d3b`. The user authorized P03-008; no repeat Task 7 audit is required.
+
+## P03-008 — Lynis technical audit and sanitized NIST evidence
+
+**Procedure status:** ✅ Local provider audit/adapter procedure verified within approved technical scope 2026-10-07. Overall Task 8 documentation/evidence commit, remote CI/publication, and final green-status closeout remain pending.
+
+### Purpose and scope
+
+Use approved open-source Lynis as a non-root technical-baseline provider on the authorized Kali VM. Normalize its report through a bounded data-only adapter. This is not CSET execution, a full NIST/CMMC organizational assessment, an official crosswalk, certification, remediation, or production authorization.
+
+Project-authored relationships: ACCT-9628 to AU-12, FINT-4350 to SI-7. Both actual entries remain needs-review/fullControlAssessed false. Unmapped valid findings are retained; absence of findings never proves a control pass.
+
+### Provider and timer boundary
+
+Reviewed package lynis=3.1.6-1 installed as exactly one new Kali package with no upgrades/removals. Program version and package ownership verified. Host package state is outside Git.
+
+Installation enabled/started lynis.timer. Before correction it was active/waiting; observed trigger and service-start timestamps were empty and service inactive. The timer was disabled/stopped explicitly, leaving timer inactive/disabled and service inactive. Do not infer a lifetime history from empty observed timestamps. No already-running service audit was stopped.
+
+Tested commands:
+
+```bash
+/usr/bin/sudo /usr/bin/apt-get \
+  --no-install-recommends --no-upgrade install lynis=3.1.6-1
+
+/usr/bin/sudo /usr/bin/systemctl disable --now lynis.timer
+
+/usr/sbin/lynis --version
+/usr/sbin/lynis show help
+/usr/sbin/lynis show options
+```
+
+Initial --help produced usage-related exit 64; the advertised show help/options commands returned 0. Version 3.1.6 verified; dpkg --audit and apt-mark showhold produced no output. Do not reinstall or ignore arbitrary nonzero results.
+
+### Tested non-root acquisition
+
+The verified run used the following command inside an owner-only working directory, under a Python-managed 300-second limit with private stdout/stderr and process-group termination on timeout:
+
+```bash
+/usr/sbin/lynis audit system \
+  --quick --no-colors --no-plugins \
+  --profile /etc/lynis/default.prf \
+  --log-file /home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88/lynis.private.log \
+  --report-file /home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88/lynis-report.private.dat
+```
+
+This historical command is not an instruction to overwrite or rerun against those evidence files. A future audit requires fresh protected paths, timer/service checks, approved scope, and bounded capture.
+
+Observed UID 1000, exit 0, duration 73.77 seconds, no timeout. No upload, remote-audit, pentest, forensics, or remediation option used; plugins disabled. Network isolation was not claimed. Non-root/organizational coverage remains incomplete.
+
+All raw log/report/stdout/stderr and process metadata remain protected outside Git; recorded files had mode 0600 and parent directory 0700. Do not paste or commit them.
+
+### Tested adapter and regressions
+
+From the repository root:
+
+```bash
+/usr/bin/node --check scripts/governance-core.cjs
+/usr/bin/node --check scripts/run-governance.cjs
+/usr/bin/node --check test/hardhat/placeholder.test.js
+
+./node_modules/.bin/hardhat \
+  --config config/hardhat.config.js \
+  test --no-compile \
+  test/hardhat/formal-tools.test.js \
+  test/hardhat/placeholder.test.js \
+  test/hardhat/pipeline-entrypoints.test.js
+
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+
+/usr/bin/node scripts/run-governance.cjs \
+  --report /home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88/lynis-report.private.dat \
+  --metadata /home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88/process-metadata.json
+```
+
+The real adapter invocation was captured by the private Python normalization wrapper, which verified source digests, expected counters, false authorization claims, and saved owner-only output. Do not redirect output to a world-readable file or commit a generated report by default.
+
+Observed: 105 local passing tests, including 18 governance regressions; strict ingestion valid with unchanged approved asset map; Node syntax and git diff --check passed. CI executes synthetic adapter regressions through the existing test inventory, not a Lynis audit of the CI host. Remote CI evidence is still pending.
+
+### Real results and interpretation
+
+- Four warning records and 46 suggestion records retained: total 50.
+- Two records have partial AU-12/SI-7 relationships; 48 remain unmapped, not discarded.
+- Both control-evidence states needs-review; no complete control assessment.
+- Provider hardening index 63 is not NIST compliance percentage.
+- Provider tests-done counter 267 is not NIST-control coverage or proof all privileged checks passed.
+- Normalized status review-required is expected, not an integration failure.
+- nistComplianceEstablished/cmmcCertificationEstablished/productionReady/deploymentAuthorized/releaseAuthorized/taskComplete all false. Runtime taskComplete is not task/publication status.
+
+### Parsing and privacy safeguards
+
+The first adapter rejected one hyphenated omitted field and two finding-text continuation lines. The real report matched the narrowly approved compatibility shape before patching.
+
+The corrected parser drops supported hyphenated host fields and contiguous non-assignment finding-text continuations. It does not publish those names/descriptions. Continuations limited to 4 KiB each/eight consecutive/256 total. Orphan/empty/oversized/excessive/forbidden/critical malformed records remain rejected.
+
+Required scalar duplicates, malformed IDs/timestamps, policy alteration, failed/root/timed-out acquisition records, unsupported versions/hashes, duplicate/prototype-shaped JSON keys, invalid UTF-8, oversized input, symlinked final file components, and unsupported CLI modes fail with fixed JSON errors and no raw diagnostics.
+
+Limits: report 2 MiB; metadata 32 KiB; policy 8 KiB; output 256 KiB; report 30000 lines/256 KiB per line; 1024 finding records/512 grouped records; JSON depth 32/node budget 20000. These do not establish complete process-memory bounds. O_NOFOLLOW applies to the final file component, not all ancestors.
+
+Provenance verifies structural acquisition fields and byte digests, not signed identity or tamper-proof independent attestation. Completion timestamps and successful process metadata are checked; finish-marker presence alone is not proof of execution.
+
+### Evidence and identities
+
+- Acquisition directory: `/home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88`.
+- Raw report SHA-256: `e353c841131b7a4469d291d963099b40be86e4e13242bbf34ffdbb646ad71b77`.
+- Process metadata SHA-256: `b919a39e66b3eebd094786e343450add5a14b34597d246d72a2cf5b241e031d1`.
+- Sanitized result: `/home/kali/.local/state/blockchain-soc/p03-008/normalized-_t8qnj0l/governance-result.json`.
+- Sanitized SHA-256: `4b30d711cf1126f7d93db54f7d3237ce8b5f128cb05eec14780d3aaf85420d26`.
+- Pinned policy SHA-256: `7de534c7fb32284e5c0fec30aa4cc95ea13a4722d993188fe446c7fdd1c76684`.
+- Provider executable SHA-256: `a3de3e245c436671347cc13c199f3115b8d88493deb5a78cd999b00a041d1976`.
+- Profile SHA-256: `49ffbf504febedeea096fbbb8730825c4805dfaac747c6e530a22174fd77f30f`.
+- Implementation backups outside Git: implementation-b4i06qff and format-fix-cell1z8b under the Task 8 private state directory.
+
+### Failure handling and closeout
+
+- Do not edit raw reports, metadata, counts, hashes, or warnings to force success.
+- Do not automatically reinstall, rescan, enable timers, run sudo audits, remediate host findings, or broaden parser acceptance after a failure.
+- Preserve evidence and return masked diagnostics; no raw logs/report bodies in chat or Git.
+- Do not represent project relationships as official crosswalks, unassessed controls as passed, or tooling success as compliance.
+- No Phase 4 enrichment, source fixture, CI, dependency manifest/lockfile, ingestion, readiness, runner, branch-rule, or remote change is part of this integration.
+- Task 8 implementation/evidence commit, remote CI, GitHub publication, and final green reconciliation remain pending. Do not start Task 9 before proper closeout.

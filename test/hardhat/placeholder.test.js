@@ -1045,3 +1045,307 @@ describe("Production readiness gate regressions", function () {
     assert.doesNotMatch(job, /allow_failure: true|when: manual|\|\|\s*true|rules:/);
   });
 });
+
+describe("Lynis governance normalization regressions", function () {
+  const fs = require("node:fs");
+  const os = require("node:os");
+  const crypto = require("node:crypto");
+  const core = require("../../scripts/governance-core.cjs");
+  const policyBytes = core.readPolicyBytes();
+  const policy = core.parsePolicyBytes(policyBytes);
+
+  function fixture(reportText) {
+    const source = reportText === undefined ? [
+      "# synthetic unit fixture, not a host assessment",
+      "lynis_version=3.1.6",
+      "report_version_major=1",
+      "report_version_minor=0",
+      "report_datetime_start=2026-10-07 20:49:23",
+      "report_datetime_end=2026-10-07 20:50:33",
+      "finish=true",
+      "lynis_tests_done=4",
+      "hardening_index=63",
+      "hostname=TASK8_RAW_HOST_SENTINEL",
+      "network_ipv4_address[]=192.0.2.77",
+      "warning[]=DBS-1828|TASK8_RAW_SECRET_SENTINEL|/private/example",
+      "warning[]=DBS-1828|another raw message",
+      "suggestion[]=ACCT-9628|TASK8_RAW_ACCOUNT_SENTINEL",
+      "suggestion[]=FINT-4350|raw integrity text",
+      "suggestion[]=AUTH-9286|unmapped evidence",
+      "",
+    ].join("\n") : reportText;
+    const report = Buffer.from(source);
+    const metadata = {
+      provider: "Lynis",
+      programVersion: "3.1.6",
+      packageVersion: "3.1.6-1",
+      providerExecutableSha256: policy.provider.executableSha256,
+      profileSha256: policy.provider.profileSha256,
+      reportSha256: core.sha256(report),
+      exitCode: 0,
+      timedOut: false,
+      nonRoot: true,
+      effectiveUid: 1000,
+      pluginsDisabled: true,
+      uploadOptionUsed: false,
+      remoteAuditOptionUsed: false,
+      assessmentExecutedSuccessfully: true,
+      repositoryBaseline: "a".repeat(40),
+    };
+    return { report, metadata };
+  }
+
+  function run(f) {
+    return core.normalize(
+      f.report, Buffer.from(JSON.stringify(f.metadata)), policyBytes
+    );
+  }
+
+  function changeReport(f, source) {
+    f.report = Buffer.from(source);
+    f.metadata.reportSha256 = core.sha256(f.report);
+    return f;
+  }
+
+  it("preserves repeated findings and valid unmapped identifiers", function () {
+    const result = run(fixture());
+    assert.deepEqual(result.summary, {
+      warningRecords: 2, suggestionRecords: 3, findingRecords: 5,
+      mappedFindingRecords: 2, unmappedFindingRecords: 3,
+      providerTestsDone: 4,
+    });
+    assert.equal(result.findings.find(item => item.testId === "DBS-1828").occurrences, 2);
+    assert.deepEqual(
+      result.findings.find(item => item.testId === "AUTH-9286").relatedNistControls,
+      []
+    );
+  });
+
+  it("omits raw finding text and unrelated host data", function () {
+    const serialized = JSON.stringify(run(fixture()));
+    assert.doesNotMatch(serialized, /TASK8_RAW_|192\.0\.2\.77|\/private\/example/);
+    assert.doesNotMatch(serialized, /hostname|network_ipv4_address/);
+  });
+
+  it("produces deterministic normalized data", function () {
+    const f = fixture();
+    assert.equal(JSON.stringify(run(f)), JSON.stringify(run(f)));
+  });
+
+  it("never converts absence of findings into assessed control passes", function () {
+    const f = fixture();
+    const clean = f.report.toString().split("\n").filter(
+      line => !line.startsWith("warning[]=") && !line.startsWith("suggestion[]=")
+    ).join("\n");
+    const result = run(changeReport(f, clean));
+    assert.equal(result.summary.findingRecords, 0);
+    assert.ok(result.controlEvidence.every(item => item.status === "not-assessed"));
+    for (const key of [
+      "nistComplianceEstablished", "cmmcCertificationEstablished",
+      "productionReady", "deploymentAuthorized", "releaseAuthorized", "taskComplete",
+    ]) assert.equal(result[key], false);
+  });
+
+  it("binds the report to acquisition metadata and rejects tampering", function () {
+    const f = fixture();
+    f.report = Buffer.concat([f.report, Buffer.from("# changed\n")]);
+    assert.throws(() => run(f), /governance-input-invalid/);
+  });
+
+  it("rejects duplicate JSON keys and prototype-shaped keys", function () {
+    const f = fixture();
+    const duplicate = JSON.stringify(f.metadata).replace(
+      '"exitCode":0', '"exitCode":1,"exitCode":0'
+    );
+    assert.throws(
+      () => core.normalize(f.report, Buffer.from(duplicate), policyBytes),
+      /governance-input-invalid/
+    );
+    for (const key of ["__proto__", "constructor", "prototype"]) {
+      const metadata = JSON.stringify(f.metadata).replace(
+        "{", '{"' + key + '":{},'
+      );
+      assert.throws(
+        () => core.normalize(f.report, Buffer.from(metadata), policyBytes),
+        /governance-input-invalid/
+      );
+    }
+  });
+
+  it("rejects failed, privileged, incomplete, and unsupported acquisition records", function () {
+    for (const patch of [
+      { exitCode: 1 }, { timedOut: true }, { nonRoot: false },
+      { effectiveUid: 0 }, { pluginsDisabled: false },
+      { uploadOptionUsed: true }, { remoteAuditOptionUsed: true },
+      { assessmentExecutedSuccessfully: false },
+      { programVersion: "0.0.0" }, { packageVersion: "0.0.0" },
+      { profileSha256: "0".repeat(64) },
+    ]) {
+      const f = fixture();
+      Object.assign(f.metadata, patch);
+      assert.throws(() => run(f), /governance-input-invalid/);
+    }
+  });
+
+  it("rejects duplicate required report fields and malformed finding identifiers", function () {
+    let f = fixture();
+    assert.throws(() => run(changeReport(
+      f, f.report.toString() + "lynis_version=3.1.6\n"
+    )), /governance-input-invalid/);
+    f = fixture();
+    assert.throws(() => run(changeReport(
+      f, f.report.toString().replace("DBS-1828|", "malformed-id|")
+    )), /governance-input-invalid/);
+  });
+
+  it("rejects missing completion metadata and invalid local timestamps", function () {
+    for (const replacement of [
+      ["report_datetime_end=2026-10-07 20:50:33\n", ""],
+      ["2026-10-07 20:50:33", "2026-02-30 20:50:33"],
+      ["2026-10-07 20:50:33", "2026-10-07 20:48:00"],
+    ]) {
+      const f = fixture();
+      assert.throws(() => run(changeReport(
+        f, f.report.toString().replace(...replacement)
+      )), /governance-input-invalid/);
+    }
+  });
+
+  it("enforces byte and UTF-8 limits without accepting partial data", function () {
+    const f = fixture();
+    assert.throws(() => core.normalize(
+      Buffer.alloc(core.MAX_REPORT_BYTES + 1),
+      Buffer.from(JSON.stringify(f.metadata)), policyBytes
+    ), /governance-input-invalid/);
+    assert.throws(() => core.normalize(
+      Buffer.from([0xc3, 0x28]),
+      Buffer.from(JSON.stringify(f.metadata)), policyBytes
+    ), /governance-input-invalid/);
+    assert.throws(() => core.normalize(
+      f.report, Buffer.alloc(core.MAX_METADATA_BYTES + 1), policyBytes
+    ), /governance-input-invalid/);
+  });
+
+  it("pins policy bytes and ignores metadata claims of healthy/compliant authorization", function () {
+    assert.throws(() => core.parsePolicyBytes(
+      Buffer.concat([policyBytes, Buffer.from("\n")])
+    ), /governance-input-invalid/);
+    const f = fixture();
+    Object.assign(f.metadata, {
+      nistComplianceEstablished: true, productionReady: true,
+      deploymentAuthorized: true, releaseAuthorized: true,
+    });
+    const result = run(f);
+    assert.equal(result.nistComplianceEstablished, false);
+    assert.equal(result.productionReady, false);
+    assert.ok(result.controlEvidence.every(item => item.fullControlAssessed === false));
+  });
+
+  it("omits supported hyphenated host fields without publishing their contents", function () {
+    const f = fixture();
+    const result = run(changeReport(
+      f, f.report.toString() + "vendor-extra-field=TASK8_RAW_EXTRA_SENTINEL\n"
+    ));
+    assert.equal(result.sanitization.omittedHyphenatedFields, 1);
+    assert.doesNotMatch(JSON.stringify(result), /vendor-extra-field|TASK8_RAW_/);
+    assert.equal(result.summary.findingRecords, 5);
+  });
+
+  it("discards bounded contiguous finding-text continuations without losing findings", function () {
+    const f = fixture();
+    const result = run(changeReport(
+      f, f.report.toString().trimEnd() +
+      "\nTASK8_RAW_CONTINUATION_ONE\nTASK8_RAW_CONTINUATION_TWO\n"
+    ));
+    assert.equal(result.sanitization.omittedContinuationLines, 2);
+    assert.equal(result.summary.findingRecords, 5);
+    assert.doesNotMatch(JSON.stringify(result), /TASK8_RAW_/);
+  });
+
+  it("rejects orphan continuation text and empty assignment keys", function () {
+    let f = fixture();
+    assert.throws(() => run(changeReport(
+      f, f.report.toString().replace(
+        "hardening_index=63\n", "hardening_index=63\norphan text\n"
+      )
+    )), /governance-input-invalid/);
+    f = fixture();
+    assert.throws(() => run(changeReport(
+      f, f.report.toString().trimEnd() + "\n=empty key\n"
+    )), /governance-input-invalid/);
+  });
+
+  it("rejects excessive or oversized finding-text continuations", function () {
+    for (const continuation of [
+      Array(9).fill("continuation text").join("\n"),
+      "X".repeat(4097),
+    ]) {
+      const f = fixture();
+      assert.throws(() => run(changeReport(
+        f, f.report.toString().trimEnd() + "\n" + continuation + "\n"
+      )), /governance-input-invalid/);
+    }
+  });
+
+  it("does not disguise duplicate, forbidden or malformed critical assignments as continuation text", function () {
+    for (const line of [
+      "lynis_version=3.1.6",
+      "__proto__=unsafe",
+      "warning=DBS-1828",
+      "suggestion=ACCT-9628",
+      "lynis-version=3.1.6",
+    ]) {
+      const f = fixture();
+      assert.throws(() => run(changeReport(
+        f, f.report.toString().trimEnd() + "\n" + line + "\n"
+      )), /governance-input-invalid/);
+    }
+  });
+
+  it("rejects malformed critical records lacking an assignment separator", function () {
+    const f = fixture();
+    assert.throws(() => run(changeReport(
+      f, f.report.toString().trimEnd() + "\nwarning[]\n"
+    )), /governance-input-invalid/);
+  });
+
+  it("validates CLI scope, rejects symlinks, and emits fixed errors without raw data", function () {
+    const directory = fs.mkdtempSync(resolve(os.tmpdir(), "p03-008-test-"));
+    fs.chmodSync(directory, 0o700);
+    try {
+      const f = fixture();
+      const report = resolve(directory, "report.dat");
+      const metadata = resolve(directory, "metadata.json");
+      fs.writeFileSync(report, f.report, { mode: 0o600 });
+      fs.writeFileSync(metadata, JSON.stringify(f.metadata), { mode: 0o600 });
+      const executable = resolve(__dirname, "../../scripts/run-governance.cjs");
+      const invoke = args => spawnSync(process.execPath, [executable, ...args], {
+        encoding: "utf8", timeout: 10000,
+      });
+
+      const valid = invoke(["--report", report, "--metadata", metadata]);
+      assert.equal(valid.error, undefined);
+      assert.equal(valid.status, 0);
+      assert.equal(valid.stderr, "");
+      assert.equal(JSON.parse(valid.stdout).status, "review-required");
+      assert.doesNotMatch(valid.stdout, /TASK8_RAW_/);
+
+      fs.symlinkSync(report, resolve(directory, "link.dat"));
+      for (const args of [
+        [], ["--demo"],
+        ["--report", resolve(directory, "link.dat"), "--metadata", metadata],
+        ["--report", report, "--metadata", metadata, "--upload"],
+      ]) {
+        const result = invoke(args);
+        assert.equal(result.error, undefined);
+        assert.equal(result.status, 1);
+        assert.equal(result.stdout, "");
+        assert.deepEqual(JSON.parse(result.stderr), {
+          schemaVersion: 1, status: "invalid", reason: "governance-input-invalid",
+        });
+      }
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+});

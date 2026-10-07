@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-007 — Zone 2 Docker/GitLab Runner isolation; ✅ Complete and verified within approved coursework scope; final status-correction publication pending |
-| Current thread | P03-007 ✅ Complete and verified within explicitly user-approved 🔒 coursework job-plane scope. Pipeline 98 on `54346bd68089c74e449b3f9801ef60d6d23c7b8c` succeeded on runner 2; jobs 139/140/141 passed; 12 build/helper/cache-init snapshots had no reported violations. Evidence/documentation commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way synchronization. Docker-managed volumes and trusted-manager host-network/socket dependency remain accepted and disclosed; no manager/whole-host, separate-network, or service-isolation claim. Current administrative work is the final green-status correction, whose own commit/CI/publication remain pending. Task 6 stays ✅; P03-008 not started; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
+| Current task | P03-008 — Approved Lynis/NIST technical-baseline integration; 🟧 local validation passed, documentation/publication closeout pending |
+| Current thread | P03-008 approved Lynis/NIST technical-baseline integration locally validated: Lynis 3.1.6 non-root audit exited 0; real normalization retained four warnings and 46 suggestions, two partially related records and 48 unmapped records. Provider index 63 is not a compliance percentage. Full local suite: 105 passing, including 18 governance regressions; strict ingestion valid. Raw evidence stays private outside Git. No CMMC certification, full NIST compliance, remediation, or production authorization claimed. Seven-file implementation/documentation diff and secret-safety review accepted; commit/CI/publication and final green closeout pending; P03-009 not started; Phase 3 incomplete. Task 7 final green-status commit 6779157de76e2a6f821568e49b6d18901eb71d3b is published and fetched-synchronized. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -23,7 +23,9 @@
 
 ## Completed since previous handoff
 
-- **P03-007 — ✅ Complete and verified within approved 🔒 coursework job-plane scope:** Pipeline 98 on `54346bd68089c74e449b3f9801ef60d6d23c7b8c` succeeded; jobs 139/140/141 used runner 2; 12 build/helper/cache-init snapshots had no reported violations. Evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` completed reported green GitLab CI, GitHub publication, and fetched synchronization. Managed volumes and trusted-manager host-network/socket exception remain disclosed. Only the new final-status correction publication remains pending.
+- **P03-008 local technical verification, not full closeout:** Approved Lynis 3.1.6-1 installed; automatic timer side effect disabled; actual non-root audit exited 0. Adapter retained all 50 finding records and emitted partial AU-12/SI-7 needs-review evidence without compliance/authorization claims. 105 local tests and strict ingestion passed. Exact seven-file/documentation diff and secret-safety review accepted; commit/CI/publication and final green status pending.
+
+- **P03-007 — ✅ Complete and verified within approved 🔒 coursework job-plane scope:** Pipeline 98/jobs 139/140/141 and 12 runtime snapshots verified. Evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` and final status correction `6779157de76e2a6f821568e49b6d18901eb71d3b` completed reported green GitLab CI, GitHub publication, and fetched synchronization. Managed volumes and manager host-network/socket exception remain disclosed; Task 7 is not current.
 
 - **P03-006 — ✅ Complete and verified within documented deny-by-default scope:** Ordinary 94/129 and requested-readiness 95/132 verified on `b5f7c8e411740f420b2adc883671cf3e740d6aeb`. Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final green-status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Hardware integration remains unresolved; no production authorization.
 
@@ -111,7 +113,7 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - The root route returned HTTP `403` after authorization, recorded as a route/backend response rather than token rejection; an authenticated `/api/tags` response remains an optional separately approved functional follow-up.
   - P00-008/P00-009 documentation commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` passed GitLab CI, was posted to GitHub, and was verified synchronized across `main`, `gitlab/main`, and `origin/main`.
   - Temporary Caddy, verifier, and Ollama test processes were stopped and their temporary listeners released.
-- Historical Phase 0 active-state wording is superseded by recorded P00-GATE and Phase 1/2 completion evidence. Current work is Phase 3, P03-007 documentation closeout; P03-006 is complete within scope; Phase 3 is incomplete.
+- Historical Phase 0 active-state wording is superseded by recorded gate evidence. P03-006 and P03-007 are complete within their documented scopes; current work is Phase 3, P03-008 implementation/documentation closeout. Phase 3 remains incomplete.
 
 ## Architecture invariants — must not be violated
 
@@ -580,9 +582,24 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
+### P03-008 — Lynis/NIST technical baseline — 🟧 Local verification passed
+
+- **Approved scope:** Real, bounded non-root Kali audit using Lynis; sanitized adapter plus two reviewed project-authored NIST evidence relationships. No CSET execution, organizational/full-framework assessment, certification, remediation, or production authorization.
+- **Provider:** Package 3.1.6-1/program 3.1.6; executable SHA-256 `a3de3e245c436671347cc13c199f3115b8d88493deb5a78cd999b00a041d1976`; profile `49ffbf504febedeea096fbbb8730825c4805dfaac747c6e530a22174fd77f30f`. One package installed, no upgrades/removals.
+- **Timer and metadata:** Package enabled/started lynis.timer; explicit disable/stop confirmed inactive/disabled, service inactive. No recorded trigger/start in the inspected metadata; no already-running service audit stopped. Initial --help code 64 handled as usage; show help/options returned 0; package health clean.
+- **Real audit:** UID 1000, no plugins, no upload/remote/pentest/forensics/remediation options, 300-second outer limit, exit 0 after 73.77 seconds, no timeout. Network isolation not claimed. Four warnings/46 suggestions, hardening index 63, provider tests-done counter 267. Findings remain for review, not automatic fixes.
+- **Adapter:** Added config/governance-policy.json, scripts/governance-core.cjs, scripts/run-governance.cjs; extended existing placeholder tests. Policy bytes pinned to `7de534c7fb32284e5c0fec30aa4cc95ea13a4722d993188fe446c7fdd1c76684`. Metadata/digest validation is structural, not signed authentication.
+- **Real-format fix:** One omitted hyphenated host field and two bounded contiguous finding-text continuation lines supported without publishing them. Critical malformed/orphan/empty/duplicate/oversized/forbidden input still rejected. Real report and metadata unchanged.
+- **Actual normalized result:** review-required, 50 records, two mapped relationships/48 unmapped, AU-12 and SI-7 needs-review/fullControlAssessed false, index not a compliance percentage, every compliance/certification/readiness/deployment/release/taskComplete claim false.
+- **Evidence:** Private acquisition `/home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88`; report digest `e353c841131b7a4469d291d963099b40be86e4e13242bbf34ffdbb646ad71b77`; metadata `b919a39e66b3eebd094786e343450add5a14b34597d246d72a2cf5b241e031d1`. Sanitized result `/home/kali/.local/state/blockchain-soc/p03-008/normalized-_t8qnj0l/governance-result.json`, digest `4b30d711cf1126f7d93db54f7d3237ce8b5f128cb05eec14780d3aaf85420d26`.
+- **Validation:** Node syntax checks and real normalization passed; full existing CI-equivalent Hardhat suite reported 105 local passing tests, including 18 governance regressions; strict ingestion valid and approved asset map unchanged. Remote CI and remote test count not yet verified.
+- **Integrity and scope:** Phase 4 enrichment stub, dependency manifests/lockfiles, CI, ingestion, readiness gate/policy, original fixtures, and runner unchanged. Commit scope is exactly four implementation paths plus CHECKLIST/HANDOFF/RUNBOOK. No private artifact, package state, timer state, or backup is staged.
+- **Remaining:** Exact seven-file/documentation diff and secret-safety review accepted. Local evidence commit, GitLab-first CI, GitHub publication/fetched synchronization, and final consistent ✅ Task 8 records remain before Task 9. No repeated audit or host remediation required.
+- **Runbook:** Record only tested installation/timer/audit/normalization/regression procedures, limits, and privacy handling. Do not treat synthetic CI fixtures as actual Lynis host execution.
+
 ### P03-007 — Job-plane isolation — ✅ Complete and verified within approved coursework scope
 
-- **Publication:** Evidence/documentation commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` had user-reported green GitLab CI, successful GitHub push, and fetched main/gitlab/main/origin/main full SHA equality. Documentation pipeline ID not captured. The new final-status correction has not yet been committed, CI-validated, or published.
+- **Publication:** Evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` and final status correction `6779157de76e2a6f821568e49b6d18901eb71d3b` completed user-reported green GitLab CI, successful GitHub publication, and fetched three-way SHA equality. Pipeline IDs not captured. No Task 7 publication blocker remains.
 
 - **Scope acceptance:** User approved 🔒 coursework workload verification after reviewing pipeline 98. Docker-managed volumes permitted; manager retains host networking/read-write Docker socket. No whole-host/manager isolation, separate per-job networks, non-root/all-capabilities-dropped guarantee, or service isolation claimed.
 - **Configuration:** Existing runner 2, Docker executor, version 19.4.1; privileged false, no declared job host bind/socket volume or devices; no configured Docker host cache directory, custom volume driver/options, or runner hooks.
@@ -590,9 +607,9 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Runtime:** Three build, three predefined helper, six cache-init containers observed with start events. All 12 reported privileged false, bridge networking, no host PID/IPC/UTS setting, no added capabilities/devices, no host bind or engine socket mount, local managed volumes with zero backing options, and empty violations. No observer errors.
 - **Evidence:** `/home/kali/.local/state/blockchain-soc/p03-007/runtime-rt95oop1/runtime-audit.json`; SHA-256 `d293a791f0762ee5e1725c9a34124cbbcaa78992d5872bf956fe67ee1b46ace4`. Saved taskComplete false remains unchanged; it is not a checklist/publication status.
 - **Files and safety:** Documentation-only update to CHECKLIST/HANDOFF/RUNBOOK. No CI/source/test/runner/policy/dependency changes or new runner/token, manager restart, service reconfiguration, production authorization, or repeat audit required. Evidence/backups remain unstaged.
-- **Acceptance:** Technical checks, approved scope, documentation review, evidence commit, reported green GitLab CI, GitHub publication, and fetched synchronization completed for `bcb2f997f6061aeeeafe2b006d01a9337656ea75`. Final ✅ status correction requires its own reviewed publication before advancing.
+- **Acceptance:** Technical scope, documentation review, evidence publication, and final ✅ status correction completed; fetched synchronization verified at `6779157de76e2a6f821568e49b6d18901eb71d3b`. Accepted manager and other isolation limitations remain explicit.
 - **Runbook impact:** Record the tested configuration/runtime audit, actual CI commands, failure handling, evidence identity, and retained manager limitation.
-- **Next:** Publish and verify only the final ✅ status correction. Do not begin P03-008 or repeat the completed runtime audit. Phase 3 remains incomplete.
+- **Next:** Task 7 final publication is complete; the user authorized Task 8. Do not reopen the runtime audit or green-status correction; retain the accepted manager limitation. Phase 3 remains incomplete.
 
 ### P03-006 — Readiness gate — ✅ Complete and verified within documented scope
 
@@ -605,7 +622,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Publication:** ✅ Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed user-reported green GitLab CI, GitHub publication, and fetched main/gitlab/main/origin/main equality. Original closeout/status pipeline IDs not captured. P03-007 audit pipeline 98 later succeeded on the final status-correction commit.
 - **Runbook:** Reconciles actual ordinary/blocking CI evidence and safety interpretation; preserves tested local commands. No new untested operator command introduced.
 - **Hardware dependency:** Live collector, trustworthy attestation, and healthy production-allow path remain unconfigured. Separate target/capability/collector approval and factual validation required; do not provision hardware to make the negative test green.
-- **Next:** Historical P03-006 closeout is complete. The user authorized P03-007; its accepted runtime evidence and documentation closeout are the current work. Preserve Task 6 readiness denial and do not repeat its completed tests.
+- **Next:** Historical P03-006 closeout is complete and P03-007 final publication verified. Current work is authorized P03-008. Preserve Task 6 readiness denial and do not repeat its completed tests.
 
 ### P03-005 — Injection-fixture masking — ✅ Complete and verified
 
@@ -675,20 +692,21 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-- **Active administrative work:** P03-007 — Verify and publish the final ✅ status reconciliation.
-- **Task evidence status:** ✅ Complete and verified within explicitly accepted 🔒 coursework job-plane scope. Evidence commit bcb2f997f6061aeeeafe2b006d01a9337656ea75 is GitLab-CI-reported-green, GitHub-published, and fetched-synchronized.
+- **Active task:** P03-008 — Add CSET/CISA or an approved open-source CMMC/NIST governance scanner; finish approved Lynis/NIST technical-baseline implementation/documentation closeout.
 - **Phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway; phase gate incomplete.
-- **Scope:** Final status/publication wording only. Do not repeat the audit or modify runner, manager, CI, source, tests, policy, credentials, or dependencies.
-- **Expected files:** docs/CHECKLIST.md, docs/HANDOFF.md, docs/RUNBOOK.md only.
-- **Acceptance:** All applicable P03-007 task/procedure surfaces consistent and green; no unchecked task criteria or stale pending claim for the completed evidence commit; final correction reviewed, committed, GitLab-first CI verified, GitHub-published, and fetched-synchronized before advancing.
-- **Validation:** Exact diff/secret-safety review, git diff --check, task-specific status/checkbox audit, staged-byte verification, actual correction CI result, and final full SHA comparison.
-- **Dependencies and safety:** Keep the accepted manager host-network/read-write Docker-socket limitation and managed-volume allowance explicit. No whole-host, separate-network, non-root/all-capabilities-dropped, or service-isolation guarantee. Preserve evidence, branch rules, remotes, readiness denial, and untracked docs/.backup/.
-- **Runbook impact:** Reconcile known evidence publication and final task status; preserve tested procedure and limitations.
+- **Current evidence:** Actual non-root audit and sanitized normalization succeeded; 105 local tests, 18 governance regressions, and strict ingestion passed. User approved the bounded alternative and assessment target.
+- **Scope:** Reconcile and review exact seven-file diff/secret boundary, commit, publish GitLab-first and verify CI, publish same history to GitHub, prove fetched SHA equality, and finalize all Task 8 status surfaces to ✅ before advancing.
+- **Expected files:** config/governance-policy.json; scripts/governance-core.cjs; scripts/run-governance.cjs; test/hardhat/placeholder.test.js; docs/CHECKLIST.md; docs/HANDOFF.md; docs/RUNBOOK.md.
+- **Acceptance:** All finding counts retained; partial/non-official mappings and review-needed controls explicit; no raw host data or compliance/authorization claims; protected inputs unchanged; actual local and CI evidence recorded; documentation consistent; publication/synchronization proved.
+- **Validation:** Node --check; the existing three-file Hardhat --no-compile regression command; strict ingestion; bounded CLI readback of unchanged real evidence; git diff --check; exact staged-file/byte review; actual GitLab CI; fetched main/gitlab/main/origin/main full SHA equality.
+- **Out of scope:** Full CMMC/NIST certification, organizational assessment, host fixes, new scans, CSET/service deployment, Phase 4 enrichment, readiness/runner/branch/remote changes, and P03-009 implementation.
+- **Safety:** Keep raw logs/report/process metadata and normalized artifacts owner-only outside Git; never paste them wholesale or stage them. Structural provenance is not attestation. Lynis timer remains disabled; service inactive. No broad staging, force-push, or prospective publication claims.
+- **Runbook impact:** Add verified provider provisioning/timer/manual-audit/adapter procedures and exact tested commands with explicit limits.
 
 ## Subsequent task queue
 
-1. `P03-007` — Publish/verify final green-status correction; underlying evidence closeout already complete.
-2. `P03-008` — Add CSET/CISA or an approved open-source CMMC/NIST governance scanner. Not started; do not begin before final Task 7 correction verification and explicit continuation.
+1. `P03-008` — Finish implementation/documentation publication and final green-status reconciliation.
+2. `P03-009` — Add real Foundry Exploit.t.sol and Invariants.t.sol examples and validate the exploit fixture. Not started; do not begin before Task 8 closeout and explicit continuation.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

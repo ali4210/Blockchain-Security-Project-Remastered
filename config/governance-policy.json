@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "provider": {
+    "name": "Lynis",
+    "programVersion": "3.1.6",
+    "packageVersion": "3.1.6-1",
+    "executableSha256": "a3de3e245c436671347cc13c199f3115b8d88493deb5a78cd999b00a041d1976",
+    "profileSha256": "49ffbf504febedeea096fbbb8730825c4805dfaac747c6e530a22174fd77f30f"
+  },
+  "framework": {
+    "id": "NIST-SP-800-53",
+    "revision": "5",
+    "crosswalk": "project-authored-partial",
+    "officialCrosswalk": false,
+    "fullCatalogAssessed": false
+  },
+  "scope": {
+    "kind": "authorized-kali-vm-non-root-technical-audit",
+    "organizationalControlsAssessed": false,
+    "automaticRemediation": false,
+    "certificationClaimAllowed": false,
+    "productionAllowEnabled": false
+  },
+  "mappings": [
+    {
+      "testId": "ACCT-9628",
+      "controlId": "AU-12",
+      "title": "Audit Record Generation",
+      "relationship": "Audit-daemon status is partial supporting evidence; event selection, record content and full audit coverage are not established.",
+      "providerReference": "https://cisofy.com/lynis/controls/ACCT-9628/",
+      "frameworkReference": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+    },
+    {
+      "testId": "FINT-4350",
+      "controlId": "SI-7",
+      "title": "Software, Firmware, and Information Integrity",
+      "relationship": "Integrity-tool advice is partial supporting evidence; organization-defined scope, verification and response are not established.",
+      "providerReference": "https://cisofy.com/lynis/controls/FINT-4350/",
+      "frameworkReference": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+    }
+  ]
+}
