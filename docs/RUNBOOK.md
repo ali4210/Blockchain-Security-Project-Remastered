@@ -1358,7 +1358,7 @@ Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green 
 
 ## P03-006 — Deny-by-default readiness control
 
-**Procedure status:** 🟧 Local commands and actual ordinary/requested-readiness CI behavior verified within deny-only scope on 2026-10-07 at `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; documentation reconciliation and staged diff/secret-safety review accepted. Closeout commit/CI/publication and final synchronization pending. Live hardware integration and positive readiness remain unconfigured.
+**Procedure status:** ✅ Verified within documented deny-by-default scope 2026-10-07. P03-006 is ✅ Complete and verified within that scope: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way synchronization. Closeout pipeline ID not captured. Live hardware integration and positive readiness remain unconfigured. This separately requested status correction awaits its own commit/CI/publication.
 
 ### Scope and prerequisites
 
@@ -1410,4 +1410,4 @@ Both runs used implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, main, 
 - Policy parsing checks at most 8 KiB after file read; local evidence capture checks at most 32 KiB output. These are not complete process-memory bounds.
 - Keep evidence and documentation backups unstaged. No kubeconfig/private material, hardware provisioning, cluster contact, deployment, or signing is required for this deny-only procedure.
 - Future hardware integration requires a separately approved target, capabilities, trustworthy bounded collector, and factual validation. This evidence does not resolve that dependency or authorize deployment/release.
-- Documentation-closeout commit, its ordinary CI, GitHub publication, and final fetched SHA equality remain pending. Phase 3 is not complete.
+- Evidence/documentation closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` is published and synchronized, with user-reported green GitLab CI. The new green-status correction requires its own review/commit/CI/publication; no future outcome is claimed. Phase 3 remains incomplete and P03-007 is not started.
