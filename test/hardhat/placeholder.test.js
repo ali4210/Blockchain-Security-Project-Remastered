@@ -395,3 +395,189 @@ describe("SCA pagination and batch boundary regressions", function () {
     }, options), /progress/);
   });
 });
+
+describe("IAST state transition regressions", function () {
+  const {
+    word, parseTrace, withCleanup, withLocalSnapshot,
+    captureTransaction, MAX_STEPS,
+  } = require("../../scripts/iast-trace.cjs");
+
+  function trace(value = "1", failed = false) {
+    return {
+      failed,
+      structLogs: [
+        { pc: 4, depth: 1, op: "SSTORE", stack: [value, "0"] },
+        { pc: 5, depth: 1, op: failed ? "REVERT" : "STOP", stack: [] },
+      ],
+    };
+  }
+
+  it("keeps attempted writes separate from receipt outcome", function () {
+    const parsed = parseTrace(trace("3", true), "0x0", ["0"]);
+    assert.equal(parsed.outcome, "reverted-or-failed");
+    assert.equal(parsed.attemptedStorageWrites[0].attemptedValue, word("3"));
+    assert.equal(parsed.coverage.attemptedWritesAreNotCommittedState, true);
+    assert.equal(parsed.stateTransitions, undefined);
+  });
+
+  it("rejects malformed, empty, oversized, and conflicting traces", function () {
+    assert.throws(() => parseTrace({}, "0x1", ["0"]), /trace/);
+    assert.throws(() => parseTrace(
+      { failed: false, structLogs: [] }, "0x1", ["0"]
+    ), /trace/);
+    assert.throws(() => parseTrace(
+      { failed: false, structLogs: Array(MAX_STEPS + 1).fill({}) },
+      "0x1", ["0"]
+    ), /trace/);
+    assert.throws(() => parseTrace(trace(), "0x0", ["0"]), /conflict/);
+    const malformed = trace();
+    malformed.structLogs[0].stack = [];
+    assert.throws(() => parseTrace(malformed, "0x1", ["0"]), /stack/);
+  });
+
+  it("rejects nested frames and unselected writes", function () {
+    const nested = trace();
+    nested.structLogs[0].depth = 2;
+    assert.throws(() => parseTrace(nested, "0x1", ["0"]), /nested/);
+    assert.throws(() => parseTrace(trace(), "0x1", ["1"]), /unselected/);
+    assert.throws(() => parseTrace(trace(), "0x1", ["0", "00"]), /duplicate/);
+  });
+
+  it("requires a supported successful terminal", function () {
+    const incomplete = trace();
+    incomplete.structLogs.pop();
+    assert.throws(() => parseTrace(incomplete, "0x1", ["0"]), /terminal/);
+  });
+
+  it("cleans up success and preserves execution failure", async function () {
+    let cleaned = 0;
+    assert.equal(await withCleanup(
+      async () => 7, async () => { cleaned += 1; }
+    ), 7);
+    await assert.rejects(withCleanup(
+      async () => { throw new Error("execution failed"); },
+      async () => { cleaned += 1; }
+    ), /execution failed/);
+    assert.equal(cleaned, 2);
+  });
+
+  it("rejects cleanup failure and retains both failures", async function () {
+    await assert.rejects(withCleanup(
+      async () => 7,
+      async () => { throw new Error("cleanup failed"); }
+    ), /cleanup failed/);
+    await assert.rejects(withCleanup(
+      async () => { throw new Error("execution failed"); },
+      async () => { throw new Error("cleanup failed"); }
+    ), (error) => error instanceof AggregateError &&
+      error.errors.length === 2);
+  });
+
+  it("captures real successful and reverted storage transitions", async function () {
+    const hre = require("hardhat");
+    const send = (method, params = []) => hre.network.provider.send(method, params);
+    const target = "0x0000000000000000000000000000000000001000";
+    const beforeCode = await send("eth_getCode", [target, "latest"]);
+
+    await withLocalSnapshot(hre, async () => {
+      const [from] = await send("eth_accounts");
+      const transaction = {
+        from, to: target, data: "0x", value: "0x0", gas: "0x186a0",
+      };
+      const options = { scope: "approved-local-fixture", slots: ["0"] };
+
+      await send("hardhat_setCode", [target, "0x6001600055600260005500"]);
+      await send("hardhat_setStorageAt", [target, "0x0", word("0")]);
+      const success = await captureTransaction(hre, transaction, options);
+      assert.equal(success.outcome, "succeeded");
+      assert.equal(success.attemptedStorageWrites.length, 2);
+      assert.equal(success.stateTransitions[0].before, word("0"));
+      assert.equal(success.stateTransitions[0].after, word("2"));
+      assert.equal(success.stateTransitions[0].changed, true);
+
+      await send("hardhat_setCode", [target, "0x600360005560006000fd"]);
+      await send("hardhat_setStorageAt", [target, "0x0", word("0")]);
+      const reverted = await captureTransaction(hre, transaction, options);
+      assert.equal(reverted.outcome, "reverted-or-failed");
+      assert.equal(reverted.submissionThrew, true);
+      assert.equal(reverted.attemptedStorageWrites[0].attemptedValue, word("3"));
+      assert.equal(reverted.stateTransitions[0].after, word("0"));
+      assert.equal(reverted.stateTransitions[0].changed, false);
+      assert.equal(reverted.securityAcceptance, "not-established");
+    });
+
+    assert.equal(await send("eth_getCode", [target, "latest"]), beforeCode);
+  });
+
+  it("rejects execution outside an owned local snapshot", async function () {
+    await assert.rejects(
+      captureTransaction(require("hardhat"), {}, {}),
+      /snapshot scope/
+    );
+    await assert.rejects(withLocalSnapshot(
+      { network: { name: "localhost" } }, async () => {}
+    ), /in-process/);
+  });
+});
+
+describe("IAST runner boundary regressions", function () {
+  const { parseArgs, validateCompiled } = require("../../scripts/run-iast.cjs");
+
+  function output() {
+    return { contracts: { "VulnerableVault.sol": { VulnerableVault: {
+      evm: {
+        deployedBytecode: { object: "600000" },
+        methodIdentifiers: {
+          "deposit()": "d0e30db0",
+          "withdraw(uint256)": "2e1a7d4d",
+          "balances(address)": "27e235e3",
+        },
+      },
+      storageLayout: {
+        storage: [{ label: "balances", slot: "0", offset: 0, type: "mapping" }],
+        types: {
+          mapping: { encoding: "mapping", key: "address", value: "uint" },
+          address: { label: "address" },
+          uint: { label: "uint256" },
+        },
+      },
+    } } } };
+  }
+
+  it("requires explicit approved local execution mode", function () {
+    assert.throws(() => parseArgs([]), /usage/);
+    assert.throws(() => parseArgs(["--network", "mainnet"]), /usage/);
+    assert.doesNotThrow(() => parseArgs(["--execute-approved-local-fixture"]));
+  });
+
+  it("accepts the supported runtime and mapping layout", function () {
+    const build = validateCompiled(output());
+    assert.equal(build.runtime, "0x600000");
+    assert.equal(build.mappingSlot, "0");
+  });
+
+  it("rejects compiler errors and unresolved runtime requirements", function () {
+    const broken = output();
+    broken.errors = [{ severity: "error" }];
+    assert.throws(() => validateCompiled(broken), /compiler/);
+    const linked = output();
+    linked.contracts["VulnerableVault.sol"].VulnerableVault
+      .evm.deployedBytecode.linkReferences = { library: {} };
+    assert.throws(() => validateCompiled(linked), /linking/);
+    const malformed = output();
+    malformed.contracts["VulnerableVault.sol"].VulnerableVault
+      .evm.deployedBytecode.object = "not-bytecode";
+    assert.throws(() => validateCompiled(malformed), /bytecode/);
+  });
+
+  it("rejects changed mapping layout and missing method selectors", function () {
+    const changed = output();
+    changed.contracts["VulnerableVault.sol"].VulnerableVault
+      .storageLayout.storage[0].slot = "1";
+    assert.throws(() => validateCompiled(changed), /mapping/);
+    const missing = output();
+    delete missing.contracts["VulnerableVault.sol"].VulnerableVault
+      .evm.methodIdentifiers["withdraw(uint256)"];
+    assert.throws(() => validateCompiled(missing), /selector/);
+  });
+});

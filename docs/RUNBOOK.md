@@ -1149,7 +1149,7 @@ Recorded integrated execution exited 0: two Slither findings, three Mythril find
 
 ## P03-002 — Software composition analysis
 
-**Procedure status:** ✅ Complete and verified within documented scope 2026-10-07 at implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified. This documentation reconciliation's publication lifecycle remains pending.
+**Procedure status:** ✅ Complete and verified within documented scope 2026-10-07 at implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified. Completion reconciliation `29888c04636e00e4089b47770614ed0b72e0a0a8` passed reported green GitLab CI, was published to GitHub, and fetched synchronization was verified before P03-003 started. Pipeline ID/URL and individual job logs not captured.
 
 ### Scope and prerequisites
 
@@ -1188,3 +1188,59 @@ The live run exited 0: 249 npm and 39 Python coordinates, 10 matched coordinates
 - Do not disable TLS, bypass hashes, install packages, run audit fixes, or change the approved dependency baseline to obtain a clean result.
 - Local regression suite reported 49 passing. Implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` passed reported green GitLab CI; pipeline ID/URL and individual job/test-count logs were not captured. Existing CI invocation includes offline regressions; CI does not execute live SCA or require the local `.venv`.
 - Keep raw reports, installed environments, lock artifacts, and `docs/.backup/` out of staging. Protected dependency inputs remain tracked and unchanged.
+
+## P03-003 — Local IAST state-transition evidence
+
+**Procedure status:** 🟧 Locally validated 2026-10-07; implementation commit, remote verification, and publication pending.
+
+### Purpose and scope
+
+Capture root-frame opcode execution and selected committed storage transitions during disposable, in-process, non-forked Hardhat tests. This is a coursework simulation, not production monitoring or an exploit proof.
+
+### Prerequisites and safety
+
+- Use existing repository-local Hardhat and the integrity-approved dependency/configuration/fixture inputs.
+- Native fixture runner requires existing `~/.local/share/blockchain-soc/toolchains/solc-0.8.24/solc`, SHA-256 `fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f`.
+- Do not substitute npm solc 0.8.26, change the exact fixture pragma, install ethers, enable a fork, or configure an external RPC.
+- Runtime insertion and simulated value operate only inside an owned local snapshot. No constructor/deployment or real funding is tested.
+- Wrappers reject nested execution and writes outside selected slots; they do not provide complete world-state coverage.
+
+### Tested commands
+
+From `~/Blockchain-Security-Project-Remastered`:
+
+```bash
+./node_modules/.bin/hardhat \
+  --config config/hardhat.config.js \
+  test --no-compile \
+  test/hardhat/formal-tools.test.js \
+  test/hardhat/placeholder.test.js \
+  test/hardhat/pipeline-entrypoints.test.js
+
+/usr/bin/timeout 180s /usr/bin/node scripts/run-iast.cjs \
+  --execute-approved-local-fixture
+
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+```
+
+Observed results: 61 local passing tests; native runner exited 0 with `status: "iast-executed"`; strict ingestion valid and asset inventory unchanged.
+
+### Evidence interpretation
+
+- Four native-runtime cases recorded ledger 0→100→60; zero and insufficient withdrawals failed without changing 60.
+- Synthetic regressions recorded successful writes and attempted writes discarded by REVERT.
+- CALL-before-SSTORE is observed ordering, not proof of a reentrancy drain.
+- Only selected slot before/after values are committed-state evidence; opcode writes are attempts.
+- Snapshot code/balance/storage/block restoration was confirmed.
+- Evidence: `~/.local/state/blockchain-soc/p03-003/iast-L6LCQu/`; retain compiler records, captures, cleanup, and summary outside Git.
+- `taskComplete: false` is the saved runtime snapshot, not a documentation/publication lifecycle decision. Do not edit saved evidence to change task status.
+
+### Failure handling and limits
+
+- Stop on hash mismatch, compiler error, malformed/conflicting trace, unsupported frames/slots, ambiguous transaction identity, or cleanup failure. These are incomplete coverage, not empty findings.
+- Compiler has a 60-second timeout and 16-MiB output buffer; the tested runner has an outer 180-second limit.
+- Transaction gas is at most 300000; calldata at most 4096 bytes; storage scope at most 64 slots.
+- Trace processing rejects over 20000 steps or 8 MiB JSON after provider return. This is not a provider-level memory cap.
+- Snapshot cleanup is attempted on handled execution errors; a forced process termination ends this private in-process network, but does not produce confirmed cleanup evidence.
+- Keep evidence and backups out of staging. No automatic dependency fixes, compiler download, configuration bypass, external chain connection, or real funding.
+- Existing CI runs wrapper/runner-boundary regressions; native compiler execution remains separately recorded local evidence.
