@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-002 — Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup (not started) |
-| Current thread | P03-001 is ✅ complete within documented scope at `7110f725e89ee6c0d185474b8f2a5685f1814aef`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. Publish this documentation reconciliation before P03-002 implementation. CHC ordering unknown remains documented; Phase 3 is not complete. Preserve untracked `docs/.backup/`. |
+| Current task | P03-002 — Dependency inventory and vulnerability lookup; 🟧 publication verification pending |
+| Current thread | P03-002 implemented and locally validated: live lookup completed, 49 tests passed, findings retained. Review/commit and GitLab-first verification/publication pending. P03-003 deferred; Phase 3 not complete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,6 +576,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
+### P03-002 — SCA implementation — 🟧 Publication verification pending
+
+- **State:** Locally validated 2026-10-07; live scan exited 0, 49 local regressions passed, strict ingestion valid.
+- **Scope:** Existing npm lock resolution plus installed project-venv Python inventory; OSV matching and NVD CVE enrichment. No fresh dependency install/resolution or Python lockfile.
+- **Results:** 249 npm and 39 Python coordinates; 10 matched coordinates, 32 active advisories, 28/28 NVD records. Four advisories without CVE aliases retained. Findings are not remediated or approved as safe.
+- **Coverage limitations:** npm includes optional/platform entries; Python includes tooling/extras and does not prove closure. NVD snapshot: 16 Analyzed, 6 Modified, 5 Deferred, 1 Awaiting Analysis; metric sources/versions remain distinct.
+- **Evidence:** `~/.local/state/blockchain-soc/p03-002/sca-MSfaq3/`; raw responses outside Git; dependency hashes unchanged; lookup lock released.
+- **Files:** Existing shell wrapper and placeholder test; three new SCA helper/runner files; CHECKLIST/HANDOFF/RUNBOOK updates. Existing CI test invocation applies without CI configuration change; this implementation's pipeline is pending.
+- **Next:** Review, commit, GitLab-first verification, completion reconciliation, GitHub publication, and fetched synchronization. P03-003 remains deferred. Preserve untracked `docs/.backup/`.
+
 ### P03-001 — Formal-tool analysis — ✅ Complete and verified
 
 - **State:** ✅ Complete and verified within documented scope 2026-10-07. Integrated runner exited 0; 23 local regressions passed; strict ingestion valid. Implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified.
@@ -586,7 +596,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **CI:** Implementation pipeline reported green; committed ingestion job includes regressions. Pipeline ID/URL and individual job logs not captured. Scanner/proof runs remain local.
 - **Historical synchronization:** Remediation `856a841d282e235a7389205218ee918ce3abd79a` passed reported green GitLab CI and was synchronized with GitHub on 2026-10-05.
 - **Limitations:** Intentionally vulnerable fixture; CHC unknown unresolved; BMC is function-level, not a drain exploit; instrumented-copy assertions and bounded Paris-EVM Mythril analysis.
-- **Next:** Publish and validate this documentation reconciliation GitLab-first, then synchronize it to GitHub before P03-002 implementation. Phase 3 is not complete. Preserve untracked `docs/.backup/`.
+- **Closeout addendum:** Reconciliation `0876b0ae4261d64616814b7d603ea5d646c77e46` passed reported green GitLab CI, was published to GitHub, and was verified synchronized before P03-002 started. Phase 3 remains in progress; preserve untracked `docs/.backup/`.
 
 ### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — ✅ Complete and verified
 
@@ -599,7 +609,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P03-002` — Next implementation task, after this documentation reconciliation is validated and synchronized.
+1. `P03-002` — Finish review, commit, GitLab verification, completion reconciliation, and publication/synchronization.
 2. `P03-003` — Later task; do not start before P03-002 closeout.
 ## Known dependencies and planned stubs
 

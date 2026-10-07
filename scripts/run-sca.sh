@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# TODO(phase-3): Zone 2 — SCA (Software Composition Analysis)
-# Resolve external package branches against NIST NVD CVE registries.
+# P03-002: explicit local inventory and approved public vulnerability lookup.
 set -euo pipefail
-echo "TODO: implement SCA scan — see checklist Phase 3" >&2
-exit 1
+ROOT="$(cd -- "${BASH_SOURCE[0]%/*}/.." && pwd -P)"
+exec /usr/bin/node "$ROOT/scripts/run-sca.cjs" "$@"

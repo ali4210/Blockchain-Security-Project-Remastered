@@ -1146,3 +1146,45 @@ Recorded integrated execution exited 0: two Slither findings, three Mythril find
 - Stop on missing prerequisites, checksum mismatch, unavailable solvers, tool errors, or absent expected fixture detection. Do not bypass integrity or isolation controls.
 - Local regression suite reported 23 passing with Hardhat `--no-compile`. Implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef` passed reported green GitLab CI; pipeline ID/URL and individual job/test-count logs were not captured. CI includes the regression invocation but does not run scanners/proofs.
 - Original fixture, raw artifacts, installed toolchains, and `docs/.backup/` are not included in staging.
+
+## P03-002 — Software composition analysis
+
+**Procedure status:** Locally validated 2026-10-07; implementation commit, remote CI, and publication lifecycle pending.
+
+### Scope and prerequisites
+
+- Use the integrity-approved package.json, package-lock.json, and requirements.txt; the runner pins their hashes.
+- Requires Node.js and the existing project `.venv` for metadata inspection. It installs nothing and performs no automatic fixes.
+- npm inventory consumes exact locked versions, including optional/platform entries; installed npm state is not proved.
+- Python inventory consumes all installed project-venv distributions, including tooling/extras. It is not a Python lockfile, fresh resolution, or proof of dependency closure.
+- Live mode sends public ecosystem/package/version coordinates to OSV and CVE aliases to NVD. No API credentials or project source are sent.
+
+### Validated commands
+
+From `~/Blockchain-Security-Project-Remastered`:
+
+```bash
+/usr/bin/bash scripts/run-sca.sh --inventory
+/usr/bin/bash scripts/run-sca.sh --lookup-approved-public-dependencies
+```
+
+The live run exited 0: 249 npm and 39 Python coordinates, 10 matched coordinates, 32 active advisories, 28 requested/returned NVD CVEs, no missing IDs. Evidence: `~/.local/state/blockchain-soc/p03-002/sca-MSfaq3/`.
+
+### Interpretation and limits
+
+- `lookup-completed` means in-scope lookup requests finished, not that dependencies are safe or findings remediated.
+- Advisory IDs, CVE IDs, affected coordinates, and exploitability are different concepts. Retain advisory-only records, withdrawn status, and missing enrichment.
+- NVD Deferred/Awaiting Analysis records and differing score sources/versions remain explicit. Record presence and CVSS scores do not prove project exposure.
+- OSV batch pagination is per query; full advisories are retrieved separately. NVD requests use up to 100 CVE IDs with offset pagination and 6500-ms pacing.
+- HTTP transport permits only the defined HTTPS service URLs, rejects redirects, omits credentials, limits responses to 8 MiB, and bounds individual requests to 45 seconds.
+- Finite request/page/detail limits and a 15-minute request deadline apply; this is not an exact process wall-clock guarantee. Cache is per-run only; no automatic retries or stale fallback.
+
+### Evidence and failure recovery
+
+- Inventory, request/response records, lookup output, summary, and failures are written under host-local `~/.local/state/blockchain-soc/p03-002/sca-*/`, outside Git.
+- Live execution owns `lookup.lock` to prevent overlapping runs of this runner. Successful/handled-error paths release it.
+- Do not blindly delete an existing lock. Investigate its recorded process and evidence first; never remove an active run's lock.
+- Exit 2 or error/incomplete evidence is not a successful zero-finding scan. Preserve partial responses and failure records.
+- Do not disable TLS, bypass hashes, install packages, run audit fixes, or change the approved dependency baseline to obtain a clean result.
+- Local regression suite reported 49 passing; existing CI invocation includes those tests. CI does not execute live SCA or require the local `.venv`.
+- Keep raw reports, installed environments, lock artifacts, and `docs/.backup/` out of staging. Protected dependency inputs remain tracked and unchanged.
