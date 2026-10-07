@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-001 — Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract |
-| Current thread | P03-001 is 🟧 implemented and locally validated: integrated Slither/Mythril and approved SMTChecker alternative executed; 23 tests passed. Review/commit and verify the regression-bearing GitLab pipeline before completion reconciliation and GitHub publication. CHC ordering remains unknown. P03-002 deferred; preserve untracked `docs/.backup/`. |
+| Current task | P03-002 — Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup (not started) |
+| Current thread | P03-001 is ✅ complete within documented scope at `7110f725e89ee6c0d185474b8f2a5685f1814aef`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. Publish this documentation reconciliation before P03-002 implementation. CHC ordering unknown remains documented; Phase 3 is not complete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,17 +576,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
-### P03-001 — Formal-tool analysis — 🟧 Publication verification pending
+### P03-001 — Formal-tool analysis — ✅ Complete and verified
 
-- **State:** Implemented and locally validated 2026-10-07; integrated runner exited 0; 23 local regressions passed; strict ingestion valid.
+- **State:** ✅ Complete and verified within documented scope 2026-10-07. Integrated runner exited 0; 23 local regressions passed; strict ingestion valid. Implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified.
 - **Implementation:** New pure classifiers and explicit execution runner; existing formal-tools test extended. Policy gate remains no-execution.
 - **Results:** Slither two findings; Mythril three including SWC-107; CHC deposit safe; CHC ordering unknown; BMC ordering violated in the function model.
 - **Alternative:** Approved Solidity SMTChecker with isolated Z3; Certora credentials and service not used.
 - **Evidence:** `~/.local/state/blockchain-soc/p03-001/integrated-Ttw0qi/`; identities, bounds, limitations, and run procedure recorded in CHECKLIST/RUNBOOK. Raw artifacts stay outside Git.
-- **CI:** Regression invocation added to existing ingestion job; remote verification pending. Scanner/proof runs remain local.
+- **CI:** Implementation pipeline reported green; committed ingestion job includes regressions. Pipeline ID/URL and individual job logs not captured. Scanner/proof runs remain local.
 - **Historical synchronization:** Remediation `856a841d282e235a7389205218ee918ce3abd79a` passed reported green GitLab CI and was synchronized with GitHub on 2026-10-05.
 - **Limitations:** Intentionally vulnerable fixture; CHC unknown unresolved; BMC is function-level, not a drain exploit; instrumented-copy assertions and bounded Paris-EVM Mythril analysis.
-- **Next:** Review/commit, GitLab-first verification, completion reconciliation, GitHub publication, and fetched synchronization. P03-002 remains deferred until closeout; Phase 3 is not complete. Preserve untracked `docs/.backup/`.
+- **Next:** Publish and validate this documentation reconciliation GitLab-first, then synchronize it to GitHub before P03-002 implementation. Phase 3 is not complete. Preserve untracked `docs/.backup/`.
 
 ### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — ✅ Complete and verified
 
@@ -599,8 +599,8 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P03-001` — 🟧 Finish review, commit, GitLab verification, completion reconciliation, GitHub publication, and fetched synchronization.
-2. `P03-002` — Deferred pending P03-001 unblock or explicit scope decision.
+1. `P03-002` — Next implementation task, after this documentation reconciliation is validated and synchronized.
+2. `P03-003` — Later task; do not start before P03-002 closeout.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

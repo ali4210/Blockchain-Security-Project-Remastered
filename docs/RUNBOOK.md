@@ -1106,7 +1106,7 @@ Before marking any runbook procedure as verified:
 
 ## P03-001 — Local formal-tool analysis
 
-**Procedure status:** Locally executed and validated 2026-10-07; implementation commit and remote CI/publication lifecycle pending.
+**Procedure status:** ✅ Locally validated and reconciled with implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef` on 2026-10-07: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified. Scanner/proof evidence is local, not CI execution.
 
 ### Preconditions
 
@@ -1144,5 +1144,5 @@ Recorded integrated execution exited 0: two Slither findings, three Mythril find
 - Preserve failed runs. The timed-out integrated run and shorter-budget zero-finding run are not successful evidence.
 - Cleanup removes only the uniquely named container; if unconfirmed, inspect that exact name before retrying. Do not perform broad deletion.
 - Stop on missing prerequisites, checksum mismatch, unavailable solvers, tool errors, or absent expected fixture detection. Do not bypass integrity or isolation controls.
-- Local regression suite reported 23 passing with Hardhat `--no-compile`. Newly added CI invocation remains pending verification; CI does not run scanners/proofs.
+- Local regression suite reported 23 passing with Hardhat `--no-compile`. Implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef` passed reported green GitLab CI; pipeline ID/URL and individual job/test-count logs were not captured. CI includes the regression invocation but does not run scanners/proofs.
 - Original fixture, raw artifacts, installed toolchains, and `docs/.backup/` are not included in staging.
