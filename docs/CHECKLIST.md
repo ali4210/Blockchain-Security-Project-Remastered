@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-005 — Add a prompt-injection contract fixture and verify masking returns hash/tag representation only (not started; documentation closeout first) |
-| Current thread | P03-004 is ✅ complete within documented AST-masking scope at `42384867ed4a8f2fcda2b58e806ce967a802cd37`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. 73 local tests passed; native approved-fixture result was 64 nodes/depth 10, five literal masks/four string masks, and two omitted documentation fields. Structural projection only; no semantic security, encryption, or complete prompt-injection defense claimed. Publish and validate this documentation reconciliation before P03-005 implementation. Phase 3 gate remains not ready; preserve untracked `docs/.backup/`. |
+| Current task | P03-005 — Prompt-injection fixture masking verification; 🟧 publication verification pending |
+| Current thread | P03-005 implemented and locally validated: 79 regressions passed; native fixture verification passed twice deterministically with 24 nodes/depth 4, seven literal masks, one documentation field omitted, and raw payloads absent. Strict ingestion accepts exactly the two approved contracts; tampering/extra-asset/symlink controls passed. No LLM behavior or complete prompt-injection defense claimed. Review/commit, GitLab-first CI, reconciliation, and publication remain. P03-006 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `42384867ed4a8f2fcda2b58e806ce967a802cd37` — P03-004 implementation |
-| Last GitLab pipeline | Reported green for `42384867ed4a8f2fcda2b58e806ce967a802cd37`; pipeline ID/URL and individual job logs not captured |
-| Last GitHub post | Published — fetched `origin/main` at `42384867ed4a8f2fcda2b58e806ce967a802cd37` |
-| Synchronization | Verified implementation baseline — `main == gitlab/main == origin/main == 42384867ed4a8f2fcda2b58e806ce967a802cd37` |
+| Last verified commit | `6b6469779454d1820a9a59f8be5f3d07fa213912` — P03-004 completion reconciliation |
+| Last GitLab pipeline | Reported green for `6b6469779454d1820a9a59f8be5f3d07fa213912`; pipeline ID/URL and individual job logs not captured |
+| Last GitHub post | Published — fetched `origin/main` at `6b6469779454d1820a9a59f8be5f3d07fa213912` |
+| Synchronization | Verified pre-task baseline — `main == gitlab/main == origin/main == 6b6469779454d1820a9a59f8be5f3d07fa213912` |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-07 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -96,7 +96,7 @@ resolve to the same full SHA.
 | 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ✅ | P01-GATE recorded complete and verified 2026-10-05; see detailed gate evidence. | See P01-GATE |
 | 2 | Zone 1 — Ingestion Gateway | ✅ | P02-GATE recorded complete and verified 2026-10-05. | `aded10c3ac964783ef22104d82ce8e167c6de69c` |
-| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 through P03-004 complete within documented scopes; P03-005 not started; P03-GATE not ready. | `42384867ed4a8f2fcda2b58e806ce967a802cd37` (P03-004 implementation) |
+| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 through P03-004 complete; P03-005 locally validated, publication pending; P03-GATE not ready. | `6b6469779454d1820a9a59f8be5f3d07fa213912` (verified baseline) |
 | 4 | Zone 3 — Compilation, Storage and MCP Middleware | ⬜ | — | — |
 | 5 | Transport Bridge, Inference Layer, and Agent Swarm A–G | ⬜ | — | — |
 | 6 | AVS Cryptographic Consensus | ⬜ | — | — |
@@ -772,7 +772,7 @@ resolve to the same full SHA.
 | P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | ✅ | Complete and verified 2026-10-07 within documented inventory/lookup scope: `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. 49 local tests passed; findings retained. |
 | P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ✅ | Complete and verified 2026-10-07 within root-frame/selected-slot coursework scope: `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green GitLab CI, GitHub publication, and fetched synchronization. 61 local tests; four vault cases; cleanup confirmed. |
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ✅ | Complete and verified 2026-10-07 within documented projection scope: `42384867ed4a8f2fcda2b58e806ce967a802cd37`, reported green GitLab CI, GitHub publication, and fetched synchronization. 73 local tests; native fixture masked; limitations retained. |
-| P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | ⬜ | — |
+| P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | 🟧 | Locally validated 2026-10-07: 79 tests; seven masks/schema/payload omission/determinism verified; strict ingestion controls passed. Commit, remote CI, and publication pending. |
 | P03-006 | Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails. | ⬜ | — |
 | P03-007 | Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. | ⬜ | — |
 | P03-008 | Add CSET/CISA or an approved open-source CMMC/NIST governance scanner. | ⬜ | — |
@@ -853,8 +853,26 @@ resolve to the same full SHA.
 - **Evidence:** `~/.local/state/blockchain-soc/p03-004/mask-Ytb4y1/`; `masked-result.json` and `summary.json` remain outside Git. Raw source/compiler diagnostics are not persisted by the masking CLI.
 - **Integrity:** Strict ingestion exited 0 with valid integrity and unchanged approved asset map. Dependency manifests/lockfile, original fixture, Hardhat configuration, CI definition, and ingestion policy unchanged.
 - **Safety and limitations:** No new parser/compiler install, registry/network/RPC, EVM execution by this masker, deployment, funding, wallet/key/credential use, LLM call, or tracked injection-contract fixture. Projection is not recompilable or semantically complete; security acceptance not established; P03-005 and Phase 3 gate remain pending.
-- **Acceptance:** In-scope parsing, literal masking, raw-field omission, depth routing, explicit non-success outcomes, bounded processing, regressions, and ingestion checks passed. Implementation committed at `42384867ed4a8f2fcda2b58e806ce967a802cd37`, reported green in GitLab CI, published to GitHub, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
-- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub publication/synchronization before P03-005 starts; no outcome for an uncreated reconciliation commit is claimed.
+- **Acceptance:** In-scope parsing, literal masking, raw-field omission, depth routing, explicit non-success outcomes, bounded processing, regressions, and ingestion checks passed. Implementation committed at `42384867ed4a8f2fcda2b58e806ce967a802cd37`, reported green in GitLab CI, published to GitHub, and fetched synchronization verified. Completion documentation was published and verified at `6b6469779454d1820a9a59f8be5f3d07fa213912`.
+- **Completion reconciliation:** Documentation commit `6b6469779454d1820a9a59f8be5f3d07fa213912` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-005 started. Pipeline ID/URL and individual job logs not captured.
+
+### P03-005 — Prompt-injection fixture masking verification
+
+- **Status:** 🟧 Implemented and locally validated 2026-10-07; commit, GitLab verification, completion reconciliation, publication, and synchronization pending.
+- **Files:** Added `contracts/solidity/PromptInjectionFixture.sol` and `scripts/verify-mask-fixture.cjs`; narrowly updated `scripts/ingest-manifests.mts`; extended existing `test/hardhat/placeholder.test.js`; updated CHECKLIST/HANDOFF/RUNBOOK.
+- **Fixture identity:** SHA-256 `17f6fba73823f0ed9c00a9253595cb7249c580fcb4dfc79f1e9b6344c26f47a4`. Inert internal constants only; seven ordinary/escaped/Unicode/hexadecimal/joined/empty literal instances plus synthetic documentation. `pragma solidity ^0.8.24` deliberately permits native 0.8.24 and npm 0.8.26 to parse the same unchanged source.
+- **Verification:** Actual pinned fixture bytes parsed; all seven exact kind/hash/byte-length tuples matched. Strict projection schema, node links, hashes, metadata, and payload-absence checks passed. Raw payloads, selected identity/documentation markers, and full hexadecimal/base64 literal representations were absent.
+- **Native result:** CLI exited 0 with schema-version-1 `status: "fixture-verified"`; 24 nodes, semantic depth 4, seven verified masks, one omitted documentation field. Two native parser executions were identical; schemaVerified/rawPayloadsAbsent/deterministic true.
+- **Regressions:** Full existing CI-equivalent Hardhat `test --no-compile` command reported 79 local passing tests. Six new regressions cover byte pinning/tampering, actual unchanged-source parsing and all masks, bad hashes/raw fields/metadata, non-success result rejection, CLI scope, and strict ingestion negative controls.
+- **Ingestion policy:** Added only this fixture's exact hash and Solidity inventory entry. Approved inventory is exactly PromptInjectionFixture.sol plus VulnerableVault.sol. Controlled copies proved rejection of changed fixture bytes, Unexpected.sol, and a symlink; temporary copy removed. No wildcard approval or disabled integrity check.
+- **Integrity:** Original vault, both P03-004 masker files, dependency inputs, Hardhat configuration, and CI definition unchanged. Strict ingestion exited 0 with valid integrity and the explicit two-contract asset map.
+- **Parser distinction:** Native hash-pinned Solc 0.8.24 locally; existing npm Solc 0.8.26 parses the same compatible fixture source in CI regressions. No source/pragma substitution, package installation, or native compiler provisioning in CI. Remote verification remains pending.
+- **Evidence:** `~/.local/state/blockchain-soc/p03-005/fixture-RxiTl5/`; verified masked result and summary outside Git. Fixture-verifier errors emit a fixed structured failure, not raw payloads or compiler diagnostics.
+- **Scope and limits:** Reuses P03-004 parsing/projection bounds; verifier limits pinned input to under 64 KiB, accepted JSON to 4 MiB, and projected inventory to 256 nodes. Tested native command used a 90-second outer limit for two bounded parser calls.
+- **Safety and limitations:** 🔒 Inert coursework fixture, not a live prompt attack. No LLM call/behavior test, bytecode generation, deployment, funding, external RPC/network, wallet/key/credential use, or EVM execution by this verifier. Literal omission is verified for this fixture/supported projection; hashing is not encryption or complete prompt-injection prevention.
+- **Acceptance:** Fixture creation, exact literal masks, raw/encoded payload omission, schema/determinism, strict integrity controls, regressions, and ingestion passed locally. Commit, remote verification, publication, and synchronization pending.
+- **Phase gate contribution:** Locally exercises the prompt-injection-fixture masking criterion; no Phase 3 completion is declared.
+- **Next:** Review/commit implementation plus documentation, verify GitLab-first CI, reconcile completion, publish validated history to GitHub, and verify synchronization before P03-006.
 
 ## P03-GATE — Phase 3 completion gate
 

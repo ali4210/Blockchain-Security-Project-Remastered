@@ -772,3 +772,143 @@ describe("AST masking regressions", function () {
     assert.equal(masked.reason, "explicit-approved-fixture-mode-required");
   });
 });
+
+describe("Prompt-injection fixture regressions", function () {
+  const fs = require("node:fs");
+  const os = require("node:os");
+  const path = require("node:path");
+  const solc = require("solc");
+  const {
+    FIXTURE_PATH, FIXTURE_HASH, EXPECTED_MASKS,
+    verifyFixtureBytes, validateMasked,
+  } = require("../../scripts/verify-mask-fixture.cjs");
+  const { projectCompilerOutput } = require("../../scripts/ast-mask-core.cjs");
+  const root = resolve(__dirname, "../..");
+
+  function parseFixture() {
+    const source = verifyFixtureBytes(fs.readFileSync(path.join(root, FIXTURE_PATH)));
+    const output = JSON.parse(solc.compile(JSON.stringify({
+      language: "Solidity",
+      sources: { "Input.sol": { content: source } },
+      settings: {
+        stopAfter: "parsing",
+        outputSelection: { "*": { "": ["ast"] } },
+      },
+    }), { import: () => ({ error: "imports disabled" }) }));
+    return projectCompilerOutput(output);
+  }
+
+  it("pins actual fixture bytes and rejects tampering", function () {
+    const bytes = fs.readFileSync(path.join(root, FIXTURE_PATH));
+    assert.ok(verifyFixtureBytes(bytes).includes("pragma solidity ^0.8.24"));
+    assert.throws(
+      () => verifyFixtureBytes(Buffer.concat([bytes, Buffer.from("\n// tampered")])),
+      /SHA-256/
+    );
+    assert.match(FIXTURE_HASH, /^[0-9a-f]{64}$/);
+  });
+
+  it("parses unchanged fixture source and verifies all seven masks", function () {
+    const masked = parseFixture();
+    const verified = validateMasked(masked);
+    assert.equal(verified.verifiedLiteralMasks, 7);
+    assert.equal(EXPECTED_MASKS.length, 7);
+    assert.equal(verified.rawPayloadsAbsent, true);
+    assert.equal(verified.schemaVerified, true);
+    assert.deepEqual(parseFixture(), masked);
+  });
+
+  it("rejects wrong hashes, raw fields and payload-bearing metadata", function () {
+    for (const mutation of [
+      (value) => {
+        value.ast.nodes.find((node) => node.literalMask)
+          .literalMask.sha256 = "0".repeat(64);
+      },
+      (value) => { value.ast.nodes[0].rawSource = "P03_005_ROLE"; },
+      (value) => { value.limitations[0] = "P03_005_TOOL"; },
+    ]) {
+      const masked = parseFixture();
+      mutation(masked);
+      assert.throws(() => validateMasked(masked), /verification failed/);
+    }
+  });
+
+  it("rejects manual-review, malformed and error results as verification success", function () {
+    for (const value of [
+      {}, { status: "manual-review" }, { status: "invalid" }, { status: "error" },
+    ]) assert.throws(() => validateMasked(value), /verification failed/);
+  });
+
+  it("requires explicit native-verifier CLI mode", function () {
+    const execution = spawnSync(process.execPath, [
+      path.join(root, "scripts/verify-mask-fixture.cjs"),
+    ], { encoding: "utf8", timeout: 10000 });
+    assert.equal(execution.error, undefined);
+    assert.equal(execution.status, 1);
+    assert.equal(execution.stdout, "");
+    assert.equal(JSON.parse(execution.stderr).reason, "fixture-verification-failed");
+  });
+
+  it("keeps ingestion strict for fixture tampering, extra assets and symlinks", function () {
+    this.timeout(20000);
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), "p03-005-ingestion-"));
+    const files = [
+      "package.json", "package-lock.json",
+      "config/foundry.toml", "config/hardhat.config.js", "config/Move.toml",
+      "contracts/solidity/VulnerableVault.sol", FIXTURE_PATH,
+      "test/foundry/Exploit.t.sol", "test/foundry/Invariants.t.sol",
+      "test/hardhat/formal-tools.test.js",
+      "test/hardhat/placeholder.test.js",
+      "test/hardhat/pipeline-entrypoints.test.js",
+    ];
+
+    function ingestCopy() {
+      return spawnSync(process.execPath, [
+        path.join(root, "node_modules/.bin/tsx"), "--no-cache",
+        path.join(root, "scripts/ingest-manifests.mts"), sandbox,
+      ], { cwd: root, encoding: "utf8", timeout: 10000, maxBuffer: 1024 * 1024 });
+    }
+    function rejected(execution, component, pattern) {
+      assert.equal(execution.error, undefined);
+      assert.equal(execution.status, 1);
+      assert.equal(execution.stdout, "");
+      const diagnostic = JSON.parse(execution.stderr);
+      assert.equal(diagnostic.component, component);
+      assert.match(diagnostic.error, pattern);
+    }
+
+    try {
+      for (const name of files) {
+        const destination = path.join(sandbox, name);
+        fs.mkdirSync(path.dirname(destination), { recursive: true });
+        fs.copyFileSync(path.join(root, name), destination);
+      }
+
+      const valid = ingestCopy();
+      assert.equal(valid.error, undefined);
+      assert.equal(valid.status, 0, valid.stderr);
+      const inventory = JSON.parse(valid.stdout);
+      assert.deepEqual(inventory.assetMap.contracts.solidity, [
+        FIXTURE_PATH, "contracts/solidity/VulnerableVault.sol",
+      ]);
+      assert.equal(inventory.integrity.files[FIXTURE_PATH], FIXTURE_HASH);
+
+      const copy = path.join(sandbox, FIXTURE_PATH);
+      fs.appendFileSync(copy, "\n// tampered\n");
+      rejected(ingestCopy(), FIXTURE_PATH, /sha256 mismatch/);
+      fs.copyFileSync(path.join(root, FIXTURE_PATH), copy);
+
+      const extra = path.join(sandbox, "contracts/solidity/Unexpected.sol");
+      fs.writeFileSync(extra, "pragma solidity ^0.8.24; contract Unexpected {}\n");
+      rejected(ingestCopy(), "contracts", /asset inventory mismatch/);
+      fs.unlinkSync(extra);
+
+      fs.unlinkSync(copy);
+      fs.symlinkSync(path.join(root, FIXTURE_PATH), copy);
+      rejected(ingestCopy(), "contracts", /symlink/);
+    } finally {
+      fs.rmSync(sandbox, { recursive: true, force: true });
+    }
+    assert.equal(fs.existsSync(sandbox), false);
+  });
+});

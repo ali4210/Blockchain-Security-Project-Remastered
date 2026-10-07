@@ -275,6 +275,7 @@ const EXPECTED_FILE_HASHES = {
   "config/foundry.toml": "71c0b047c483a4e0c5aca70b5bc0315a75d2b3d73edd8c86e7c944a2bcb358bf",
   "config/hardhat.config.js": "9f210a2ce515df82925e28642dfac959cc3f99b7ced3c3a2a23e6fd65f6a62b5",
   "config/Move.toml": "52211ca389cb1353cd04c32ba21b2052e62fec320f7de8e4b759ddb4f6671f71",
+  "contracts/solidity/PromptInjectionFixture.sol": "17f6fba73823f0ed9c00a9253595cb7249c580fcb4dfc79f1e9b6344c26f47a4",
   "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
 } as const;
 
@@ -444,7 +445,10 @@ function toRelativePosixPath(root: string, path: string): string {
 
 const EXPECTED_ASSET_MAP = {
   contracts: {
-    solidity: ["contracts/solidity/VulnerableVault.sol"],
+    solidity: [
+      "contracts/solidity/PromptInjectionFixture.sol",
+      "contracts/solidity/VulnerableVault.sol",
+    ],
   },
   move: {
     manifest: "config/Move.toml",

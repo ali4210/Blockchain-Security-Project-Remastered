@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-005 — Add a prompt-injection contract fixture and verify masking returns hash/tag representation only (not started; documentation closeout first) |
-| Current thread | P03-004 is ✅ complete within documented AST-masking scope at `42384867ed4a8f2fcda2b58e806ce967a802cd37`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. 73 local tests passed; native approved-fixture result was 64 nodes/depth 10, five literal masks/four string masks, and two omitted documentation fields. Structural projection only; no semantic security, encryption, or complete prompt-injection defense claimed. Publish and validate this documentation reconciliation before P03-005 implementation. Phase 3 gate remains not ready; preserve untracked `docs/.backup/`. |
+| Current task | P03-005 — Prompt-injection fixture masking verification; 🟧 publication verification pending |
+| Current thread | P03-005 implemented and locally validated: 79 regressions passed; native fixture verification passed twice deterministically with 24 nodes/depth 4, seven literal masks, one documentation field omitted, and raw payloads absent. Strict ingestion accepts exactly the two approved contracts; tampering/extra-asset/symlink controls passed. No LLM behavior or complete prompt-injection defense claimed. Review/commit, GitLab-first CI, reconciliation, and publication remain. P03-006 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,6 +576,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
+### P03-005 — Injection-fixture masking — 🟧 Publication verification pending
+
+- **State:** Locally validated 2026-10-07: 79 tests passed; native fixture verifier exited 0; strict ingestion valid.
+- **Fixture:** `contracts/solidity/PromptInjectionFixture.sol`, SHA-256 `17f6fba73823f0ed9c00a9253595cb7249c580fcb4dfc79f1e9b6344c26f47a4`; inert seven-literal fixture with documentation; unchanged source parses under native 0.8.24 and npm 0.8.26.
+- **Result:** 24 nodes/depth 4, seven masks, one documentation field omitted; schema and raw-payload absence verified; two native parses deterministic. Evidence `~/.local/state/blockchain-soc/p03-005/fixture-RxiTl5/` stays outside Git.
+- **Policy:** Only the new hash/inventory entry added. Tampered fixture, extra contract, and symlink rejected in disposable copied roots; cleanup confirmed.
+- **Files:** New fixture/verifier; existing ingestion policy and placeholder test changed; three task documents updated. Original vault/masker/dependencies/configuration/CI unchanged.
+- **Limitations:** Fixture-specific data omission and schema verification, not LLM behavior, encryption, semantic security, or complete prompt-injection prevention. No fixture execution/deployment.
+- **Next:** Review/commit, GitLab-first verification, completion reconciliation, GitHub publication, and fetched synchronization. P03-006 deferred; Phase 3 not complete. Preserve untracked `docs/.backup/`.
+
 ### P03-004 — AST masking — ✅ Complete and verified
 
 - **State:** ✅ Complete and verified within documented scope 2026-10-07. Implementation `42384867ed4a8f2fcda2b58e806ce967a802cd37` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. 73 local tests passed; native approved-fixture masking exited 0; strict ingestion valid.
@@ -584,7 +594,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Parser distinction:** Native hash-pinned Solc 0.8.24 for source API/original fixture; existing npm Solc 0.8.26 for compatible in-memory CI parser examples. Imports disabled; no dependency or pragma change.
 - **Files:** Existing masker and placeholder test modified; one new core helper; three task documents updated. Original source/configuration/CI/ingestion policy unchanged.
 - **Limitations:** Not a recompilable/semantically complete AST, semantic proof, complete prompt-injection defense, encryption/secret redaction, deployed review queue, or LLM integration. P03-005's tracked fixture is not implemented here.
-- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub publication/synchronization before P03-005 starts; no outcome for an uncreated reconciliation commit is claimed.
+- **Completion reconciliation:** Documentation commit `6b6469779454d1820a9a59f8be5f3d07fa213912` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-005 started. Pipeline ID/URL and individual job logs not captured.
 - **CI evidence:** Pipeline reported green; pipeline ID/URL, individual job logs, and remote test count not captured. Native Solc 0.8.24 integration remains local evidence.
 
 ### P03-003 — IAST wrappers — ✅ Complete and verified
@@ -633,7 +643,8 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P03-005` — Next implementation task, after this documentation reconciliation is validated and synchronized.
+1. `P03-005` — Finish review, commit, GitLab verification, completion reconciliation, and publication/synchronization.
+2. `P03-006` — Later task; do not start before P03-005 closeout.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
