@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-003 — IAST EVM state-transition wrappers; 🟧 publication verification pending |
-| Current thread | P03-003 implemented and locally validated: 61 regressions passed, four original-vault runtime cases passed, snapshot cleanup confirmed, strict ingestion valid. Root-frame/selected-slot coverage only; no exploit or security acceptance claimed. Review/commit, GitLab-first CI, completion reconciliation, and publication remain. P03-004 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
+| Current task | P03-004 — Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review (not started; documentation closeout first) |
+| Current thread | P03-003 is ✅ complete within documented root-frame/selected-slot IAST scope at `139ff6a3310675aa6482b1c57cd9b53760d6b364`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. 61 local tests and four original-vault runtime cases passed; snapshot restored. No reentrancy exploit or security acceptance claimed. Publish and validate this documentation reconciliation before P03-004 implementation. Phase 3 gate remains not ready; preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,15 +576,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
-### P03-003 — IAST wrappers — 🟧 Publication verification pending
+### P03-003 — IAST wrappers — ✅ Complete and verified
 
-- **State:** Locally validated 2026-10-07: 61 tests passed; four original-vault runtime cases completed; snapshot restoration confirmed; strict ingestion valid.
+- **State:** ✅ Complete and verified within documented coursework scope 2026-10-07. Implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. 61 local tests, four original-vault runtime cases, snapshot restoration, and strict ingestion passed.
 - **Scope:** 🔒 In-process non-forked Hardhat only, root execution frame, explicit storage slots. Original fixture/compiler hashes pinned; Paris runtime insertion, not constructor/deployment execution.
 - **Results:** Simulated deposit/withdraw ledger 0→100→60; zero/insufficient withdrawals rejected without ledger changes. CALL-before-SSTORE observed, not an exploit proof. Synthetic write-before-revert regression proves attempted writes are not committed state.
 - **Evidence:** `~/.local/state/blockchain-soc/p03-003/iast-L6LCQu/`; raw/generated evidence stays outside Git.
 - **Files:** Two new IAST scripts; existing placeholder test extended; three documentation files. No dependency, configuration, CI, original source, or asset-allowlist change.
 - **Limitations:** No nested-frame or reentrancy coverage, drain exploit, complete state diff, constructor behavior, or security acceptance. Trace size checks are post-return. Native compiler integration local; existing CI runs offline regressions.
-- **Next:** Review/commit, GitLab-first validation, completion reconciliation, GitHub publication, and fetched synchronization. P03-004 deferred; Phase 3 not complete. Preserve untracked `docs/.backup/`.
+- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub publication/synchronization before P03-004 starts; no outcome for an uncreated reconciliation commit is claimed.
+
+
+- **CI evidence:** Pipeline reported green; pipeline ID/URL, individual job logs, and remote test count not captured. Native compiler integration remains local evidence.
 
 ### P03-002 — SCA implementation — ✅ Complete and verified
 
@@ -619,8 +622,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P03-003` — Finish review, commit, GitLab verification, completion reconciliation, and publication/synchronization.
-2. `P03-004` — Later task; do not start before P03-003 closeout.
+1. `P03-004` — Next implementation task, after this documentation reconciliation is validated and synchronized.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

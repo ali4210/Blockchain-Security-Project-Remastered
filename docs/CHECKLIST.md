@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-003 — IAST EVM state-transition wrappers; 🟧 publication verification pending |
-| Current thread | P03-003 implemented and locally validated: 61 regressions passed, four original-vault runtime cases passed, snapshot cleanup confirmed, strict ingestion valid. Root-frame/selected-slot coverage only; no exploit or security acceptance claimed. Review/commit, GitLab-first CI, completion reconciliation, and publication remain. P03-004 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
+| Current task | P03-004 — Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review (not started; documentation closeout first) |
+| Current thread | P03-003 is ✅ complete within documented root-frame/selected-slot IAST scope at `139ff6a3310675aa6482b1c57cd9b53760d6b364`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. 61 local tests and four original-vault runtime cases passed; snapshot restored. No reentrancy exploit or security acceptance claimed. Publish and validate this documentation reconciliation before P03-004 implementation. Phase 3 gate remains not ready; preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `29888c04636e00e4089b47770614ed0b72e0a0a8` — P03-002 completion reconciliation |
-| Last GitLab pipeline | Reported green for `29888c04636e00e4089b47770614ed0b72e0a0a8`; pipeline ID/URL and individual job logs not captured |
-| Last GitHub post | Published — fetched `origin/main` at `29888c04636e00e4089b47770614ed0b72e0a0a8` |
-| Synchronization | Verified pre-task baseline — `main == gitlab/main == origin/main == 29888c04636e00e4089b47770614ed0b72e0a0a8` |
+| Last verified commit | `139ff6a3310675aa6482b1c57cd9b53760d6b364` — P03-003 implementation |
+| Last GitLab pipeline | Reported green for `139ff6a3310675aa6482b1c57cd9b53760d6b364`; pipeline ID/URL and individual job logs not captured |
+| Last GitHub post | Published — fetched `origin/main` at `139ff6a3310675aa6482b1c57cd9b53760d6b364` |
+| Synchronization | Verified implementation baseline — `main == gitlab/main == origin/main == 139ff6a3310675aa6482b1c57cd9b53760d6b364` |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-07 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -96,7 +96,7 @@ resolve to the same full SHA.
 | 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ✅ | P01-GATE recorded complete and verified 2026-10-05; see detailed gate evidence. | See P01-GATE |
 | 2 | Zone 1 — Ingestion Gateway | ✅ | P02-GATE recorded complete and verified 2026-10-05. | `aded10c3ac964783ef22104d82ce8e167c6de69c` |
-| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001/P03-002 complete; P03-003 locally validated, publication pending; P03-GATE not ready. | `29888c04636e00e4089b47770614ed0b72e0a0a8` (verified baseline) |
+| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001/P03-002/P03-003 complete within documented scopes; P03-004 not started; P03-GATE not ready. | `139ff6a3310675aa6482b1c57cd9b53760d6b364` (P03-003 implementation) |
 | 4 | Zone 3 — Compilation, Storage and MCP Middleware | ⬜ | — | — |
 | 5 | Transport Bridge, Inference Layer, and Agent Swarm A–G | ⬜ | — | — |
 | 6 | AVS Cryptographic Consensus | ⬜ | — | — |
@@ -770,7 +770,7 @@ resolve to the same full SHA.
 |---|---|---|---|
 | P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | ✅ | Complete and verified 2026-10-07 within documented coursework scope: implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. CHC ordering unknown remains documented. |
 | P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | ✅ | Complete and verified 2026-10-07 within documented inventory/lookup scope: `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. 49 local tests passed; findings retained. |
-| P03-003 | Add IAST wrappers that log EVM state transitions during tests. | 🟧 | Locally validated 2026-10-07: 61 tests, four original-vault cases, snapshot restored, ingestion valid. Root-frame/selected-slot scope; commit, remote CI, and publication pending. |
+| P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ✅ | Complete and verified 2026-10-07 within root-frame/selected-slot coursework scope: `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green GitLab CI, GitHub publication, and fetched synchronization. 61 local tests; four vault cases; cleanup confirmed. |
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ⬜ | — |
 | P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | ⬜ | — |
 | P03-006 | Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails. | ⬜ | — |
@@ -822,20 +822,20 @@ resolve to the same full SHA.
 
 ### P03-003 — IAST EVM state-transition wrappers
 
-- **Status:** 🟧 Implemented and locally validated 2026-10-07; commit, GitLab verification, completion reconciliation, publication, and final synchronization pending.
+- **Status:** ✅ Complete and verified within documented coursework scope 2026-10-07 at `139ff6a3310675aa6482b1c57cd9b53760d6b364`; reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified.
 - **Files:** Added `scripts/iast-trace.cjs` and `scripts/run-iast.cjs`; extended existing `test/hardhat/placeholder.test.js`; updated CHECKLIST/HANDOFF/RUNBOOK.
 - **Scope:** 🔒 Disposable in-process Hardhat coursework execution; root frame and explicitly selected storage slots only. Nested execution and unselected writes fail closed rather than receive incorrect attribution.
 - **Wrapper evidence:** Real synthetic EVM regressions distinguished two successful writes ending at value 2 from an attempted value-3 write rolled back by REVERT. Owned snapshot cleanup, malformed traces, outcome conflicts, step bounds, coverage rejection, and cleanup/error handling were tested.
 - **Original-fixture evidence:** Unchanged hash-pinned `VulnerableVault.sol`, compiled with existing hash-pinned native Solc 0.8.24, optimizer disabled/runs 200, Paris EVM. Runtime was inserted into snapshot-local state; no constructor or network deployment was executed.
 - **Observed cases:** Deposit 100 simulated units: 0→100, 122 steps, one write; withdraw 40: 100→60, 336 steps, one write; reject zero: 60→60, 209 steps, no writes; reject insufficient amount: 60→60, 234 steps, no writes. Withdrawal CALL preceded SSTORE; this is ordering evidence, not an exploit proof.
 - **Cleanup:** Runtime code, target balance, selected storage, and block number restored; `snapshot-cleanup.json` records confirmed cleanup.
-- **Validation:** Full existing CI-equivalent Hardhat `test --no-compile` command reported 61 local passing tests. Native runner exited 0 with schema-version-1 `status: "iast-executed"`. Strict ingestion exited 0 with valid integrity and unchanged asset map. Remote CI for this implementation remains pending.
+- **Validation:** Full existing CI-equivalent Hardhat `test --no-compile` command reported 61 local passing tests. Native runner exited 0 with schema-version-1 `status: "iast-executed"`; four original-vault runtime cases passed and snapshot restoration was confirmed. Strict ingestion exited 0 with valid integrity and unchanged asset map. Implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364` passed user-reported green GitLab CI; pipeline ID/URL, individual job logs, and remote test count were not captured. Native compiler integration remains local evidence.
 - **Bounds:** At most 300000 gas, 4096 calldata bytes, 64 selected slots, 20000 trace steps, and 8 MiB trace JSON; trace bounds are checked after provider return. Native compiler timeout 60 seconds/maxBuffer 16 MiB; tested runner command had an outer 180-second process limit. These do not establish a provider-level trace memory cap.
 - **Evidence:** `~/.local/state/blockchain-soc/p03-003/iast-L6LCQu/`; compiler input/output/process metadata, four structured captures, cleanup, and summary remain outside Git.
 - **Safety:** No new package/compiler download, dependency/lockfile/configuration/CI/ingestion-policy change, public RPC, fork, listener, wallet/key use, real funding, Docker operation, or original-fixture edit. `docs/.backup/` remains untracked.
 - **Limitations:** No nested-call/reentrant execution, drain exploit, constructor/deployment validation, complete world-state diff, memory capture, or security acceptance. Native fixture integration is local; CI exercises wrapper and runner-boundary regressions without requiring the host-local compiler.
-- **Acceptance:** Local capture, committed-versus-attempted state, success/revert cases, explicit scope rejection, bounded processing, cleanup, regressions, and ingestion checks passed within the documented scope. Commit, remote verification, publication, and synchronization checks are pending.
-- **Next:** Review/commit implementation and evidence documentation, verify GitLab CI, reconcile completion, publish validated history to GitHub, and verify synchronization before P03-004.
+- **Acceptance:** In-scope local capture, attempted-versus-committed state, success/revert cases, explicit coverage rejection, bounded processing, cleanup, regressions, and ingestion checks passed. Implementation committed at `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green in GitLab CI, published to GitHub, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
+- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub publication/synchronization before P03-004 starts; no outcome for an uncreated reconciliation commit is claimed.
 
 ## P03-GATE — Phase 3 completion gate
 
