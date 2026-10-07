@@ -1103,3 +1103,46 @@ Before marking any runbook procedure as verified:
 | Date | Change | Verification | Commit |
 |---|---|---|---|
 | 2026-09-28 | Added verified P00-001 Kali update and baseline-verification procedure | Commands and observed results recorded from sanitized terminal evidence; GitLab pipeline reported succeeded; GitHub post and three-way synchronization verified | `6e6d9baf744495039e0271a19f170cf40b29a639` |
+
+## P03-001 — Local formal-tool analysis
+
+**Procedure status:** Locally executed and validated 2026-10-07; implementation commit and remote CI/publication lifecycle pending.
+
+### Preconditions
+
+- Use only the tracked intentionally vulnerable coursework fixture; never deploy or fund it.
+- Verified compiler: `~/.local/share/blockchain-soc/toolchains/solc-0.8.24/solc`.
+- Verified isolated Z3: `~/.local/share/blockchain-soc/toolchains/z3-4.12.2/`; expected library hash must come from distribution verification, not arbitrary current bytes.
+- Slither 0.11.6 and digest-pinned Mythril v0.24.8 image must already exist. The runner does not install or download dependencies.
+- No Certora credentials, RPC, deployments, funding, host bind mounts, or privileged containers.
+
+### Validated invocation
+
+From `~/Blockchain-Security-Project-Remastered`:
+
+```bash
+/usr/bin/node scripts/run-formal-tools.cjs \
+  --execute-approved-fixture \
+  --z3-sha256 \
+  5ba701bbb32fc0923ee98b4adb1b246f7ef60c30fa62065514d8099955678101
+```
+
+Recorded integrated execution exited 0: two Slither findings, three Mythril findings, CHC deposit safe, CHC ordering unknown, and BMC ordering violated. Evidence: `~/.local/state/blockchain-soc/p03-001/integrated-Ttw0qi/`.
+
+### Interpretation and bounds
+
+- Execution success is not contract security acceptance or project closeout.
+- Findings remain retained. Mythril exit 1 is accepted only with successful, error-free, findings-bearing JSON.
+- SMT safe, violated, unknown, unavailable, and error are distinct; diagnostics must match the selected assertion and engine.
+- Assertions use instrumented source copies; BMC is function-level, not a drain exploit or whole-contract reachability proof.
+- Mythril uses Paris-target creation bytecode, optimizer disabled, three transactions, depth 128, 120-second execution budget, 10000-ms solver-query budget, and 360-second outer timeout.
+- Container uses the pinned digest, explicit non-root user, no network, read-only root, dropped capabilities, no-new-privileges, finite resources, and tmpfs-only writes.
+
+### Evidence and recovery
+
+- Each run creates host-local `integrated-*` artifacts outside Git. Review summary, reports, compiler diagnostics, process status, and container cleanup.
+- Preserve failed runs. The timed-out integrated run and shorter-budget zero-finding run are not successful evidence.
+- Cleanup removes only the uniquely named container; if unconfirmed, inspect that exact name before retrying. Do not perform broad deletion.
+- Stop on missing prerequisites, checksum mismatch, unavailable solvers, tool errors, or absent expected fixture detection. Do not bypass integrity or isolation controls.
+- Local regression suite reported 23 passing with Hardhat `--no-compile`. Newly added CI invocation remains pending verification; CI does not run scanners/proofs.
+- Original fixture, raw artifacts, installed toolchains, and `docs/.backup/` are not included in staging.

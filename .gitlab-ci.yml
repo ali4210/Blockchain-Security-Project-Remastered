@@ -23,6 +23,7 @@ ingest_manifests:
     - soc-docker
   script:
     - 'npm ci --ignore-scripts --no-audit --fund=false'
+    - './node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/formal-tools.test.js test/hardhat/placeholder.test.js test/hardhat/pipeline-entrypoints.test.js'
     - 'mkdir -p artifacts'
     - './node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts > artifacts/ingestion-result.json'
     - >

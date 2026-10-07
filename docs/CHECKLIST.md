@@ -768,7 +768,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | 🟪 | Blocked 2026-10-05: safe local policy gate implemented and verified; actual scanner/prover execution requires separately approved local compiler/image provisioning and, for Certora, authorized credential handling. |
+| P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | 🟧 | Locally validated 2026-10-07: integrated scanner execution and approved SMTChecker alternative; 23 tests passed. Commit, remote CI, publication, and synchronization pending; CHC ordering unknown retained. |
 | P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | ⬜ | — |
 | P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ⬜ | — |
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ⬜ | — |
@@ -781,16 +781,25 @@ resolve to the same full SHA.
 | P03-011 | Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls. | ⬜ | — |
 | P03-012 | Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions. | ⬜ | — |
 
-### P03-001 — Formal-tool policy gate and prerequisite assessment
+### P03-001 — Formal-tool analysis and approved verification alternative
 
-- **Status:** 🟪 Blocked 2026-10-05 after local policy-gate validation.
-- **Scope completed:** Added `scripts/verify-formal-tools.mts` and `test/hardhat/formal-tools.test.js`. The policy gate validates the approved local fixture identity and safety notice, evaluates only tool/prerequisite availability, and emits structured schema-version-1 `status: "partial"` JSON. It does not execute Slither, Mythril, Certora, a compiler, or a Docker container.
-- **Approved validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/formal-tools.test.js` exited `0`, reported one passing test, and wrote empty stderr. The test confirmed all formal tools were reported blocked without scanner or credential execution.
-- **Prerequisite facts:** Slither `0.11.6` and Certora CLI `8.19.2` are installed through pipx. No `solc` command, installed `solc-select` compiler version, or local Solidity compiler cache was found. `CERTORAKEY` is not set and was not displayed, persisted, or used. Mythril local-image metadata was not confirmed by read-only inspection.
-- **Blocker:** Actual Slither execution requires a local Solidity `0.8.24` compiler; Mythril execution requires a confirmed local image and a separately approved hardened execution plan; Certora proof execution requires separately authorized credential handling outside Git and chat. No compiler/image download, scanner/prover execution, Docker container start, network/RPC, Anvil, deployment, funding, wallet/key operation, CI change, dependency/lockfile change, or secret handling occurred.
-- **CI failure and inventory remediation:** GitLab-first policy-gate commit `e19e035aae46efcda03142748ddff15a1693f38c` correctly failed closed in `ingest_manifests` because strict `tests.hardhat` inventory did not yet approve `test/hardhat/formal-tools.test.js`. The remediation explicitly adds that one approved test path. Local ingestion now emits valid schema-version-1 JSON with exactly `test/hardhat/formal-tools.test.js`, `test/hardhat/pipeline-entrypoints.test.js`, and `test/hardhat/placeholder.test.js`; a disposable `test/hardhat/unexpected.test.js` remains rejected with component `tests.hardhat` and `asset inventory mismatch`.
-- **Files changed:** `scripts/verify-formal-tools.mts`, `test/hardhat/formal-tools.test.js`, and remediation change `scripts/ingest-manifests.mts`; this blocker/evidence update changes `docs/CHECKLIST.md` and `docs/HANDOFF.md`. `docs/.backup/` remains untracked and excluded.
-- **Unblock requirement:** Approve a bounded tool-provisioning and hardened execution plan, including provenance verification for Solc `0.8.24` and the Mythril image, before any actual analysis. Certora remains an optional credential-gated alternative and is not authorized by this record.
+- **Status:** 🟧 Implemented and locally validated 2026-10-07. Implementation commit, remote CI verification, publication, and fetched synchronization remain pending.
+- **Scope:** Preserved the no-execution policy gate; added an explicit local analysis runner and pure result classifiers. Approved alternative: Solidity SMTChecker with isolated Z3 instead of Certora service execution.
+- **Files:** `scripts/formal-tool-results.cjs`, `scripts/run-formal-tools.cjs`, existing `test/hardhat/formal-tools.test.js`, `.gitlab-ci.yml`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Prerequisites:** Solidity `0.8.24+commit.e11b9ed9`, SHA-256 `fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f`; isolated Z3 4.12.2 library SHA-256 `5ba701bbb32fc0923ee98b4adb1b246f7ef60c30fa62065514d8099955678101`. Compiler matched published Solidity metadata; Z3 matched the checksum-verified PyPI wheel. These are distribution-consistency checks, not independent signed attestations.
+- **Mythril identity:** v0.24.8, `mythril/myth@sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff`.
+- **Integrated command:** `/usr/bin/node scripts/run-formal-tools.cjs --execute-approved-fixture --z3-sha256 5ba701bbb32fc0923ee98b4adb1b246f7ef60c30fa62065514d8099955678101` exited 0 with schema-version-1 `status: "analysis-executed"`.
+- **Scanner evidence:** Slither reported two findings, including `reentrancy-eth`; Mythril reported three findings with SWC-107 detection. Findings remain retained; vulnerable-contract security acceptance is not established.
+- **Formal evidence:** CHC deposit accounting safe; CHC withdrawal ordering unknown; BMC debit-before-interaction violated in its function model. Assertions instrument separate source copies. No comprehensive original-bytecode proof, whole-contract reachability proof, or drain exploit is claimed.
+- **Local regressions:** Explicit Hardhat `test --no-compile` over the three approved files reported 23 passing. Strict ingestion exited 0 with valid integrity and the unchanged three-file inventory.
+- **CI:** Existing ingestion job now invokes those regression files after lockfile provisioning; remote execution is pending verification. CI does not run scanners or proofs.
+- **Bounds:** Mythril creation bytecode uses Solidity 0.8.24, optimizer disabled, explicit Paris EVM; three transactions, depth 128, 120-second execution budget, 10000-ms solver-query budget, 360-second outer timeout.
+- **Isolation:** Pinned image, explicit non-root user, no network, read-only root, dropped capabilities, no-new-privileges, bounded resources, disposable tmpfs, no host bind mounts or Docker socket. Successful integrated cleanup recorded.
+- **Reconciled failures:** Preserved manifest HTTP 403, missing solver, incorrect wrapper exit/message checks, CHC unknown, integrated timeout with confirmed cleanup, and shorter-budget zero-finding results. Final execution uses tested classification and lifecycle handling without suppressing expected fixture detection.
+- **Historical publication:** Inventory remediation `856a841d282e235a7389205218ee918ce3abd79a` passed reported green GitLab CI and was published to GitHub; fetched three-way synchronization was verified 2026-10-05. Pipeline ID/URL not captured.
+- **Evidence:** `~/.local/state/blockchain-soc/p03-001/integrated-Ttw0qi/`; raw reports, compiler diagnostics, commands, process status, and cleanup stay outside Git.
+- **Security boundary:** Original fixture unchanged. No deployment, funding, live RPC, wallet or credential operation, or Certora service use. `docs/.backup/` remains untracked and excluded.
+- **Remaining closeout:** Review, commit, publish GitLab-first, verify the regression-bearing pipeline, reconcile completion with real commit/CI evidence, publish validated history to GitHub, and prove fetched synchronization. P03-002 remains deferred.
 
 ## P03-GATE — Phase 3 completion gate
 
