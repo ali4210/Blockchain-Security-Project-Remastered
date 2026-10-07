@@ -1490,7 +1490,7 @@ Audit creation used the normal installed application service and verified projec
 
 ## P03-008 — Lynis technical audit and sanitized NIST evidence
 
-**Procedure status:** ✅ Local provider audit/adapter procedure verified within approved technical scope 2026-10-07. Overall Task 8 documentation/evidence commit, remote CI/publication, and final green-status closeout remain pending.
+**Procedure status:** ✅ Verified within approved Lynis/NIST technical scope 2026-10-07; P03-008 evidence is complete and verified. Implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed GitLab-first publication with user-reported green CI, GitHub publication, and fetched three-way SHA equality. Pipeline ID/job URL not captured. The separate documentation-closeout commit/CI/publication remains pending. Tested commands and technical limitations are unchanged.
 
 ### Purpose and scope
 
@@ -1562,7 +1562,7 @@ From the repository root:
 
 The real adapter invocation was captured by the private Python normalization wrapper, which verified source digests, expected counters, false authorization claims, and saved owner-only output. Do not redirect output to a world-readable file or commit a generated report by default.
 
-Observed: 105 local passing tests, including 18 governance regressions; strict ingestion valid with unchanged approved asset map; Node syntax and git diff --check passed. CI executes synthetic adapter regressions through the existing test inventory, not a Lynis audit of the CI host. Remote CI evidence is still pending.
+Observed: 105 local passing tests, including 18 governance regressions; strict ingestion valid with unchanged approved asset map; Node syntax and git diff --check passed. GitLab CI user-reported green for evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL and remote test count not captured. CI executes synthetic adapter regressions, not a Lynis audit of the CI host.
 
 ### Real results and interpretation
 
@@ -1605,4 +1605,4 @@ Provenance verifies structural acquisition fields and byte digests, not signed i
 - Preserve evidence and return masked diagnostics; no raw logs/report bodies in chat or Git.
 - Do not represent project relationships as official crosswalks, unassessed controls as passed, or tooling success as compliance.
 - No Phase 4 enrichment, source fixture, CI, dependency manifest/lockfile, ingestion, readiness, runner, branch-rule, or remote change is part of this integration.
-- Task 8 implementation/evidence commit, remote CI, GitHub publication, and final green reconciliation remain pending. Do not start Task 9 before proper closeout.
+- Task 8 implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed reported green GitLab CI, GitHub publication, and fetched synchronization. Only the separate documentation-closeout commit/CI/publication remains pending; do not begin Task 9 until that closeout is verified. Preserve the review-required findings and all false runtime compliance/authorization/taskComplete flags.
