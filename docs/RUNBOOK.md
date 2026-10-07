@@ -1304,7 +1304,7 @@ Implementation `42384867ed4a8f2fcda2b58e806ce967a802cd37` passed reported green 
 
 ## P03-005 — Prompt-injection fixture verification
 
-**Procedure status:** 🟧 Locally validated 2026-10-07; implementation commit, remote verification, and publication pending.
+**Procedure status:** ✅ Verified within documented fixture-specific scope 2026-10-07 at implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
 
 ### Purpose and prerequisites
 
@@ -1331,6 +1331,8 @@ From `~/Blockchain-Security-Project-Remastered`:
 ```
 
 Observed: 79 local tests passed; native CLI exited 0 with `status: "fixture-verified"`; strict ingestion valid.
+
+Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green GitLab CI. Pipeline ID/URL, individual job logs, and remote test count were not captured. Native Solc 0.8.24 fixture verification remains separately recorded local evidence.
 
 ### Evidence and interpretation
 
