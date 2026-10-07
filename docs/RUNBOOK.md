@@ -1414,7 +1414,7 @@ Both runs used implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, main, 
 
 ## P03-007 — Coursework job-plane runtime audit
 
-**Procedure status:** ✅ Runtime audit verified 2026-10-07 within explicitly user-approved 🔒 coursework scope. P03-007 documentation/evidence commit, publication, and final green-status closeout remain pending.
+**Procedure status:** ✅ Verified 2026-10-07 within explicitly accepted 🔒 coursework job-plane scope; P03-007 is ✅ Complete and verified within that scope. Evidence/documentation commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation pipeline ID not captured. This final status correction awaits its own commit/CI/publication; manager and other isolation limitations remain unchanged.
 
 ### Purpose and accepted boundary
 
@@ -1486,4 +1486,4 @@ Audit creation used the normal installed application service and verified projec
 - Do not retroactively change runtime snapshots, report booleans, or manager limitations to obtain acceptance.
 - Inspect saved evidence before authorizing another run. No cleanup of manager volumes or unrelated containers is part of this procedure.
 - A future manager-hardening, service, rootless, dedicated-network, or stronger isolation claim requires separate scope and factual validation.
-- P03-007's new documentation commit and publication are not yet verified. Do not begin P03-008 before closeout and final consistent task statuses.
+- P03-007 evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` is published and fetched-synchronized after reported green GitLab CI. The separately prepared final ✅ status correction still requires review/commit/CI/publication. Do not begin P03-008 until that correction is verified; no further runtime audit is required for the accepted scope.
