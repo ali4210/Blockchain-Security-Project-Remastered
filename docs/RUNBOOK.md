@@ -1304,7 +1304,7 @@ Implementation `42384867ed4a8f2fcda2b58e806ce967a802cd37` passed reported green 
 
 ## P03-005 — Prompt-injection fixture verification
 
-**Procedure status:** ✅ Verified within documented fixture-specific scope 2026-10-07 at implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. This completion documentation's publication lifecycle remains pending.
+**Procedure status:** ✅ Verified within documented fixture-specific scope 2026-10-07 at implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55`: reported green GitLab CI, GitHub publication, and fetched synchronization verified. Completion reconciliation `b770b3b0c7ed857594df0c2473238dd7ee127752` passed reported green GitLab CI, was published to GitHub, and fetched synchronization was verified before P03-006 started. Pipeline ID/URL and individual job logs not captured.
 
 ### Purpose and prerequisites
 
@@ -1355,3 +1355,51 @@ Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green 
 - P03-004 bounds still apply. Verifier checks input under 64 KiB, accepted compact JSON at most 4 MiB, and at most 256 projected nodes; outer tested command limit is 90 seconds.
 - Never deploy, fund, execute, forward to an LLM, or connect this fixture to a live service as part of this procedure.
 - Keep generated evidence and documentation backups unstaged. Saved `taskComplete: false` is runtime evidence, not a publication-status field.
+
+## P03-006 — Deny-by-default readiness control
+
+**Procedure status:** 🟧 Local first-batch validation recorded; actual GitLab enforcement and hardware integration pending.
+
+### Scope and prerequisites
+
+Controls explicit production-readiness requests on protected main. It does not block an already accepted Git push, deploy anything, or establish hardware health. Policy hash: `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`.
+
+Hardware checker is unconfigured; no allow path exists. Normal verification success is not production readiness. Preserve branch rules, protected inputs, and the deny-by-default policy.
+
+### Tested local commands
+
+From `~/Blockchain-Security-Project-Remastered`:
+
+```bash
+./node_modules/.bin/hardhat \
+  --config config/hardhat.config.js \
+  test --no-compile \
+  test/hardhat/formal-tools.test.js \
+  test/hardhat/placeholder.test.js \
+  test/hardhat/pipeline-entrypoints.test.js
+
+/usr/bin/node scripts/production-readiness.cjs --check-production-readiness
+
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+```
+
+Observed: 87 local tests passed; local readiness exited 1 with blocked status, invalid local CI context, unconfigured hardware, and all authorization fields false; strict ingestion valid. Evidence: `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`.
+
+### CI behavior awaiting verification
+
+- CLI --ci consumes only selected CI metadata and the non-secret PRODUCTION_READINESS_REQUESTED intent.
+- Absent/false intent with valid CI context yields not-requested, exit 0; productionReady remains false.
+- True intent requires main/protected context and still fails while hardware checking is unconfigured.
+- Unknown intent/context, altered policy, and mock/demo healthy flags cannot grant readiness.
+- New job is non-optional with allow_failure false; structured report path artifacts/production-readiness.json; configured retention 7 days on success/failure.
+- Actual default-pipeline result, requested-readiness failure, CI metadata, and artifact availability are not yet verified.
+
+### Safe failure handling
+
+- Exit 1 on a readiness request is the intended safety result, not a bypass target.
+- Do not enable allow_failure, remove the job, fake CI/hardware metadata, or relabel not-requested as ready.
+- No live hardware collector/attestation or positive authorization is implemented. Do not install a cluster or invent thresholds under this procedure.
+- Metadata checks are structural, not cryptographic proof of CI identity.
+- Policy parsing checks at most 8 KiB after file read; local evidence capture checks at most 32 KiB output. These are not complete process-memory bounds.
+- Keep evidence/backups unstaged. No kubeconfig/private material, network/cluster contact, deployment, or signing is required.
+- Further real hardware integration requires an approved target, required capabilities, trustworthy bounded collector, and factual validation.

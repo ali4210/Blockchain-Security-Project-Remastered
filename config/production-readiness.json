@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "protectedReference": "main",
+  "readinessIntentVariable": "PRODUCTION_READINESS_REQUESTED",
+  "hardwareCheck": {
+    "state": "unconfigured",
+    "adapter": null
+  },
+  "productionAllowEnabled": false
+}

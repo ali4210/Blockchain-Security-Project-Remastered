@@ -39,3 +39,18 @@ ingest_manifests:
     expire_in: 7 days
     paths:
       - artifacts/ingestion-result.json
+
+production_readiness_gate:
+  stage: verify
+  image: node:24.19.0-bookworm-slim
+  tags:
+    - soc-docker
+  allow_failure: false
+  script:
+    - 'mkdir -p artifacts'
+    - 'node scripts/production-readiness.cjs --ci > artifacts/production-readiness.json'
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - artifacts/production-readiness.json

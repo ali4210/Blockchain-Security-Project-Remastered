@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-006 — Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails (not started; documentation closeout first) |
-| Current thread | P03-005 is ✅ complete within documented fixture-verification scope at `f85cd49fae29a82bcc1e04584f7c1d2231989e55`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. 79 local tests passed; seven masks/schema/payload omission and deterministic native two-parse verification passed; strict ingestion controls retained. No LLM behavioral defense or complete prompt-injection prevention claimed. Publish and validate this documentation reconciliation before P03-006 implementation. Phase 3 gate remains not ready; preserve untracked `docs/.backup/`. |
+| Current task | P03-006 — Deny-by-default protected-reference readiness control; 🟧 actual CI verification pending |
+| Current thread | P03-006 first batch locally validated: 87 regressions passed; local readiness request exited 1 with blocked/unconfigured hardware and no production/deployment/release authorization; ingestion valid. Protected main observed in GitLab UI; explicit readiness-request policy added. Actual ordinary and requested-readiness GitLab pipelines not yet verified. Real hardware collector/positive path unconfigured; no production readiness claimed. Commit/CI/publication pending; P03-007 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -576,6 +576,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
+### P03-006 — Readiness gate — 🟧 Actual CI verification pending
+
+- **State:** First batch locally validated 2026-10-07: 87 tests passed, local blocked exit 1, ingestion valid. No production readiness established.
+- **Policy:** Protected main observed in UI; explicit readiness-request policy with pinned hash `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`. Hardware adapter unconfigured and production allow disabled.
+- **CI:** Non-optional production_readiness_gate appended to verify. Ordinary verification may pass as not-requested; explicit production-readiness requests must fail. Both actual CI/report outcomes pending.
+- **Evidence:** `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`; local decision/process metadata outside Git. Synthetic CI unit contexts are not real CI enforcement evidence.
+- **Files:** New policy/script, existing CI and placeholder test, three task documents. Fixtures/dependencies/masker/ingestion policy unchanged.
+- **Blockers and limits:** No configured live hardware collector or positive readiness path. No deployments, branch-rule changes, credentials, cluster contact, or mock production authorization.
+- **Next:** Review/commit, ordinary CI validation and protected-main requested-readiness failure proof, scope reconciliation, and publication. Do not start P03-007 or declare P03-GATE complete.
+
 ### P03-005 — Injection-fixture masking — ✅ Complete and verified
 
 - **State:** ✅ Complete and verified within documented scope 2026-10-07. Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. 79 local tests passed; native fixture verifier exited 0; strict ingestion valid.
@@ -584,7 +594,7 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Policy:** Only the new hash/inventory entry added. Tampered fixture, extra contract, and symlink rejected in disposable copied roots; cleanup confirmed.
 - **Files:** New fixture/verifier; existing ingestion policy and placeholder test changed; three task documents updated. Original vault/masker/dependencies/configuration/CI unchanged.
 - **Limitations:** Fixture-specific data omission and schema verification, not LLM behavior, encryption, semantic security, or complete prompt-injection prevention. No fixture execution/deployment.
-- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub publication/synchronization before P03-006 starts; no outcome for an uncreated reconciliation commit is claimed.
+- **Completion reconciliation:** Documentation commit `b770b3b0c7ed857594df0c2473238dd7ee127752` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-006 started. Pipeline ID/URL and individual job logs not captured.
 - **CI evidence:** Pipeline reported green; pipeline ID/URL, individual job logs, and remote test count not captured. Native Solc 0.8.24 integration remains local evidence.
 
 ### P03-004 — AST masking — ✅ Complete and verified
@@ -644,7 +654,8 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Subsequent task queue
 
-1. `P03-006` — Next implementation task, after this documentation reconciliation is validated and synchronized.
+1. `P03-006` — Verify actual CI enforcement and resolve/document the hardware-integration prerequisite; finish scope and publication reconciliation.
+2. `P03-007` — Deferred until P03-006 closeout or an explicit accepted dependency/scope decision.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

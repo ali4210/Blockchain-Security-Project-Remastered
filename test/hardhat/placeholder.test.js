@@ -912,3 +912,136 @@ describe("Prompt-injection fixture regressions", function () {
     assert.equal(fs.existsSync(sandbox), false);
   });
 });
+
+describe("Production readiness gate regressions", function () {
+  const fs = require("node:fs");
+  const os = require("node:os");
+  const {
+    POLICY_HASH, parsePolicyBytes, readPolicy, evaluate,
+  } = require("../../scripts/production-readiness.cjs");
+
+  function context(overrides = {}) {
+    return {
+      gitlab: true,
+      branch: "main",
+      protected: "true",
+      commitSha: "a".repeat(40),
+      pipelineId: "1",
+      ...overrides,
+    };
+  }
+
+  it("pins protected main and explicitly unconfigured hardware policy", function () {
+    const policy = readPolicy();
+    assert.equal(policy.protectedReference, "main");
+    assert.equal(policy.productionAllowEnabled, false);
+    assert.equal(policy.hardwareCheck.adapter, null);
+    assert.match(POLICY_HASH, /^[0-9a-f]{64}$/);
+  });
+
+  it("rejects altered policy bytes rather than weakening the gate", function () {
+    const bytes = fs.readFileSync(resolve(
+      __dirname, "../../config/production-readiness.json"
+    ));
+    assert.throws(() => parsePolicyBytes(Buffer.concat([
+      bytes, Buffer.from("\n"),
+    ])), /integrity/);
+  });
+
+  it("blocks protected-main production requests when hardware is unconfigured", function () {
+    const decision = evaluate(context(), "true", readPolicy());
+    assert.equal(decision.status, "blocked");
+    assert.deepEqual(decision.reasons, ["hardware-check-unconfigured"]);
+    assert.equal(decision.productionReady, false);
+    assert.equal(decision.deploymentAuthorized, false);
+    assert.equal(decision.hardwareCheck.executed, false);
+  });
+
+  it("blocks missing context, unprotected refs and wrong production refs", function () {
+    for (const input of [
+      null,
+      context({ gitlab: false }),
+      context({ commitSha: null }),
+      context({ protected: "false" }),
+      context({ protected: null }),
+      context({ branch: "feature/test" }),
+    ]) {
+      const decision = evaluate(input, "true", readPolicy());
+      assert.equal(decision.status, "blocked");
+      assert.equal(decision.productionReady, false);
+    }
+  });
+
+  it("cannot authorize production from mock reports or changed policy objects", function () {
+    const healthyClaim = context({ hardwareEvidence: { healthy: true } });
+    assert.equal(
+      evaluate(healthyClaim, "true", readPolicy()).status, "blocked"
+    );
+    const policy = readPolicy();
+    policy.productionAllowEnabled = true;
+    assert.equal(evaluate(context(), "true", policy).status, "blocked");
+  });
+
+  it("keeps development success separate from readiness and rejects ambiguous intent", function () {
+    const development = evaluate(context(), "false", readPolicy());
+    assert.equal(development.status, "not-requested");
+    assert.equal(development.decision, "not-applicable");
+    assert.equal(development.productionReady, false);
+    assert.equal(development.releaseAuthorized, false);
+    for (const intent of ["", "demo", "TRUE", "1", null]) {
+      assert.equal(evaluate(context(), intent, readPolicy()).status, "blocked");
+    }
+  });
+
+  it("enforces CLI exits and ignores demo/mock healthy environment flags", function () {
+    const executable = resolve(__dirname, "../../scripts/production-readiness.cjs");
+    const env = {
+      PATH: "/usr/bin:/bin", HOME: os.homedir(), LANG: "C.UTF-8",
+      CI: "true", CI_SERVER_NAME: "GitLab",
+      CI_COMMIT_BRANCH: "main", CI_COMMIT_REF_PROTECTED: "true",
+      CI_COMMIT_SHA: "a".repeat(40), CI_PIPELINE_ID: "1",
+      PRODUCTION_READINESS_REQUESTED: "true",
+      HARDWARE_READY: "true", MOCK_CLUSTER_READY: "true", GATE_MODE: "demo",
+    };
+
+    let execution = spawnSync(process.execPath, [executable, "--ci"], {
+      encoding: "utf8", timeout: 10000, env,
+    });
+    assert.equal(execution.error, undefined);
+    assert.equal(execution.status, 1);
+    assert.equal(execution.stderr, "");
+    let decision = JSON.parse(execution.stdout);
+    assert.equal(decision.status, "blocked");
+    assert.deepEqual(decision.reasons, ["hardware-check-unconfigured"]);
+
+    execution = spawnSync(process.execPath, [executable, "--ci"], {
+      encoding: "utf8", timeout: 10000,
+      env: { ...env, PRODUCTION_READINESS_REQUESTED: "false" },
+    });
+    assert.equal(execution.error, undefined);
+    assert.equal(execution.status, 0);
+    decision = JSON.parse(execution.stdout);
+    assert.equal(decision.status, "not-requested");
+    assert.equal(decision.productionReady, false);
+
+    execution = spawnSync(process.execPath, [
+      executable, "--check-production-readiness",
+    ], { encoding: "utf8", timeout: 10000, env });
+    assert.equal(execution.error, undefined);
+    assert.equal(execution.status, 1);
+    assert.equal(JSON.parse(execution.stdout).productionReady, false);
+  });
+
+  it("wires a non-optional CI gate with a retained structured report", function () {
+    const text = fs.readFileSync(resolve(__dirname, "../../.gitlab-ci.yml"), "utf8");
+    const marker = "\nproduction_readiness_gate:\n";
+    assert.equal(text.split(marker).length, 2);
+    const job = text.split(marker)[1];
+    assert.match(job, /stage: verify/);
+    assert.match(job, /allow_failure: false/);
+    assert.match(job, /node scripts\/production-readiness\.cjs --ci/);
+    assert.match(job, /artifacts\/production-readiness\.json/);
+    assert.match(job, /when: always/);
+    assert.doesNotMatch(job, /allow_failure: true|when: manual|\|\|\s*true|rules:/);
+  });
+});
