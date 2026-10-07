@@ -1149,7 +1149,7 @@ Recorded integrated execution exited 0: two Slither findings, three Mythril find
 
 ## P03-002 — Software composition analysis
 
-**Procedure status:** Locally validated 2026-10-07; implementation commit, remote CI, and publication lifecycle pending.
+**Procedure status:** ✅ Complete and verified within documented scope 2026-10-07 at implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified. This documentation reconciliation's publication lifecycle remains pending.
 
 ### Scope and prerequisites
 
@@ -1186,5 +1186,5 @@ The live run exited 0: 249 npm and 39 Python coordinates, 10 matched coordinates
 - Do not blindly delete an existing lock. Investigate its recorded process and evidence first; never remove an active run's lock.
 - Exit 2 or error/incomplete evidence is not a successful zero-finding scan. Preserve partial responses and failure records.
 - Do not disable TLS, bypass hashes, install packages, run audit fixes, or change the approved dependency baseline to obtain a clean result.
-- Local regression suite reported 49 passing; existing CI invocation includes those tests. CI does not execute live SCA or require the local `.venv`.
+- Local regression suite reported 49 passing. Implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` passed reported green GitLab CI; pipeline ID/URL and individual job/test-count logs were not captured. Existing CI invocation includes offline regressions; CI does not execute live SCA or require the local `.venv`.
 - Keep raw reports, installed environments, lock artifacts, and `docs/.backup/` out of staging. Protected dependency inputs remain tracked and unchanged.

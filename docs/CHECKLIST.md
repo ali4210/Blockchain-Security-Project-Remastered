@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-002 — Dependency inventory and vulnerability lookup; 🟧 publication verification pending |
-| Current thread | P03-002 locally validated: full OSV/NVD lookup and 49 regressions passed. Review/commit, GitLab-first verification, and publication closeout remain. Findings retained; Phase 3 gate not ready. Preserve `docs/.backup/`. |
+| Current task | P03-003 — Add IAST wrappers that log EVM state transitions during tests (not started; documentation closeout first) |
+| Current thread | P03-002 is ✅ complete within documented inventory/lookup scope at `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`: reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified 2026-10-07. Publish and validate this documentation reconciliation before P03-003 implementation. Findings remain unresolved; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `0876b0ae4261d64616814b7d603ea5d646c77e46` — P03-001 completion reconciliation |
-| Last GitLab pipeline | Reported green for `0876b0ae4261d64616814b7d603ea5d646c77e46`; ID/URL not captured |
-| Last GitHub post | Published — fetched `origin/main` at `0876b0ae4261d64616814b7d603ea5d646c77e46` |
-| Synchronization | Verified pre-task baseline — `main == gitlab/main == origin/main == 0876b0ae4261d64616814b7d603ea5d646c77e46` |
+| Last verified commit | `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` — P03-002 implementation |
+| Last GitLab pipeline | Reported green for `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`; pipeline ID/URL and individual job logs not captured |
+| Last GitHub post | Published — fetched `origin/main` at `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` |
+| Synchronization | Verified implementation baseline — `main == gitlab/main == origin/main == bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-07 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -96,7 +96,7 @@ resolve to the same full SHA.
 | 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ✅ | P01-GATE recorded complete and verified 2026-10-05; see detailed gate evidence. | See P01-GATE |
 | 2 | Zone 1 — Ingestion Gateway | ✅ | P02-GATE recorded complete and verified 2026-10-05. | `aded10c3ac964783ef22104d82ce8e167c6de69c` |
-| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 complete; P03-002 locally validated, publication pending; P03-GATE not ready. | `0876b0ae4261d64616814b7d603ea5d646c77e46` (verified baseline) |
+| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 and P03-002 complete within documented scopes; P03-003 not started; P03-GATE not ready. | `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` (P03-002 implementation) |
 | 4 | Zone 3 — Compilation, Storage and MCP Middleware | ⬜ | — | — |
 | 5 | Transport Bridge, Inference Layer, and Agent Swarm A–G | ⬜ | — | — |
 | 6 | AVS Cryptographic Consensus | ⬜ | — | — |
@@ -769,7 +769,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P03-001 | Wire Slither, Mythril, and Certora/alternative formal verification against the sample contract. | ✅ | Complete and verified 2026-10-07 within documented coursework scope: implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. CHC ordering unknown remains documented. |
-| P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | 🟧 | Locally validated 2026-10-07: 288 coordinates, 10 matched, 32 advisories, 28/28 NVD records; 49 tests passed. Commit, remote CI, publication, and synchronization pending. |
+| P03-002 | Implement `scripts/run-sca.sh` for dependency resolution and vulnerability lookup. | ✅ | Complete and verified 2026-10-07 within documented inventory/lookup scope: `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`, reported green GitLab CI, GitHub publication, and fetched three-way synchronization. 49 local tests passed; findings retained. |
 | P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ⬜ | — |
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ⬜ | — |
 | P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | ⬜ | — |
@@ -803,7 +803,7 @@ resolve to the same full SHA.
 
 ### P03-002 — Dependency inventory and vulnerability lookup
 
-- **Status:** 🟧 Implemented and locally validated 2026-10-07; commit, GitLab CI verification, publication, and fetched synchronization pending.
+- **Status:** ✅ Complete and verified within documented scope 2026-10-07 at `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e`; reported green GitLab CI, GitHub publication, and fetched three-way synchronization verified.
 - **Implementation:** Replaced `scripts/run-sca.sh` TODO stub with an explicit-mode wrapper. Added `scripts/run-sca.cjs`, `scripts/sca-inventory.cjs`, and `scripts/sca-lookup.cjs`; extended existing `test/hardhat/placeholder.test.js`.
 - **Resolution model:** Consumes existing exact npm lock resolution and installed project-venv Python versions. It does not install packages, resolve Git branches, produce a Python lockfile, or freshly resolve unpinned requirements.
 - **Inventory evidence:** 249 unique locked npm package/version coordinates, including optional/platform entries; 39 installed Python distributions, including tooling/extras. Python roots were `langgraph@1.2.12` and `requests@2.34.2`. Python dependency closure and constraint satisfaction are not proved.
@@ -812,13 +812,13 @@ resolve to the same full SHA.
 - **Matched coordinates:** npm `@fastify/busboy@2.1.1`, `adm-zip@0.4.16`, `cookie@0.4.2`, `diff@7.0.0`, `elliptic@6.6.1`, `serialize-javascript@6.0.2`, `tmp@0.0.33`, `undici@5.29.0`, `uuid@8.3.2`; Python tooling `pip@26.1.2`.
 - **Advisory-only coverage:** Four active records lacked CVE aliases: `GHSA-5c6j-r48x-rmvq`, `GHSA-8238-w5pm-2374`, `GHSA-c6fg-446q-cg94`, `GHSA-p634-w6r4-rjp2`. They are retained, not discarded.
 - **NVD snapshot:** Status counts {"Analyzed": 16, "Awaiting Analysis": 1, "Deferred": 5, "Modified": 6}. Returned records had scores, but metric versions, sources, and primary/secondary designations differ. NVD record presence is not proof of complete enrichment, applicability, exploitability, or project risk.
-- **Validation:** Final explicit Hardhat `test --no-compile` invocation over the three approved test files reported 49 passing. Strict ingestion exited 0 with valid integrity and unchanged asset inventory. The existing CI command includes these extended tests; remote validation of this implementation remains pending.
+- **Validation:** Final explicit Hardhat `test --no-compile` invocation over the three approved test files reported 49 local passing tests. Strict ingestion exited 0 with valid integrity and unchanged asset inventory. Implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` passed user-reported green GitLab CI. Pipeline ID/URL, individual job logs, and remote test count were not captured. CI includes offline regressions; live lookup evidence is local.
 - **Protocol regressions:** Exact-coordinate inventory, declaration mismatches, unsupported inputs, per-query OSV pagination, repeated tokens, advisory identity, withdrawn records, NVD offsets and 100-ID boundaries, missing records, no-progress rejection, HTTP failures, body limits, request deadlines, and explicit execution modes.
 - **Network and bounds:** Only public package/version coordinates to OSV and returned CVE aliases to NVD; no credentials. HTTPS and redirect rejection; 45-second request timeout, 8-MiB response limit, finite request/page/detail limits, 15-minute request deadline, serial NVD requests with 6500-ms pacing. Deadline is not an exact process wall-clock guarantee. Cache is per-run only; service errors fail rather than reuse stale results.
 - **Evidence:** `~/.local/state/blockchain-soc/p03-002/sca-MSfaq3/`; inventory, timestamped HTTP responses, full lookup records, and summary remain outside Git. Evidence counts and unchanged dependency hashes were reviewed; lookup lock absent afterward.
 - **Safety:** No package installation, automatic fixes/upgrades, manifest/lockfile edits, system-Python changes, credential use, deployment, funding, or scanner-container operation. Findings remain unresolved; security acceptance is not established. `docs/.backup/` remains untracked.
 - **Failure reconciliation:** Initial service-check digest was mistranscribed in chat; working and committed lock bytes matched the authoritative ingestion baseline. Corrected single-package `glob@10.5.0` query returned no advisories and did not test NVD; the later full scan exercised NVD successfully.
-- **Remaining closeout:** Review and commit implementation plus documentation, verify GitLab-first CI, reconcile completion with the actual commit/pipeline evidence, publish validated history to GitHub, and verify synchronization. P03-003 remains deferred.
+- **Completion reconciliation:** Implementation publication is complete. This documentation-only reconciliation requires its own GitLab-first validation and GitHub synchronization before P03-003 starts; no outcome for an uncreated reconciliation commit is claimed.
 
 ## P03-GATE — Phase 3 completion gate
 
