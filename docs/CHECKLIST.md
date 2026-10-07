@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-006 — Deny-by-default protected-reference readiness control; 🟧 actual CI verification pending |
-| Current thread | P03-006 first batch locally validated: 87 regressions passed; local readiness request exited 1 with blocked/unconfigured hardware and no production/deployment/release authorization; ingestion valid. Protected main observed in GitLab UI; explicit readiness-request policy added. Actual ordinary and requested-readiness GitLab pipelines not yet verified. Real hardware collector/positive path unconfigured; no production readiness claimed. Commit/CI/publication pending; P03-007 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
+| Current task | P03-006 — Protected-reference deny-by-default readiness control; 🟧 technical checks verified, documentation/publication closeout pending |
+| Current thread | P03-006 implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`: 87 local regressions recorded; ordinary pipeline 94/job 129 succeeded with valid CI metadata and not-requested status; requested-readiness pipeline 95/job 132 failed without failure allowance, with valid CI metadata and hardware-check-unconfigured. Both reports retain productionReady/deploymentAuthorized/releaseAuthorized false. Live hardware integration remains unconfigured; no positive readiness or production authorization claimed. Documentation reconciliation applied and staged diff/secret-safety review accepted; closeout commit/CI/publication and final synchronization pending; P03-007 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `b770b3b0c7ed857594df0c2473238dd7ee127752` — P03-005 completion reconciliation |
-| Last GitLab pipeline | Reported green for `b770b3b0c7ed857594df0c2473238dd7ee127752`; pipeline ID/URL and individual job logs not captured |
+| Last verified commit | `b5f7c8e411740f420b2adc883671cf3e740d6aeb` — P03-006 implementation; both technical CI paths verified; publication incomplete |
+| Last GitLab pipeline | Ordinary pipeline 94/job 129 succeeded; requested-readiness pipeline 95/job 132 intentionally failed on `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; documentation-closeout CI pending |
 | Last GitHub post | Published — fetched `origin/main` at `b770b3b0c7ed857594df0c2473238dd7ee127752` |
-| Synchronization | Verified pre-task baseline — `main == gitlab/main == origin/main == b770b3b0c7ed857594df0c2473238dd7ee127752` |
+| Synchronization | P03-006 incomplete: collector observed cached main/gitlab/main at `b5f7c8e411740f420b2adc883671cf3e740d6aeb` and origin/main at `b770b3b0c7ed857594df0c2473238dd7ee127752`; no fresh final synchronization claimed. |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-07 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -96,7 +96,7 @@ resolve to the same full SHA.
 | 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ✅ | P01-GATE recorded complete and verified 2026-10-05; see detailed gate evidence. | See P01-GATE |
 | 2 | Zone 1 — Ingestion Gateway | ✅ | P02-GATE recorded complete and verified 2026-10-05. | `aded10c3ac964783ef22104d82ce8e167c6de69c` |
-| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 through P03-005 complete; P03-006 deny-by-default control locally validated, actual CI proof pending; P03-GATE not ready. | `b770b3b0c7ed857594df0c2473238dd7ee127752` (verified baseline) |
+| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 through P03-005 complete; P03-006 deny-by-default CI paths verified, documentation/publication closeout pending; hardware integration unresolved; P03-GATE not ready. | `b5f7c8e411740f420b2adc883671cf3e740d6aeb` (P03-006 implementation) |
 | 4 | Zone 3 — Compilation, Storage and MCP Middleware | ⬜ | — | — |
 | 5 | Transport Bridge, Inference Layer, and Agent Swarm A–G | ⬜ | — | — |
 | 6 | AVS Cryptographic Consensus | ⬜ | — | — |
@@ -773,7 +773,7 @@ resolve to the same full SHA.
 | P03-003 | Add IAST wrappers that log EVM state transitions during tests. | ✅ | Complete and verified 2026-10-07 within root-frame/selected-slot coursework scope: `139ff6a3310675aa6482b1c57cd9b53760d6b364`, reported green GitLab CI, GitHub publication, and fetched synchronization. 61 local tests; four vault cases; cleanup confirmed. |
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ✅ | Complete and verified 2026-10-07 within documented projection scope: `42384867ed4a8f2fcda2b58e806ce967a802cd37`, reported green GitLab CI, GitHub publication, and fetched synchronization. 73 local tests; native fixture masked; limitations retained. |
 | P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | ✅ | Complete and verified 2026-10-07 within fixture-specific scope: `f85cd49fae29a82bcc1e04584f7c1d2231989e55`, reported green GitLab CI, GitHub publication, and fetched synchronization. 79 local tests; seven masks/schema/payload omission/determinism verified. |
-| P03-006 | Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails. | 🟧 | First batch locally validated 2026-10-07: 87 tests and blocked local exit 1. Actual GitLab blocking proof pending; real hardware adapter/positive readiness unconfigured. |
+| P03-006 | Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails. | 🟧 | Deny-by-default technical checks verified 2026-10-07 at `b5f7c8e411740f420b2adc883671cf3e740d6aeb`: ordinary 94/129 successful, requested-readiness 95/132 blocked. Documentation/publication closeout pending; no live hardware readiness claimed. |
 | P03-007 | Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. | ⬜ | — |
 | P03-008 | Add CSET/CISA or an approved open-source CMMC/NIST governance scanner. | ⬜ | — |
 | P03-009 | Add real Foundry `Exploit.t.sol` and `Invariants.t.sol` examples and validate the exploit fixture. | ⬜ | — |
@@ -876,25 +876,30 @@ resolve to the same full SHA.
 
 ### P03-006 — Protected-reference deny-by-default readiness control
 
-- **Status:** 🟧 First implementation batch locally validated 2026-10-07; actual GitLab enforcement proof, commit, and publication pending. Full hardware readiness is not established.
-- **Files:** Added `config/production-readiness.json` and `scripts/production-readiness.cjs`; extended existing placeholder test; appended `production_readiness_gate` to `.gitlab-ci.yml`; updated CHECKLIST/HANDOFF/RUNBOOK.
-- **Observed branch protection:** GitLab UI showed main as default/protected. No branch creation, protection-setting change, or push/merge permission change occurred. Gate policy explicitly targets main for production-readiness requests; this is not a deployment-target discovery.
-- **Policy identity:** SHA-256 `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`; schema version 1, protectedReference main, readinessIntentVariable PRODUCTION_READINESS_REQUESTED, hardware state unconfigured/adapter null, productionAllowEnabled false. Policy bytes and schema pinned; no production-allow path exists.
-- **Decision semantics:** Ordinary valid GitLab verification with absent/false intent returns not-requested/not-applicable and exit 0, never readiness or deployment approval. Explicit true intent blocks with exit 1 while required hardware checking is unconfigured. Invalid intent/context, wrong reference, unverified protection, changed policy, and mock/demo claims cannot authorize production.
-- **CI metadata limits:** Validates selected CI metadata fields structurally; environment metadata validation is not cryptographic authentication. Local regression CI contexts are synthetic. Actual GitLab job metadata and blocking behavior remain unverified.
-- **Local evidence:** Full CI-equivalent Hardhat command reported 87 local passing tests. Actual local readiness command exited 1; reasons ci-context-invalid and hardware-check-unconfigured; productionReady/deploymentAuthorized/releaseAuthorized false; hardware check executed false.
-- **Evidence directory:** `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`; decision.json and process.json outside Git, with command/exit/policy/script/CI-definition identity.
-- **CI integration:** New non-optional verify-stage job uses existing node image/runner tag, no dependency provisioning, allow_failure false, and writes artifacts/production-readiness.json. Configured always retention for 7 days; actual upload not verified and job timeout may prevent artifact upload.
-- **Integrity:** Strict ingestion valid with unchanged two-contract asset map. Dependency inputs, fixtures, masker, ingestion policy, and existing routing verifier unchanged. Existing smoke/ingestion jobs preserved; readiness job added independently to verify.
-- **Hardware discovery:** No implemented readiness checker found in inspected tracked sources. kubectl/minikube/kind/nvidia-smi absent on inspected Kali paths; Docker executable present. Tool/resource presence is not cluster-health evidence. No hardware thresholds inferred or service contacted.
-- **Limitations:** Deny-by-default control only; no live collector, healthy production path, fresh hardware attestation, deployment/release capability, or production-ready system. Development pipeline success does not satisfy production readiness. Hardware integration is an explicit unresolved prerequisite.
-- **Safety:** No cluster/network contact, Kubernetes provisioning, service/container start, kubeconfig/certificate/key/credential access, deployment, funding, branch-setting change, or production mock bypass. docs/.backup remains untracked.
-- **Acceptance pending:** Verify ordinary GitLab pipeline/report; verify explicit requested-readiness pipeline fails on protected main with valid CI metadata and hardware-check-unconfigured; retain actual pipeline/job/artifact evidence; reconcile scope/status and publication. Protected-branch phase-gate checkbox remains unchecked.
-- **Next:** Review and commit this first batch; perform both actual CI checks on that exact commit. Do not change the policy or allow failure to make a readiness-request pipeline green. P03-007 remains deferred.
+- **Status:** 🟧 In-scope technical checks verified 2026-10-07; documentation reconciliation and staged diff/secret-safety review accepted. Closeout commit/CI, GitHub publication, and final synchronization pending. No live hardware readiness or full task closeout claimed.
+- **Scope:** Explicit production-readiness requests on protected main fail closed when the required check is unconfigured. This does not reject an already accepted Git push or authorize deployment/release. Live collection and a healthy production-allow path remain unresolved dependencies.
+- **Files:** Added `config/production-readiness.json` and `scripts/production-readiness.cjs`; extended `test/hardhat/placeholder.test.js`; appended `production_readiness_gate` to `.gitlab-ci.yml`; updated CHECKLIST/HANDOFF/RUNBOOK. This reconciliation changes only the three documentation files.
+- **Implementation commit:** `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; both actual CI paths verified on this exact commit.
+- **Protection and policy:** Main protection confirmed by GitLab UI and terminal metadata. Policy SHA-256 `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`; schema 1, target main, intent PRODUCTION_READINESS_REQUESTED, hardware unconfigured/adapter null, productionAllowEnabled false. No branch-rule change or production-allow path.
+- **Local validation:** Previously recorded CI-equivalent Hardhat command produced 87 passing tests; local readiness exited 1 with ci-context-invalid and hardware-check-unconfigured; strict ingestion valid. Local evidence: `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`. The 87-test count is local, not an observed remote test count.
+- **Ordinary CI:** Project 1, pipeline 94/job 129 succeeded; allow_failure false. Actual `artifacts/production-readiness.json`: status not-requested, productionReadinessRequested false, targetReference main, ciMetadataValid true; productionReady/deploymentAuthorized/releaseAuthorized/taskComplete false. Read-only verifier returned ordinary_path_verified true.
+- **Requested-readiness CI:** Project 1, pipeline 95/job 132 failed with script_failure and allow_failure false; smoke 130 and ingestion 131 succeeded. Actual report: blocked, requested true, target main, ciMetadataValid true, reason hardware-check-unconfigured; hardware state unconfigured, executed false, adapterConfigured false; productionReady/deploymentAuthorized/releaseAuthorized/taskComplete false.
+- **Artifact evidence:** Requested-report SHA-256 `34d515f7bc625486ef684cbf44ffe7dfdea5edd744efb94e4782eca1c51cac97`. Pipeline metadata: `/home/kali/.local/state/blockchain-soc/p03-006/ci-request-q6et6s7t`; report/metadata: `/home/kali/.local/state/blockchain-soc/p03-006/pipeline-95-artifact-1prtdqgb`. Ordinary report read and summarized in terminal output; no new saved ordinary-report copy claimed.
+- **CI behavior:** Ordinary success is not readiness approval. Explicit true intent blocks while hardware checking is unconfigured. Selected CI metadata validation is structural, not cryptographic authentication. Success/failure artifact uploads observed; retention configured for 7 days, not tested over the complete retention lifetime. Timeout may prevent upload on another run.
+- **Integrity and safety:** Fixtures, dependencies, masker, ingestion policy, readiness policy, and branch rules were not altered by the terminal CI creation/readback commands. No hardware provisioning, cluster contact, credential creation, deployment, funding, or mock production bypass. Evidence and `docs/.backup/` remain outside staging.
+- **Limitations:** No live collector, healthy allow path, fresh hardware attestation, live-cluster outage drill, production-ready system, or deployment/release capability established.
+- [x] Recorded local regression and ingestion validation.
+- [x] Ordinary GitLab pipeline and report verified on the implementation commit.
+- [x] Explicit requested-readiness failure verified on protected main with valid CI metadata and hardware-check-unconfigured.
+- [x] Actual pipeline/job/artifact references and requested-report digest recorded.
+- [x] Documentation reconciliation applied and exact diff/secret-safety review accepted.
+- [ ] Closeout commit published GitLab-first, required ordinary CI verified, GitHub publication completed, and fetched three-way SHA equality proved.
+- **Phase gate contribution:** Protected-main requested-readiness denial verified for the unconfigured-check case only. No Git-push rejection or live-cluster outage drill claimed; Phase 3 remains incomplete.
+- **Next:** Review this documentation-only reconciliation, commit, publish GitLab-first and verify ordinary CI, then publish the same validated history to GitHub and verify synchronization. P03-007 remains deferred until closeout or an explicit accepted scope/dependency decision.
 
 ## P03-GATE — Phase 3 completion gate
 
-- [ ] Protected production branch is blocked when the cluster check is offline.
+- [x] Protected-main production-readiness requests fail closed while required hardware checking is unavailable/unconfigured: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, pipeline 95/job 132, valid CI metadata and hardware-check-unconfigured. Deny-by-default scope only; no Git-push rejection or live-cluster outage drill claimed.
 - [x] AST masking neutralizes the prompt-injection fixture within documented data-omission scope: P03-005 implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55`, 79 local tests, native fixture verification, reported green GitLab CI, and fetched synchronization. No LLM behavioral defense is claimed.
 - [ ] Zone 2 tests and isolated runner validation pass.
 - [ ] Phase 11 forward dependency for mempool monitoring is documented.

@@ -1358,13 +1358,13 @@ Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green 
 
 ## P03-006 — Deny-by-default readiness control
 
-**Procedure status:** 🟧 Local first-batch validation recorded; actual GitLab enforcement and hardware integration pending.
+**Procedure status:** 🟧 Local commands and actual ordinary/requested-readiness CI behavior verified within deny-only scope on 2026-10-07 at `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; documentation reconciliation and staged diff/secret-safety review accepted. Closeout commit/CI/publication and final synchronization pending. Live hardware integration and positive readiness remain unconfigured.
 
 ### Scope and prerequisites
 
-Controls explicit production-readiness requests on protected main. It does not block an already accepted Git push, deploy anything, or establish hardware health. Policy hash: `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`.
+Controls explicit production-readiness requests on protected main. It does not reject an already accepted Git push, deploy anything, or establish hardware health. Policy SHA-256: `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`.
 
-Hardware checker is unconfigured; no allow path exists. Normal verification success is not production readiness. Preserve branch rules, protected inputs, and the deny-by-default policy.
+Hardware checker is unconfigured and no production allow path exists. Normal verification success is not production readiness. Preserve branch rules, protected inputs, and the deny-by-default policy. Authorized coursework/development environment only; not a production deployment.
 
 ### Tested local commands
 
@@ -1385,21 +1385,29 @@ From `~/Blockchain-Security-Project-Remastered`:
 
 Observed: 87 local tests passed; local readiness exited 1 with blocked status, invalid local CI context, unconfigured hardware, and all authorization fields false; strict ingestion valid. Evidence: `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`.
 
-### CI behavior awaiting verification
+### Verified CI behavior and evidence
 
-- CLI --ci consumes only selected CI metadata and the non-secret PRODUCTION_READINESS_REQUESTED intent.
-- Absent/false intent with valid CI context yields not-requested, exit 0; productionReady remains false.
-- True intent requires main/protected context and still fails while hardware checking is unconfigured.
-- Unknown intent/context, altered policy, and mock/demo healthy flags cannot grant readiness.
-- New job is non-optional with allow_failure false; structured report path artifacts/production-readiness.json; configured retention 7 days on success/failure.
-- Actual default-pipeline result, requested-readiness failure, CI metadata, and artifact availability are not yet verified.
+Both runs used implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, main, project 1, and report member `artifacts/production-readiness.json`.
+
+| Run | Pipeline/job | Factual outcome |
+|---|---|---|
+| Ordinary verification | 94 / 129 | Pipeline and gate success; allow_failure false; status not-requested, requested false, ciMetadataValid true; productionReady/deploymentAuthorized/releaseAuthorized/taskComplete false. |
+| Explicit readiness request | 95 / 132 | Pipeline and gate failed with script_failure; allow_failure false; requested true, blocked, ciMetadataValid true, hardware-check-unconfigured; hardware unconfigured, executed false, adapterConfigured false; all authorization fields and taskComplete false. |
+
+- Requested run smoke 130 and ingestion 131 succeeded. Gate artifact identified the expected hardware-check-unconfigured blocking reason.
+- CLI --ci consumes selected CI metadata and non-secret PRODUCTION_READINESS_REQUESTED intent. Absent/false intent may permit ordinary verification without readiness; true intent fails while hardware checking is unconfigured. Unknown context/intent, altered policy, and mock/demo flags cannot grant readiness.
+- Success/failure report uploads were read for both runs. Retention configured for 7 days; complete retention lifecycle not tested. Timeout may prevent upload on another run.
+- Requested-report SHA-256: `34d515f7bc625486ef684cbf44ffe7dfdea5edd744efb94e4782eca1c51cac97`.
+- Pipeline metadata: `/home/kali/.local/state/blockchain-soc/p03-006/ci-request-q6et6s7t`; downloaded requested report/metadata: `/home/kali/.local/state/blockchain-soc/p03-006/pipeline-95-artifact-1prtdqgb`. Ordinary report readback is terminal evidence, not a newly saved local report.
+- Terminal verification used the installed application service and read-only project/pipeline/job-scoped artifact queries. Do not repeat pipeline creation to inspect existing evidence. No new untested operator command introduced by this reconciliation.
+- Metadata validity is structural, not cryptographic authentication. taskComplete false is runtime evidence, not a repository-publication-status field.
 
 ### Safe failure handling
 
-- Exit 1 on a readiness request is the intended safety result, not a bypass target.
+- Exit 1 on the readiness request is the intended safety result, not a bypass target. Ordinary success is not production authorization.
 - Do not enable allow_failure, remove the job, fake CI/hardware metadata, or relabel not-requested as ready.
-- No live hardware collector/attestation or positive authorization is implemented. Do not install a cluster or invent thresholds under this procedure.
-- Metadata checks are structural, not cryptographic proof of CI identity.
+- No live collector/attestation, healthy production path, or live-cluster outage drill verified. Do not install a cluster or invent thresholds under this procedure.
 - Policy parsing checks at most 8 KiB after file read; local evidence capture checks at most 32 KiB output. These are not complete process-memory bounds.
-- Keep evidence/backups unstaged. No kubeconfig/private material, network/cluster contact, deployment, or signing is required.
-- Further real hardware integration requires an approved target, required capabilities, trustworthy bounded collector, and factual validation.
+- Keep evidence and documentation backups unstaged. No kubeconfig/private material, hardware provisioning, cluster contact, deployment, or signing is required for this deny-only procedure.
+- Future hardware integration requires a separately approved target, capabilities, trustworthy bounded collector, and factual validation. This evidence does not resolve that dependency or authorize deployment/release.
+- Documentation-closeout commit, its ordinary CI, GitHub publication, and final fetched SHA equality remain pending. Phase 3 is not complete.

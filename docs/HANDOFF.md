@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-006 — Deny-by-default protected-reference readiness control; 🟧 actual CI verification pending |
-| Current thread | P03-006 first batch locally validated: 87 regressions passed; local readiness request exited 1 with blocked/unconfigured hardware and no production/deployment/release authorization; ingestion valid. Protected main observed in GitLab UI; explicit readiness-request policy added. Actual ordinary and requested-readiness GitLab pipelines not yet verified. Real hardware collector/positive path unconfigured; no production readiness claimed. Commit/CI/publication pending; P03-007 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
+| Current task | P03-006 — Protected-reference deny-by-default readiness control; 🟧 technical checks verified, documentation/publication closeout pending |
+| Current thread | P03-006 implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`: 87 local regressions recorded; ordinary pipeline 94/job 129 succeeded with valid CI metadata and not-requested status; requested-readiness pipeline 95/job 132 failed without failure allowance, with valid CI metadata and hardware-check-unconfigured. Both reports retain productionReady/deploymentAuthorized/releaseAuthorized false. Live hardware integration remains unconfigured; no positive readiness or production authorization claimed. Documentation reconciliation applied and staged diff/secret-safety review accepted; closeout commit/CI/publication and final synchronization pending; P03-007 deferred; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -22,6 +22,8 @@
 | Last updated | 2026-10-07 |
 
 ## Completed since previous handoff
+
+- **P03-006 technical verification, not full task closeout:** Ordinary pipeline 94/job 129 and requested-readiness pipeline 95/job 132 verified on `b5f7c8e411740f420b2adc883671cf3e740d6aeb`. Both reports retained deny-only authorization fields and valid CI metadata; requested report recorded hardware-check-unconfigured. Documentation reconciliation and staged diff/secret-safety review accepted; closeout commit/CI/publication and final synchronization remain pending.
 
 - **P00-012 — DFIR tooling baseline:** ✅ Complete and verified.
   - Safely version/help validated the required Kali DFIR baseline: Sleuth Kit 4.14.0; optional Autopsy 2.24-6kali1; Volatility 3 2.28.2 via pipx as `vol`; Plaso 20260119-1kali1 using packaged `plaso-*` utilities; dc3dd 7.3.1-4; ewf-tools 20140816-2+b2; YARA 4.5.8; tshark 4.6.6; tcpdump 4.99.6; GnuPG 2.4.9; and minisign CLI 0.12 from package 0.12-1+b1. Minisign was the sole package newly installed in the final reviewed transaction; GnuPG was already present and only safely validated.
@@ -107,7 +109,7 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - The root route returned HTTP `403` after authorization, recorded as a route/backend response rather than token rejection; an authenticated `/api/tags` response remains an optional separately approved functional follow-up.
   - P00-008/P00-009 documentation commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` passed GitLab CI, was posted to GitHub, and was verified synchronized across `main`, `gitlab/main`, and `origin/main`.
   - Temporary Caddy, verifier, and Ollama test processes were stopped and their temporary listeners released.
-- Phase 0 remains active and its completion gate is not ready.
+- Historical Phase 0 active-state wording is superseded by the recorded P00-GATE and subsequent Phase 1/2 completion evidence. Current work is Phase 3, P03-006; Phase 3 is not complete.
 
 ## Architecture invariants — must not be violated
 
@@ -576,15 +578,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
-### P03-006 — Readiness gate — 🟧 Actual CI verification pending
+### P03-006 — Readiness gate — 🟧 Technical checks verified; closeout pending
 
-- **State:** First batch locally validated 2026-10-07: 87 tests passed, local blocked exit 1, ingestion valid. No production readiness established.
-- **Policy:** Protected main observed in UI; explicit readiness-request policy with pinned hash `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`. Hardware adapter unconfigured and production allow disabled.
-- **CI:** Non-optional production_readiness_gate appended to verify. Ordinary verification may pass as not-requested; explicit production-readiness requests must fail. Both actual CI/report outcomes pending.
-- **Evidence:** `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`; local decision/process metadata outside Git. Synthetic CI unit contexts are not real CI enforcement evidence.
-- **Files:** New policy/script, existing CI and placeholder test, three task documents. Fixtures/dependencies/masker/ingestion policy unchanged.
-- **Blockers and limits:** No configured live hardware collector or positive readiness path. No deployments, branch-rule changes, credentials, cluster contact, or mock production authorization.
-- **Next:** Review/commit, ordinary CI validation and protected-main requested-readiness failure proof, scope reconciliation, and publication. Do not start P03-007 or declare P03-GATE complete.
+- **State:** Deny-by-default technical scope verified 2026-10-07 at `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; documentation/publication closeout not complete. The recorded 87 tests are local evidence.
+- **Ordinary CI:** Pipeline 94/job 129 succeeded with allow_failure false. Actual report: not-requested, requested false, target main, ciMetadataValid true; productionReady/deploymentAuthorized/releaseAuthorized/taskComplete false.
+- **Requested-readiness CI:** Pipeline 95/job 132 failed with script_failure and allow_failure false; smoke 130 and ingestion 131 succeeded. Actual report: blocked, requested true, target main, ciMetadataValid true, hardware-check-unconfigured; hardware unconfigured, executed false, adapterConfigured false; all authorization fields and taskComplete false.
+- **Protection and policy:** Main protection confirmed in UI and terminal metadata. Policy SHA-256 `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`; hardware adapter unconfigured and production allow disabled. No Git-push rejection, live cluster health, or cryptographic CI authentication claimed.
+- **Evidence:** Local `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`; pipeline metadata `/home/kali/.local/state/blockchain-soc/p03-006/ci-request-q6et6s7t`; requested report/metadata `/home/kali/.local/state/blockchain-soc/p03-006/pipeline-95-artifact-1prtdqgb`. Requested-report SHA-256 `34d515f7bc625486ef684cbf44ffe7dfdea5edd744efb94e4782eca1c51cac97`. Ordinary report readback is terminal evidence; no new saved ordinary-report copy claimed.
+- **Files and integrity:** Implementation changed policy/script, existing CI/test, and task documents. This reconciliation changes only CHECKLIST/HANDOFF/RUNBOOK. Technical inputs, policy, branch rules, credentials, evidence, and existing backup contents remain untouched.
+- **Publication:** Collector observed cached main/gitlab/main at `b5f7c8e411740f420b2adc883671cf3e740d6aeb` and origin/main at `b770b3b0c7ed857594df0c2473238dd7ee127752`. P03-006 GitHub publication and fresh final synchronization are unverified. Documentation-closeout commit and its CI/publication pending.
+- **Runbook:** Reconciles actual ordinary/blocking CI evidence and safety interpretation; preserves tested local commands. No new untested operator command introduced.
+- **Hardware dependency:** Live collector, trustworthy attestation, and healthy production-allow path remain unconfigured. Separate target/capability/collector approval and factual validation required; do not provision hardware to make the negative test green.
+- **Next:** Review documentation and secret boundary, commit, publish GitLab-first, verify ordinary closeout CI, publish the same validated history to GitHub, and prove fetched SHA equality. P03-007 deferred; P03-GATE not ready.
 
 ### P03-005 — Injection-fixture masking — ✅ Complete and verified
 
@@ -652,10 +657,21 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Hygiene:** `git diff --check` passed. `docs/.backup/` remains untracked and excluded.
 - **Completion evidence:** Initial implementation `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in GitLab `ingest_manifests` because the strict inventory did not yet approve the new test. Remediation `2325e5541f3b2df65ad6d54b8e683d806a8c8d15` explicitly added the approved P02-008 test path and passed reported green GitLab CI; the unapproved-extra-test negative control remains rejected. Record this outcome in a documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-validated history to GitHub, and confirm `main == gitlab/main == origin/main`.
 
+## Immediate next task
+
+- **Active task:** P03-006 — Finish protected-reference deny-by-default readiness-control documentation and publication closeout.
+- **Phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway; phase gate not ready.
+- **Scope:** Reconcile verified ordinary and blocking CI/report evidence, limitations, and publication status. No implementation changes, repeat negative-test pipeline, hardware provisioning, policy bypass, or P03-007 implementation.
+- **Expected files:** docs/CHECKLIST.md, docs/HANDOFF.md, docs/RUNBOOK.md only.
+- **Acceptance:** Exact documentation diff and secret-safety review accepted; closeout commit created and GitLab-first published; required ordinary CI succeeded; validated history published to GitHub; fetched main/gitlab/main/origin/main full SHAs identical. Live hardware remains an unresolved dependency, not production-ready evidence.
+- **Validation:** git diff --check; git diff --name-only; exact three-file diff and staged review; factual closeout GitLab CI evidence; after authorized publication, fetch both remotes and compare full SHAs.
+- **Dependencies and safety:** Preserve tested implementation/policy, remotes, branch protection, protected material, evidence, and untracked docs/.backup/. No broad staging, force-push, or prospective publication claims.
+- **Runbook impact:** Reconcile the existing P03-006 procedure with actual two-path CI outcomes; preserve tested local commands and deny-only/hardware limitations.
+
 ## Subsequent task queue
 
-1. `P03-006` — Verify actual CI enforcement and resolve/document the hardware-integration prerequisite; finish scope and publication reconciliation.
-2. `P03-007` — Deferred until P03-006 closeout or an explicit accepted dependency/scope decision.
+1. `P03-006` — Complete documentation review and GitLab-first/GitHub-second publication reconciliation.
+2. `P03-007` — Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. Deferred until P03-006 closeout or an explicit accepted scope/dependency decision; begin with scope inspection only.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
