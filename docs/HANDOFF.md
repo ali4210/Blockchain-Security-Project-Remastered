@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-006 — Protected-reference deny-by-default readiness control; ✅ Complete and verified within documented scope; final status-correction publication pending |
-| Current thread | P03-006 ✅ Complete and verified within documented deny-by-default scope: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; 87 local tests recorded; ordinary pipeline 94/job 129 succeeded; requested-readiness pipeline 95/job 132 failed without failure allowance with valid CI metadata and hardware-check-unconfigured. Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way SHA equality. Hardware integration remains unconfigured and production/deployment/release authorization false. Current work is only the explicitly requested green-status documentation correction; its own commit/CI/publication remain pending. No P03-007 work; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
+| Current task | P03-007 — Zone 2 Docker/GitLab Runner isolation; 🟧 approved coursework job-plane runtime verified; documentation/publication closeout pending |
+| Current thread | P03-007 runtime verification accepted within user-approved 🔒 coursework job-plane scope. Pipeline 98 on `54346bd68089c74e449b3f9801ef60d6d23c7b8c` succeeded on runner 2; jobs 139/140/141 passed. Twelve started containers observed: three builds, three predefined helpers, six cache-init; no reported privilege, host-bind/socket, device, added-capability, or host-namespace violations. Docker-managed volumes permitted. Manager retains host networking/read-write Docker socket; manager/whole-host isolation, separate per-job networks, and service isolation not claimed. Documentation diff/secret-safety review accepted; evidence commit, CI/publication, and final green closeout pending. Task 6 remains ✅ and its final correction is published/synchronized. P03-008 not started; Phase 3 gate incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
@@ -23,7 +23,9 @@
 
 ## Completed since previous handoff
 
-- **P03-006 — ✅ Complete and verified within documented deny-by-default scope:** Ordinary pipeline 94/job 129 and requested-readiness pipeline 95/job 132 verified on `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; valid CI metadata, expected hardware-check-unconfigured denial, and all production/deployment/release authorization fields false. Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way synchronization. Hardware integration unresolved. Only the separately requested green-status correction publication remains pending.
+- **P03-007 technical verification, not full documentation closeout:** Pipeline 98 on `54346bd68089c74e449b3f9801ef60d6d23c7b8c` succeeded; jobs 139/140/141 used runner 2. Twelve build/helper/cache-init snapshots had no reported violations. User accepted 🔒 coursework job-plane scope with Docker-managed volumes and disclosed manager host-network/socket dependency. Documentation diff/secret-safety review accepted; commit/publication and final green closeout pending.
+
+- **P03-006 — ✅ Complete and verified within documented deny-by-default scope:** Ordinary 94/129 and requested-readiness 95/132 verified on `b5f7c8e411740f420b2adc883671cf3e740d6aeb`. Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final green-status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Hardware integration remains unresolved; no production authorization.
 
 - **P00-012 — DFIR tooling baseline:** ✅ Complete and verified.
   - Safely version/help validated the required Kali DFIR baseline: Sleuth Kit 4.14.0; optional Autopsy 2.24-6kali1; Volatility 3 2.28.2 via pipx as `vol`; Plaso 20260119-1kali1 using packaged `plaso-*` utilities; dc3dd 7.3.1-4; ewf-tools 20140816-2+b2; YARA 4.5.8; tshark 4.6.6; tcpdump 4.99.6; GnuPG 2.4.9; and minisign CLI 0.12 from package 0.12-1+b1. Minisign was the sole package newly installed in the final reviewed transaction; GnuPG was already present and only safely validated.
@@ -109,7 +111,7 @@ Build the Enterprise V10.3 Autonomous AI-Native Blockchain Security Operations C
   - The root route returned HTTP `403` after authorization, recorded as a route/backend response rather than token rejection; an authenticated `/api/tags` response remains an optional separately approved functional follow-up.
   - P00-008/P00-009 documentation commit `e9c788688ae2cd18187eb5710d22837e0aaf3d9f` passed GitLab CI, was posted to GitHub, and was verified synchronized across `main`, `gitlab/main`, and `origin/main`.
   - Temporary Caddy, verifier, and Ollama test processes were stopped and their temporary listeners released.
-- Historical Phase 0 active-state wording is superseded by the recorded P00-GATE and subsequent Phase 1/2 completion evidence. Current work is Phase 3, P03-006; Phase 3 is not complete.
+- Historical Phase 0 active-state wording is superseded by recorded P00-GATE and Phase 1/2 completion evidence. Current work is Phase 3, P03-007 documentation closeout; P03-006 is complete within scope; Phase 3 is incomplete.
 
 ## Architecture invariants — must not be violated
 
@@ -578,6 +580,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
 - **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
 
+### P03-007 — Job-plane isolation — 🟧 Runtime verified; documentation closeout pending
+
+- **Scope acceptance:** User approved 🔒 coursework workload verification after reviewing pipeline 98. Docker-managed volumes permitted; manager retains host networking/read-write Docker socket. No whole-host/manager isolation, separate per-job networks, non-root/all-capabilities-dropped guarantee, or service isolation claimed.
+- **Configuration:** Existing runner 2, Docker executor, version 19.4.1; privileged false, no declared job host bind/socket volume or devices; no configured Docker host cache directory, custom volume driver/options, or runner hooks.
+- **CI:** Pipeline 98 succeeded on `54346bd68089c74e449b3f9801ef60d6d23c7b8c`; smoke 139, ingestion/Zone 2 regressions 140, ordinary readiness 141 all succeeded on runner 2 with allow_failure false. Remote test count not extracted; prior 87 tests remain local evidence.
+- **Runtime:** Three build, three predefined helper, six cache-init containers observed with start events. All 12 reported privileged false, bridge networking, no host PID/IPC/UTS setting, no added capabilities/devices, no host bind or engine socket mount, local managed volumes with zero backing options, and empty violations. No observer errors.
+- **Evidence:** `/home/kali/.local/state/blockchain-soc/p03-007/runtime-rt95oop1/runtime-audit.json`; SHA-256 `d293a791f0762ee5e1725c9a34124cbbcaa78992d5872bf956fe67ee1b46ace4`. Saved taskComplete false remains unchanged; it is not a checklist/publication status.
+- **Files and safety:** Documentation-only update to CHECKLIST/HANDOFF/RUNBOOK. No CI/source/test/runner/policy/dependency changes or new runner/token, manager restart, service reconfiguration, production authorization, or repeat audit required. Evidence/backups remain unstaged.
+- **Acceptance:** Technical checks, scope, and exact documentation diff/secret-safety review accepted. Local evidence commit, GitLab-first CI, GitHub publication, fetched synchronization, and final consistent ✅ task statuses remain required before advancing.
+- **Runbook impact:** Record the tested configuration/runtime audit, actual CI commands, failure handling, evidence identity, and retained manager limitation.
+- **Next:** Finish P03-007 documentation and publication. Do not begin P03-008 or repeat pipeline creation merely to inspect saved evidence. Phase 3 remains incomplete.
+
 ### P03-006 — Readiness gate — ✅ Complete and verified within documented scope
 
 - **State:** ✅ Complete and verified within documented deny-by-default scope 2026-10-07: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; evidence/documentation closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` published and fetched-synchronized after user-reported green GitLab CI. The 87-test count remains local evidence; live hardware readiness is not claimed.
@@ -586,10 +600,10 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 - **Protection and policy:** Main protection confirmed in UI and terminal metadata. Policy SHA-256 `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`; hardware adapter unconfigured and production allow disabled. No Git-push rejection, live cluster health, or cryptographic CI authentication claimed.
 - **Evidence:** Local `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`; pipeline metadata `/home/kali/.local/state/blockchain-soc/p03-006/ci-request-q6et6s7t`; requested report/metadata `/home/kali/.local/state/blockchain-soc/p03-006/pipeline-95-artifact-1prtdqgb`. Requested-report SHA-256 `34d515f7bc625486ef684cbf44ffe7dfdea5edd744efb94e4782eca1c51cac97`. Ordinary report readback is terminal evidence; no new saved ordinary-report copy claimed.
 - **Files and integrity:** Implementation changed policy/script, existing CI/test, and task documents. This reconciliation changes only CHECKLIST/HANDOFF/RUNBOOK. Technical inputs, policy, branch rules, credentials, evidence, and existing backup contents remain untouched.
-- **Publication:** ✅ Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` published to GitLab with user-reported green CI, then successfully pushed to GitHub. Fetching both remotes proved main == gitlab/main == origin/main at that full SHA. Closeout pipeline ID not captured. This new green-status correction has not yet been committed, CI-validated, or published.
+- **Publication:** ✅ Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed user-reported green GitLab CI, GitHub publication, and fetched main/gitlab/main/origin/main equality. Original closeout/status pipeline IDs not captured. P03-007 audit pipeline 98 later succeeded on the final status-correction commit.
 - **Runbook:** Reconciles actual ordinary/blocking CI evidence and safety interpretation; preserves tested local commands. No new untested operator command introduced.
 - **Hardware dependency:** Live collector, trustworthy attestation, and healthy production-allow path remain unconfigured. Separate target/capability/collector approval and factual validation required; do not provision hardware to make the negative test green.
-- **Next:** Review and publish only the explicitly requested final green-status correction. Verify its own GitLab-first CI, GitHub publication, and fetched synchronization before moving forward. Do not repeat the completed readiness tests or start P03-007; P03-GATE remains not ready.
+- **Next:** Historical P03-006 closeout is complete. The user authorized P03-007; its accepted runtime evidence and documentation closeout are the current work. Preserve Task 6 readiness denial and do not repeat its completed tests.
 
 ### P03-005 — Injection-fixture masking — ✅ Complete and verified
 
@@ -659,20 +673,21 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ## Immediate next task
 
-- **Active administrative work:** P03-006 — Verify and publish the explicitly requested final green-status documentation correction.
-- **Task evidence status:** ✅ Complete and verified within documented deny-by-default scope. Evidence closeout f4a8bd3bd27e0334d5c32d50004931da2cef2a2e is already GitLab-CI-reported-green, GitHub-published, and fetched-synchronized.
-- **Phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway; phase gate not ready.
-- **Scope:** Correct the remaining orange/status/publication wording only. No implementation changes, repeat negative-test pipeline, hardware provisioning, policy bypass, or P03-007 work.
+- **Active task:** P03-007 — Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts; finish accepted coursework job-plane documentation/publication closeout.
+- **Phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway; phase gate incomplete.
+- **Current evidence:** Configuration and pipeline 98 runtime checks passed; documented workload scope and trusted-manager limitation explicitly accepted by the user.
+- **Scope:** Reconcile CHECKLIST/HANDOFF/RUNBOOK, review exact diff and secret boundary, commit/publish GitLab-first, verify CI, publish the same history to GitHub, prove fetched SHA equality, and finalize every applicable task status to ✅.
+- **Out of scope:** Manager/socket/network redesign, runner registration/token handling, CI/source/test/dependency changes, repeat audit pipeline, production readiness, and P03-008 implementation.
 - **Expected files:** docs/CHECKLIST.md, docs/HANDOFF.md, docs/RUNBOOK.md only.
-- **Acceptance:** All applicable P03-006 task/procedure status surfaces green and consistent; no stale pending claim for the completed f4a8bd3 closeout; exact diff/secret-safety review accepted; new correction committed and GitLab-first CI verified; same correction published to GitHub and fetched three-way SHA equality proved.
-- **Validation:** git diff --check; exact changed/staged scope and byte review; targeted P03-006 status/acceptance audit; actual correction CI evidence; final fetched SHA comparison.
-- **Dependencies and safety:** Preserve policy, implementation, remotes, branch rules, protected material, evidence, and untracked docs/.backup/. Hardware integration remains unresolved and production authorization false. No broad staging, force-push, or prospective publication claims.
-- **Runbook impact:** Correct P03-006 procedure status and known publication outcome; retain tested commands and hardware limitations.
+- **Acceptance:** Scope and limitations consistent across documents; factual audit identity/results recorded; required documentation review passed; evidence commit and its GitLab CI verified; GitHub publication and fetched synchronization proved; no stale predecessor-current or completed-publication-pending wording.
+- **Validation:** git diff --check; exact three-file/staged-byte review; targeted P03-006/P03-007 status audit; actual documentation-commit CI; final fetched main/gitlab/main/origin/main full SHA equality.
+- **Dependencies and safety:** Existing runner 2 and trusted manager retained; evidence outside Git; no raw configuration/environment/tokens or job traces in documentation. Preserve readiness policy, branch rules, protected inputs, remotes, and untracked docs/.backup/. No broad staging or force-push.
+- **Runbook impact:** Add the verified coursework audit procedure and disclose manager, volume, networking, service, and test-count limits.
 
 ## Subsequent task queue
 
-1. `P03-006` — Publish and verify the final green-status correction; the underlying task evidence closeout is already complete.
-2. `P03-007` — Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. Do not start until the requested P03-006 status correction is verified and the user agrees to move forward.
+1. `P03-007` — Complete documentation/publication and final green-status reconciliation.
+2. `P03-008` — Add CSET/CISA or an approved open-source CMMC/NIST governance scanner. Not started; do not begin before P03-007 closeout and explicit continuation.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

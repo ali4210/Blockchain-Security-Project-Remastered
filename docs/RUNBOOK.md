@@ -1358,7 +1358,7 @@ Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green 
 
 ## P03-006 — Deny-by-default readiness control
 
-**Procedure status:** ✅ Verified within documented deny-by-default scope 2026-10-07. P03-006 is ✅ Complete and verified within that scope: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way synchronization. Closeout pipeline ID not captured. Live hardware integration and positive readiness remain unconfigured. This separately requested status correction awaits its own commit/CI/publication.
+**Procedure status:** ✅ Verified within documented deny-by-default scope 2026-10-07. P03-006 is ✅ Complete and verified within that scope: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Original closeout/status pipeline IDs not captured. Live hardware integration and positive readiness remain unconfigured; Task 6 is not the current task.
 
 ### Scope and prerequisites
 
@@ -1410,4 +1410,80 @@ Both runs used implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, main, 
 - Policy parsing checks at most 8 KiB after file read; local evidence capture checks at most 32 KiB output. These are not complete process-memory bounds.
 - Keep evidence and documentation backups unstaged. No kubeconfig/private material, hardware provisioning, cluster contact, deployment, or signing is required for this deny-only procedure.
 - Future hardware integration requires a separately approved target, capabilities, trustworthy bounded collector, and factual validation. This evidence does not resolve that dependency or authorize deployment/release.
-- Evidence/documentation closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` is published and synchronized, with user-reported green GitLab CI. The new green-status correction requires its own review/commit/CI/publication; no future outcome is claimed. Phase 3 remains incomplete and P03-007 is not started.
+- Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` are published and fetched-synchronized after reported green GitLab CI. P03-007 is now the authorized task; Phase 3 remains incomplete.
+
+## P03-007 — Coursework job-plane runtime audit
+
+**Procedure status:** ✅ Runtime audit verified 2026-10-07 within explicitly user-approved 🔒 coursework scope. P03-007 documentation/evidence commit, publication, and final green-status closeout remain pending.
+
+### Purpose and accepted boundary
+
+Verify actual Zone 2 build, predefined-helper, and cache-init execution on existing runner 2 without privileged mode, host bind/engine-socket mounts, added capabilities/devices, or observed host namespace sharing. Docker-managed local volumes are permitted.
+
+The trusted manager retains host networking and a read-write host Docker socket. This is an accepted and disclosed control-plane dependency, not a claim of manager/whole-host isolation. Jobs used bridge networking; separate per-job networks, non-root execution, all-capabilities-dropped behavior, service isolation, and container-escape resistance were not established.
+
+### Preconditions and safety
+
+- Authorized local coursework GitLab/Docker environment; existing Runner 19.4.1, runner ID 2.
+- Tested commit `54346bd68089c74e449b3f9801ef60d6d23c7b8c`; existing CI definition and package metadata pinned before the run.
+- Inspect runner configuration in memory using a strict output allowlist. Never print/save tokens, configuration bodies, environment values, raw labels, or job traces.
+- Start external create/start observation before a bounded pipeline; do not mount Docker into jobs to let them inspect themselves.
+- Do not remove the manager socket, restart services, register another runner, alter cache settings, weaken the readiness policy, or install host dependencies merely to obtain a pass.
+
+### Tested execution
+
+Pipeline 98 ran the unchanged existing CI. Its ingestion job 140 executed:
+
+```bash
+npm ci --ignore-scripts --no-audit --fund=false
+
+./node_modules/.bin/hardhat \
+  --config config/hardhat.config.js \
+  test --no-compile \
+  test/hardhat/formal-tools.test.js \
+  test/hardhat/placeholder.test.js \
+  test/hardhat/pipeline-entrypoints.test.js
+
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+```
+
+These commands were exercised inside the existing CI job, not installed or newly run on the Kali host by this audit. The ingestion output was directed to its configured artifact. Job success observed; remote test count not extracted. Do not reuse the prior 87 local tests as an observed remote count.
+
+The tested terminal audit used Docker create/start events filtered by project/commit labels, selected-field container inspection, volume-driver inspection, and actual GitLab job-ID correlation. The complete tested inline audit command is in the sanitized P03-007 terminal record for pipeline 98. This runbook does not introduce a new shortened pipeline-creation command or an untested replay procedure.
+
+Audit creation used the normal installed application service and verified project/actor/ref, with non-secret P03_007_ISOLATION_AUDIT=runtime-v1 and PRODUCTION_READINESS_REQUESTED=false. Existing matching audit records prevented automatic repeats.
+
+### Verified results
+
+| Job | ID | Result |
+|---|---:|---|
+| runner_smoke_test | 139 | Success on runner 2 |
+| ingest_manifests | 140 | Success on runner 2 |
+| production_readiness_gate | 141 | Success on runner 2; ordinary non-readiness-request run |
+
+- Pipeline 98 succeeded; all three jobs had allow_failure false.
+- Twelve containers with runtime start events: three builds, three predefined helpers, six cache-init.
+- All snapshots reported privileged false, bridge network, no host PID/IPC/UTS setting, no added capabilities/devices, no host bind/socket mounts, and empty violations.
+- Observed managed volumes used the local driver with zero options and no configured host-device/bind backing. This is not a statement that Docker volumes have no host storage.
+- Observer errors empty; build/helper coverage present for every job.
+- Services absent from the inspected CI and not exercised; do not extrapolate this result to future service jobs.
+- jobPlaneRuntimeChecksPassed true. Saved taskComplete false was deliberate and remains historical data, not a checklist/publication state.
+
+### Evidence and integrity
+
+- Evidence: `/home/kali/.local/state/blockchain-soc/p03-007/runtime-rt95oop1/runtime-audit.json`.
+- SHA-256: `d293a791f0762ee5e1725c9a34124cbbcaa78992d5872bf956fe67ee1b46ace4`.
+- CI definition SHA-256: `188ce8a3c990f40c2f1179e4dac498a47b5262a5c54cd65287f61ae81cb4eea6`.
+- package.json SHA-256: `e5814463f435a5ccb4f7901c09cd3935125b8fc32bd59f094c087ca2f61506df`.
+- Saved-evidence readback verified the digest, pipeline/jobs, 12-container count, observed starts, and empty violations without changing the report.
+- No CI/source/test/runner/policy/dependency/lockfile changes were required. This closeout modifies only task documentation; evidence and backups remain unstaged.
+
+### Failure handling and limitations
+
+- Missing helper/build start coverage is incomplete evidence, not a pass. A bind/socket/privilege/device/namespace violation is a failed check.
+- Unknown driver/backing metadata cannot be accepted as safe by omission.
+- Do not automatically rerun creation after timeout or unknown outcome; retain the pipeline ID and saved partial evidence.
+- Do not retroactively change runtime snapshots, report booleans, or manager limitations to obtain acceptance.
+- Inspect saved evidence before authorizing another run. No cleanup of manager volumes or unrelated containers is part of this procedure.
+- A future manager-hardening, service, rootless, dedicated-network, or stronger isolation claim requires separate scope and factual validation.
+- P03-007's new documentation commit and publication are not yet verified. Do not begin P03-008 before closeout and final consistent task statuses.

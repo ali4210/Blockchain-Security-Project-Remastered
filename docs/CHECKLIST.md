@@ -76,13 +76,13 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-006 — Protected-reference deny-by-default readiness control; ✅ Complete and verified within documented scope; final status-correction publication pending |
-| Current thread | P03-006 ✅ Complete and verified within documented deny-by-default scope: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; 87 local tests recorded; ordinary pipeline 94/job 129 succeeded; requested-readiness pipeline 95/job 132 failed without failure allowance with valid CI metadata and hardware-check-unconfigured. Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way SHA equality. Hardware integration remains unconfigured and production/deployment/release authorization false. Current work is only the explicitly requested green-status documentation correction; its own commit/CI/publication remain pending. No P03-007 work; Phase 3 gate not ready. Preserve untracked `docs/.backup/`. |
+| Current task | P03-007 — Zone 2 Docker/GitLab Runner isolation; 🟧 approved coursework job-plane runtime verified; documentation/publication closeout pending |
+| Current thread | P03-007 runtime verification accepted within user-approved 🔒 coursework job-plane scope. Pipeline 98 on `54346bd68089c74e449b3f9801ef60d6d23c7b8c` succeeded on runner 2; jobs 139/140/141 passed. Twelve started containers observed: three builds, three predefined helpers, six cache-init; no reported privilege, host-bind/socket, device, added-capability, or host-namespace violations. Docker-managed volumes permitted. Manager retains host networking/read-write Docker socket; manager/whole-host isolation, separate per-job networks, and service isolation not claimed. Documentation diff/secret-safety review accepted; evidence commit, CI/publication, and final green closeout pending. Task 6 remains ✅ and its final correction is published/synchronized. P03-008 not started; Phase 3 gate incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
-| Last verified commit | `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` — P03-006 evidence/documentation closeout; published and three-way synchronization verified |
-| Last GitLab pipeline | User-reported green for closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e`; pipeline ID not captured. Implementation evidence: ordinary 94/129 succeeded; requested-readiness 95/132 intentionally failed. New status-correction CI not yet run. |
-| Last GitHub post | Published — successful push and fetched `origin/main` at `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` |
-| Synchronization | Verified published baseline — fetched `main == gitlab/main == origin/main == f4a8bd3bd27e0334d5c32d50004931da2cef2a2e`. The new green-status correction has not yet been committed or published. |
+| Last verified commit | `54346bd68089c74e449b3f9801ef60d6d23c7b8c` — P03-006 final green-status correction; GitLab CI reported green, GitHub publication and fetched synchronization verified; P03-007 audit baseline |
+| Last GitLab pipeline | P03-007 audit pipeline 98 succeeded on `54346bd68089c74e449b3f9801ef60d6d23c7b8c`; jobs 139/140/141 succeeded on runner 2. P03-007 documentation-commit CI not yet run. |
+| Last GitHub post | Published — successful push and fetched `origin/main` at `54346bd68089c74e449b3f9801ef60d6d23c7b8c` |
+| Synchronization | Verified published baseline — fetched `main == gitlab/main == origin/main == 54346bd68089c74e449b3f9801ef60d6d23c7b8c`. New P03-007 documentation commit/publication not yet completed. |
 | Runtime state | Empty local ext4 evidence vault exists at `/srv/blockchain-soc/evidence-vault`; P00-013 raw evidence remains unchanged in the shared transfer location. |
 | Last updated | 2026-10-07 |
 | Project workspace | Autonomous AI-Native Blockchain SOC — Enterprise V10.3 |
@@ -96,7 +96,7 @@ resolve to the same full SHA.
 | 0 | Environment and prerequisites | ✅ | P00-GATE locally validated; `983098a34511ba06157268feda9f0f02c15eac63` synchronized across local, GitLab, and GitHub; phase-declaration documentation lifecycle pending. | `983098a34511ba06157268feda9f0f02c15eac63` |
 | 1 | Skeleton scaffold | ✅ | P01-GATE recorded complete and verified 2026-10-05; see detailed gate evidence. | See P01-GATE |
 | 2 | Zone 1 — Ingestion Gateway | ✅ | P02-GATE recorded complete and verified 2026-10-05. | `aded10c3ac964783ef22104d82ce8e167c6de69c` |
-| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 through P03-006 complete within documented scopes; P03-006 closeout published/synchronized. Hardware integration remains unresolved; P03-GATE not ready. Requested green-status correction publication pending; P03-007 not started. | `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` (verified P03-006 closeout) |
+| 3 | Zone 2 — DevSecOps Shield and Sanitization Gateway | 🟦 | P03-001 through P03-006 complete; P03-007 runtime scope verified in pipeline 98 with user-approved 🔒 manager exception; documentation/publication pending. Hardware integration unresolved; Phase 11 forward-dependency gate reconciliation pending; Phase 3 incomplete. | `54346bd68089c74e449b3f9801ef60d6d23c7b8c` (verified baseline) |
 | 4 | Zone 3 — Compilation, Storage and MCP Middleware | ⬜ | — | — |
 | 5 | Transport Bridge, Inference Layer, and Agent Swarm A–G | ⬜ | — | — |
 | 6 | AVS Cryptographic Consensus | ⬜ | — | — |
@@ -774,7 +774,7 @@ resolve to the same full SHA.
 | P03-004 | Implement `scripts/ast-mask.mts` for AST parsing, string-literal hashing, and maximum-depth routing to manual review. | ✅ | Complete and verified 2026-10-07 within documented projection scope: `42384867ed4a8f2fcda2b58e806ce967a802cd37`, reported green GitLab CI, GitHub publication, and fetched synchronization. 73 local tests; native fixture masked; limitations retained. |
 | P03-005 | Add a prompt-injection contract fixture and verify masking returns hash/tag representation only. | ✅ | Complete and verified 2026-10-07 within fixture-specific scope: `f85cd49fae29a82bcc1e04584f7c1d2231989e55`, reported green GitLab CI, GitHub publication, and fetched synchronization. 79 local tests; seven masks/schema/payload omission/determinism verified. |
 | P03-006 | Implement protected-branch production-readiness gate; fail closed if hardware-cluster check fails. | ✅ | Complete and verified 2026-10-07 within documented deny-by-default scope: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, ordinary 94/129 successful, requested-readiness 95/132 blocked; closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` user-reported green, GitHub-published, and fetched synchronization verified. No live hardware readiness claimed. |
-| P03-007 | Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. | ⬜ | — |
+| P03-007 | Run Zone 2 inside an isolated Docker/GitLab Runner environment: no privileged mode and no host mounts. | 🟧 | Runtime verified 2026-10-07 within user-approved 🔒 workload scope: pipeline 98, runner 2, jobs 139/140/141 successful; 12 containers without reported violations. Docker-managed volumes allowed; trusted manager host-network/socket exception retained. Documentation/publication pending. |
 | P03-008 | Add CSET/CISA or an approved open-source CMMC/NIST governance scanner. | ⬜ | — |
 | P03-009 | Add real Foundry `Exploit.t.sol` and `Invariants.t.sol` examples and validate the exploit fixture. | ⬜ | — |
 | P03-010 | Create `src/agents/upgrade5_defi_attacks.py` front-running detector interface/tests as a safe stub pending Phase 11 mempool data. | ⬜ | — |
@@ -876,7 +876,7 @@ resolve to the same full SHA.
 
 ### P03-006 — Protected-reference deny-by-default readiness control
 
-- **Status:** ✅ Complete and verified within documented deny-by-default scope 2026-10-07. Technical checks and documentation review accepted; evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` had user-reported green GitLab CI, successful GitHub publication, and fetched three-way synchronization. No live hardware readiness or production authorization claimed. The separately requested green-status correction awaits its own commit/CI/publication.
+- **Status:** ✅ Complete and verified within documented deny-by-default scope 2026-10-07. Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final green-status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed user-reported green GitLab CI, successful GitHub publication, and fetched three-way synchronization. No live hardware readiness or production authorization claimed. P03-006 is historical, not the current task.
 - **Scope:** Explicit production-readiness requests on protected main fail closed when the required check is unconfigured. This does not reject an already accepted Git push or authorize deployment/release. Live collection and a healthy production-allow path remain unresolved dependencies.
 - **Files:** Added `config/production-readiness.json` and `scripts/production-readiness.cjs`; extended `test/hardhat/placeholder.test.js`; appended `production_readiness_gate` to `.gitlab-ci.yml`; updated CHECKLIST/HANDOFF/RUNBOOK. This reconciliation changes only the three documentation files.
 - **Implementation commit:** `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; both actual CI paths verified on this exact commit.
@@ -895,13 +895,38 @@ resolve to the same full SHA.
 - [x] Documentation reconciliation applied and exact diff/secret-safety review accepted.
 - [x] Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` published GitLab-first with user-reported green CI; GitHub publication completed; fetched main/gitlab/main/origin/main full SHA equality proved. Closeout pipeline ID not captured.
 - **Phase gate contribution:** Protected-main requested-readiness denial verified for the unconfigured-check case only. No Git-push rejection or live-cluster outage drill claimed; Phase 3 remains incomplete.
-- **Next:** Review and publish only the explicitly requested final green-status correction: exact diff/secret boundary, local commit, GitLab-first CI, GitHub publication, and fetched synchronization. Do not begin P03-007 until this correction is verified. The completed evidence closeout is not pending; the new correction publication is.
+- **Next:** P03-006 final correction publication was verified at `54346bd68089c74e449b3f9801ef60d6d23c7b8c`. The user authorized P03-007, whose accepted runtime evidence and documentation closeout are recorded below. Do not reopen the completed Task 6 tests or status workflow.
+
+### P03-007 — Approved coursework job-plane isolation verification
+
+- **Status:** 🟧 Runtime verification, approved coursework scope, and documentation diff/secret-safety review accepted 2026-10-07; evidence commit, publication, and final green-status closeout pending.
+- **Approved scope:** 🔒 Coursework verification of existing Zone 2 build, predefined-helper, and cache-init containers: non-privileged execution, no host bind mounts or container-engine sockets, no added capabilities/devices, and no observed host network/PID/IPC/UTS sharing. Docker-managed local volumes permitted. The user explicitly accepted the trusted-manager exception after reviewing the runtime result.
+- **Excluded claims:** No manager/whole-host isolation, container-escape resistance guarantee, separate per-job networks, all-capabilities-dropped/non-root guarantee, or service-container isolation established. Manager retains host networking and a read-write host Docker socket. Services were not declared or exercised.
+- **Existing configuration:** Runner 2, Docker executor, Runner 19.4.1; privileged explicitly false; no declared job host-path/socket volumes, volume inheritance, devices, runner hooks, custom volume driver/options, or configured Docker host cache directory. Separate services_privileged setting absent; this service-free run does not prove service behavior.
+- **CI evidence:** Pipeline 98 succeeded on `54346bd68089c74e449b3f9801ef60d6d23c7b8c`. Runner smoke 139, ingestion/Zone 2 tests 140, and ordinary readiness 141 all succeeded on runner 2 with allow_failure false. Readiness intent was false; no production authorization requested.
+- **Runtime coverage:** Twelve container snapshots with start events: three build, three predefined helper, six cache-init. Every snapshot reported privileged false, bridge networking, no host PID/IPC/UTS setting, no added capabilities/devices, no host bind or engine socket mount, and no violations. Volume inspection reported local driver, zero options, and no host-device/bind option. Observer errors empty.
+- **Test-count boundary:** Job 140 executed the existing CI Hardhat regression command successfully. Remote test count was not extracted. The prior 87-test count remains local P03-006 evidence and is not relabelled as a Task 7 remote count.
+- **Method:** Allowlisted runner configuration inspection followed by an external Docker create/start observer and selected-field container/volume inspection, started before one application-service-created audit pipeline. Job/project/commit identity correlated with actual job IDs. No Docker socket was supplied to jobs.
+- **Evidence:** `/home/kali/.local/state/blockchain-soc/p03-007/runtime-rt95oop1/runtime-audit.json`; SHA-256 `d293a791f0762ee5e1725c9a34124cbbcaa78992d5872bf956fe67ee1b46ace4`. Raw configuration, tokens, environment values, labels, and job traces were not printed or saved. Evidence remains outside Git.
+- **Integrity:** No runner/manager/service/CI/source/test/policy/dependency/lockfile changes were needed. Existing CI definition SHA-256 `188ce8a3c990f40c2f1179e4dac498a47b5262a5c54cd65287f61ae81cb4eea6`; package.json SHA-256 `e5814463f435a5ccb4f7901c09cd3935125b8fc32bd59f094c087ca2f61506df` checked before the audit.
+- **Files changed:** Documentation reconciliation only: docs/CHECKLIST.md, docs/HANDOFF.md, docs/RUNBOOK.md. Existing evidence and backup contents remain unedited and unstaged.
+- **Runtime taskComplete field:** Saved false intentionally; the audit does not automatically close a checklist task. Keep the historical report unchanged; its jobPlaneRuntimeChecksPassed true is the accepted technical result.
+- [x] User-approved coursework scope and manager exception recorded.
+- [x] Existing executor/storage configuration inspected without credential disclosure.
+- [x] Existing CI regression/ingestion/readiness jobs succeeded on the audited commit.
+- [x] Build/helper/cache-init start and isolation snapshots correlated for all three jobs.
+- [x] Volume backing inspected; accepted report digest recorded.
+- [x] Services classified not applicable to this service-free run; limitations retained.
+- [x] Exact documentation diff and secret-safety review accepted.
+- [ ] Evidence commit published GitLab-first, CI passed, GitHub publication completed, and fetched three-way SHA equality proved.
+- **Phase gate contribution:** Zone 2 tests and runner validation passed within the explicitly accepted coursework workload scope. This does not close Phase 3 or establish production runner/host isolation.
+- **Next:** Finish documentation review and publication, then reconcile every applicable P03-007 task-status surface to ✅ before moving to P03-008. No additional audit pipeline or runner change is needed for the accepted result.
 
 ## P03-GATE — Phase 3 completion gate
 
 - [x] Protected-main production-readiness requests fail closed while required hardware checking is unavailable/unconfigured: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`, pipeline 95/job 132, valid CI metadata and hardware-check-unconfigured. Deny-by-default scope only; no Git-push rejection or live-cluster outage drill claimed.
 - [x] AST masking neutralizes the prompt-injection fixture within documented data-omission scope: P03-005 implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55`, 79 local tests, native fixture verification, reported green GitLab CI, and fetched synchronization. No LLM behavioral defense is claimed.
-- [ ] Zone 2 tests and isolated runner validation pass.
+- [x] Zone 2 tests and runner runtime validation passed within the user-approved 🔒 coursework workload scope: pipeline 98/job 140 succeeded; all three jobs had build/helper/cache-init coverage, 12 snapshots without reported violations. Trusted manager host-network/socket dependency retained; no whole-host, separate-network, or service-isolation claim.
 - [ ] Phase 11 forward dependency for mempool monitoring is documented.
 
 **Gate status:** ⬜ Not ready  
