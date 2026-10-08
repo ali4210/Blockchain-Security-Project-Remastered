@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-007 — Complete and verified; P04-008 next |
-| Current thread | P04-007 verified: read-only Sleuth Kit host-forensics MCP wrapper implemented in `src/mcp_middleware/host_forensics.py` with command injection blocking, partition table parsing (mmls), file listing (fls), and structured JSON output. 14 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-008 (create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-008 — Complete and verified; P04-009 next |
+| Current thread | P04-008 verified: telemetry MCP stubs implemented in `src/mcp_middleware/telemetry.py` covering Prometheus text exposition format, ECS structured JSON logging, Web3.py RPC health/gas queries, and GraphSense address clustering with clean Phase 8 deferral boundaries. 20 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-009 (deploy MCP middleware pool in Docker Compose). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-008 — Telemetry and observability MCP stubs:** Complete and verified.
+  - Files: `src/mcp_middleware/telemetry.py`, `test/mcp_middleware/test_telemetry.py`
+  - Validation: `python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"` -> 20 tests passed; `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 14 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `PrometheusCollector` text exposition formatter, `ECSLogFormatter` structured JSON logger, `query_web3_rpc` JSON-RPC node stub, and `query_graphsense` address clustering stub; establishes clean interface contracts with explicit Phase 8 deferral boundaries.
 
 - **P04-007 — Sleuth Kit host forensics MCP wrapper:** Complete and verified.
   - Files: `src/mcp_middleware/host_forensics.py`, `test/mcp_middleware/test_host_forensics.py`, `src/storage/broker_store.py`
@@ -626,29 +631,29 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-008 — Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense; defer live integration to Phase 8.
+- **Active task:** P04-009 — Deploy MCP middleware pool in Docker Compose (`docker-compose.test.yml`).
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Scaffold telemetry and observability MCP stubs in `src/mcp_middleware/telemetry.py` covering metric exposition (Prometheus Counter/Histogram stubs), structured log shipping (ELK/Logstash formatters), Web3.py RPC client stubs for node health and gas tracking, and GraphSense on-chain address clustering stubs. Add unit tests in `test/mcp_middleware/test_telemetry.py` verifying stub execution, interface contracts, and fallback error handling.
-- **Out of scope:** Connecting to live remote ELK or Prometheus daemons, real RPC network calls, or Phase 8 deep forensics.
-- **Expected files:** `src/mcp_middleware/telemetry.py`, `test/mcp_middleware/test_telemetry.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Inspect existing Docker Compose configs (`docker-compose.test.yml`, `config/docker/`, etc.) and ensure service definitions for the MCP middleware pool (Anvil sandbox, storage, telemetry, forensics wrapper) are properly configured with ephemeral resource limits, security options (read-only root where appropriate, unprivileged execution), and port bindings. Add verification scripts or syntax validation for Compose configuration.
+- **Out of scope:** Phase 5 swarm multi-agent orchestration or production Kubernetes manifests.
+- **Expected files:** `docker-compose.test.yml`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Stubs for Prometheus, ELK, Web3.py RPC, and GraphSense define clean programmatic interfaces.
-  - Interfaces return structured mock or placeholder telemetry payloads without crashing.
-  - Unit tests verify telemetry interfaces, schema validation, and safe error handling.
-  - Manifest ingestion and Hardhat regression suites pass.
+  - `docker-compose.test.yml` config passes `docker compose config` validation.
+  - MCP middleware service definitions specify container user, volumes, and health checks.
+  - Ingestion manifest and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
-  python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+  docker compose -f docker-compose.test.yml config
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; P04-007 complete and verified.
-- **Security constraints:** No external network socket listeners created without authentication stubs.
+- **Dependencies:** Docker toolchain; P04-008 complete and verified.
+- **Security constraints:** Non-root user in containers; minimal capabilities.
 
 ## Subsequent task queue
 
-1. `P04-008` — Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense.
-2. `P04-009` — Deploy MCP middleware pool in Docker Compose.
+1. `P04-009` — Deploy MCP middleware pool in Docker Compose.
+2. `P04-010` — Wire compile pipeline (`scripts/compile-all.mts`) as primary CI stage.
+3. `P04-GATE` — Phase 4 Quality Gate Verification.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

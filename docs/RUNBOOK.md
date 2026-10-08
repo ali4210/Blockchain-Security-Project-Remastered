@@ -1955,3 +1955,33 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - Storage tests pass 14/14.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P04-008 — Telemetry and observability MCP stubs validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate Prometheus metrics exposition format, Elastic Common Schema (ECS) JSON logging, Web3 RPC health query stubs, and GraphSense address clustering.
+
+**Scope and limitations**
+
+- Operates via in-memory collectors and structured mock stubs.
+- Live remote daemon connections deferred to Phase 8.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- MCP middleware tests pass 20/20 verifying Prometheus export format, ECS log schema, Web3 RPC mock responses, and GraphSense cluster serialization.
+- Storage tests pass 14/14.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
