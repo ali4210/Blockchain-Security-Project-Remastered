@@ -2047,3 +2047,37 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P05-001 — mTLS/bearer-aware Ollama client and Ephemeral VRAM lifecycle validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate authenticated Ollama client transport (`src/llm_client/ollama_client.py`), per-agent context window configuration, deterministic timeout caps, `purge_model(keep_alive=0)`, and `agent_stage()` lifecycle wrapper.
+
+**Scope and limitations**
+
+- Configures client-side headers and SSL options; live daemon execution operates via deterministic offline simulation in headless CI.
+- Models mapped: Qwen 2.5 Coder (Agents A, G), DeepSeek R1 (Agents B, D, F), Qwen 2.5 (Agents C, E).
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 6 LLM client unit tests pass.
+- 11 agent swarm unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

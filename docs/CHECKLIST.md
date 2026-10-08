@@ -75,7 +75,7 @@ resolve to the same full SHA.
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
+| Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
 | Current task | P04-009 — Complete and verified; P04-010 next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
@@ -998,7 +998,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P05-001 | Implement mTLS/bearer-aware `src/llm_client/ollama_client.py`, per-agent context sizes, `purge_model()`, and `agent_stage()` wrapper. | ⬜ | — |
+| P05-001 | Implement mTLS/bearer-aware `src/llm_client/ollama_client.py`, per-agent context sizes, `purge_model()`, and `agent_stage()` wrapper. | ✅ | Complete and verified 2026-10-08: Implemented mTLS and Bearer token authenticated `ollama_client.py` with per-agent context windows (A=32K, B=16K, C=8K, D=16K, E=8K, F=32K, G=32K), Agent G 300s timeout ceiling, `purge_model()` with `keep_alive: 0`, and `@contextmanager` `agent_stage()`; 6 LLM client tests passed, 11 agent tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P05-002 | Apply safe shell configuration variables on Kali; do not commit secrets. | ⬜ | — |
 | P05-003 | Validate raw authenticated chat call end-to-end before agent wiring. | ⬜ | — |
 | P05-004 | Verify model lifecycle: load, call, purge, then confirm host model list is empty. | ⬜ | — |

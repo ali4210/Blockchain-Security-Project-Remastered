@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-010 — Complete and verified; Phase 4 complete, Phase 5 next |
-| Current thread | Phase 4 Zone 3 (Compilation, storage, and MCP middleware) complete. P04-010 verified: storage read-only RBAC enforced in `src/storage/broker_store.py` restricting agent roles (`agent_a`, `agent_b`, `agent_c`, `agent_f`, `auditor`, `reader`) to read queries while raising `PermissionError` on writes and snapshots. 18 storage unit tests passed, 20 MCP middleware unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to Phase 5 (Autonomous Swarm Core). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
+| Current task | P05-001 — Complete and verified; P05-002 next |
+| Current thread | P05-001 verified: mTLS/bearer-aware `src/llm_client/ollama_client.py` implemented with per-agent context windows (A=32K, B=16K, C=8K, D=16K, E=8K, F=32K, G=32K), Agent G 300s timeout ceiling, `purge_model()` with `keep_alive: 0`, and `@contextmanager` `agent_stage()`. 6 LLM client unit tests passed, 11 agent swarm unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-002 (safe shell configuration variables on Kali; do not commit secrets). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-001 — Ollama client with mTLS/bearer, per-agent context windows, and purge_model():** Complete and verified.
+  - Files: `src/llm_client/ollama_client.py`, `test/llm_client/test_ollama_client.py`, `src/agents/graph.py`, `test/agents/test_swarm_graph.py`
+  - Validation: `python3 -m unittest discover -s test/llm_client/ -p "test_*.py"` -> 6 tests passed; `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 11 tests passed; `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 18 tests passed; `python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"` -> 20 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `src/llm_client/ollama_client.py` supporting Bearer token headers, mTLS certificate chain options, per-agent context windows (A=32K, B=16K, C=8K, D=16K, E=8K, F=32K, G=32K), deterministic timeout rules (Agent G 300s cap), Ephemeral VRAM Lifecycle unloader `purge_model(keep_alive=0)`, and `agent_stage()` context manager; verified single-lane sequential graph routing in `src/agents/graph.py`.
 
 - **P04-010 — Storage read-only enforcement for agent roles:** Complete and verified.
   - Files: `src/storage/broker_store.py`, `test/storage/test_role_enforcement.py`
@@ -641,30 +646,30 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-001 — Initialize LangGraph orchestration state machine for Swarm coordination.
+- **Active task:** P05-002 — Apply safe shell configuration variables on Kali; do not commit secrets.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Scaffold the core Swarm state machine and workflow router (`src/agents/swarm_coordinator.py` or `src/agents/orchestrator.py`) using LangGraph state graph conventions; define agent handoff states (Triage -> Static Analysis -> Symbolic Verification -> Exploit Generation -> Incident Response) and state transitions. Add unit tests in `test/agents/test_swarm_coordinator.py`.
-- **Out of scope:** Connecting to remote live LLM providers without mock fallbacks.
-- **Expected files:** `src/agents/swarm_coordinator.py`, `test/agents/test_swarm_coordinator.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Document and verify local environment configuration template (`config/env.example` or local shell variable export helpers) for `OLLAMA_HOST`, `OLLAMA_BEARER_TOKEN`, and mTLS paths on Kali Linux. Ensure `.gitignore` strictly excludes real environment credential files (`.env`, `*.secret`, `*.pem`, `*.key`) so zero secrets are tracked in git.
+- **Out of scope:** Hardcoding live secrets into repository source code.
+- **Expected files:** `config/env.example`, `.gitignore`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - State machine transitions between agent roles deterministically.
-  - Error states and halt conditions are handled cleanly.
-  - Unit tests verify state graph dispatching.
-  - Manifest ingestion and Hardhat regression suites pass.
+  - Safe environment variable templates documented without exposing live tokens.
+  - `.gitignore` prevents tracking of sensitive files and certificates.
+  - All test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
-  python3 -m unittest discover -s test/agents/ -p "test_*.py"
-  python3 -m unittest discover -s test/storage/ -p "test_*.py"
+  git status --short
+  python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library, `src/storage/broker_store.py`, `src/mcp_middleware/`; Phase 4 complete and verified.
-- **Security constraints:** State graph transitions require verified agent identity and read-only storage invariants.
+- **Dependencies:** Python 3 standard library; P05-001 complete and verified.
+- **Security constraints:** Zero credentials or private keys in git.
 
 ## Subsequent task queue
 
-1. `P05-001` — Initialize LangGraph orchestration state machine for Swarm coordination.
-2. `P05-002` — Implement Agent A (Contract Ingestion & SCA analysis) dispatcher.
+1. `P05-002` — Apply safe shell configuration variables on Kali; do not commit secrets.
+2. `P05-003` — Validate raw authenticated chat call end-to-end before agent wiring.
+3. `P05-004` — Implement Agent A (auditor) dispatcher node.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
