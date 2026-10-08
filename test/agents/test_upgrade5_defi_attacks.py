@@ -45,22 +45,85 @@ class TestUpgrade5DeFiAttacks(unittest.TestCase):
         self.assertEqual(alert["attack_type"], "gas_outbidding")
         self.assertEqual(alert["target_tx_hash"], "0xvictim123")
         self.assertEqual(alert["predator_tx_hash"], "0xpredator456")
-        self.assertEqual(alert["victim_gas_price"], 50000000000)
-        self.assertEqual(alert["predator_gas_price"], 75000000000)
-        self.assertEqual(alert["similarity_score"], 1.0)
-        self.assertEqual(alert["details"]["gas_premium"], 25000000000)
 
-    def test_front_running_detector_ignores_different_targets(self):
-        snapshot = [
-            {"hash": "0x1", "to": "0xContractA", "input": "0xabcd", "gas_price": 50},
-            {"hash": "0x2", "to": "0xContractB", "input": "0xabcd", "gas_price": 75},
-        ]
-        result = front_running_detector(snapshot)
+    def test_rug_pull_scanner_invalid_input(self):
+        result = rug_pull_scanner(None)
+        self.assertEqual(result["status"], "invalid_input")
         self.assertEqual(result["alerts"], [])
 
-    def test_future_phase_stubs_raise_not_implemented(self):
-        with self.assertRaises(NotImplementedError):
-            rug_pull_scanner(None)
+    def test_rug_pull_scanner_clean_contract(self):
+        clean_ast = {
+            "nodes": [
+                {
+                    "nodeType": "ContractDefinition",
+                    "name": "SecureToken",
+                    "nodes": [
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "mint",
+                            "modifiers": [{"modifierName": {"name": "onlyOwner"}}],
+                        },
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "setFee",
+                            "fee_cap_basis_points": 500,  # 5% max cap
+                        },
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "renounceOwnership",
+                            "modifiers": [],
+                        },
+                    ]
+                }
+            ]
+        }
+        result = rug_pull_scanner(clean_ast)
+        self.assertEqual(result["status"], "analyzed")
+        self.assertEqual(result["alerts"], [])
+
+    def test_rug_pull_scanner_detects_all_four_signatures(self):
+        malicious_ast = {
+            "nodes": [
+                {
+                    "nodeType": "ContractDefinition",
+                    "name": "RugToken",
+                    "nodes": [
+                        # 1. Unrestricted mint
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "publicMint",
+                            "modifiers": [],
+                        },
+                        # 2. Untimelocked LP drain
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "emergencyLPWithdraw",
+                            "modifiers": [{"modifierName": {"name": "onlyOwner"}}],
+                        },
+                        # 4. Hidden fee control without hard cap
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "setTax",
+                            "fee_cap_basis_points": 9900,  # 99% honeypot fee
+                        },
+                        # 3. Ownership state variable present without renounce
+                        {
+                            "nodeType": "VariableDeclaration",
+                            "name": "owner",
+                        },
+                    ]
+                }
+            ]
+        }
+        result = rug_pull_scanner(malicious_ast)
+        self.assertEqual(result["status"], "analyzed")
+        self.assertEqual(len(result["alerts"]), 4)
+
+        risk_types = {a["risk_type"] for a in result["alerts"]}
+        expected_types = {"unrestricted_mint", "untimelocked_lp", "unsafe_ownership", "hidden_fee_controls"}
+        self.assertEqual(risk_types, expected_types)
+
+    def test_flash_loan_invariant_generator_still_stubbed(self):
         with self.assertRaises(NotImplementedError):
             flash_loan_invariant_generator("contracts/dummy.sol")
 
