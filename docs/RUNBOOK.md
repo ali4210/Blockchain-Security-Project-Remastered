@@ -1636,3 +1636,32 @@ forge test -vvv
 - `InvariantsTest` passes fuzzing runs (256 runs, 128,000 calls).
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P03-010 — DeFi front-running detector interface and safe stub validation
+
+**Status:** ✅ Verified
+
+**Purpose**
+
+Validate the typed front-running detection interface for calldata-copying and gas-outbidding analysis, confirming safe fallback behavior when live mempool feeds are unconfigured pending Phase 11 consensus monitoring.
+
+**Scope and limitations**
+
+- Validated locally on Kali Linux development environment.
+- Evaluates static/fixture mempool snapshots only; does not establish live P2P network connections, RPC mempool listeners, or trade execution.
+- Safe stub explicitly returns status `pending_phase_11_mempool` when no live feed snapshot is provided.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Unit tests pass 5/5 verifying safe stub fallback, empty snapshots, gas outbidding detection, and NotImplementedError on unbuilt future phase functions.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

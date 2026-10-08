@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-009 — ✅ Complete and verified; P03-010 next |
-| Current thread | P03-009 verified: real Foundry exploit and invariant tests passed via forge test (4 tests passed, 256 invariant runs / 128,000 calls). Strict manifest ingestion valid and 83 regression tests passed. Advancing to P03-010 (front-running detector interface and tests stub pending Phase 11 mempool data). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P03-010 — ✅ Complete and verified; P03-011 next |
+| Current thread | P03-010 verified: typed front-running detector interface and gas-outbidding detection implemented in `src/agents/upgrade5_defi_attacks.py` with deterministic `pending_phase_11_mempool` stub fallback. 5 unit tests passed in `test/agents/test_upgrade5_defi_attacks.py`, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P03-011 (rug-pull signatures); Phase 3 incomplete. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P03-010 — Front-running detector interface stub:** ✅ Complete and verified.
+  - Files: `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 5 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Limitations: Live mempool ingestion deferred to Phase 11 consensus monitor; fallback returns deterministic `pending_phase_11_mempool` structure.
 
 - **P03-009 — Real Foundry exploit and invariants fixtures:** ✅ Complete and verified.
   - Files: `test/foundry/Exploit.t.sol`, `test/foundry/Invariants.t.sol`
@@ -571,28 +576,30 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P03-010 — Create `src/agents/upgrade5_defi_attacks.py` front-running detector interface/tests as a safe stub pending Phase 11 mempool data.
+- **Active task:** P03-011 — Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls.
 - **Current phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway.
-- **Scope:** Define the front-running and MEV detection interface in Python, create corresponding unit test fixtures, and document the forward dependency to Phase 11 mempool ingestion.
-- **Out of scope:** Live mempool scraping, network sockets, RPC listeners, or automated transaction front-running execution.
+- **Scope:** Implement `rug_pull_scanner(contract_ast)` in `src/agents/upgrade5_defi_attacks.py` to inspect Solidity AST structures for unrestricted minting, untimelocked LP tokens, unrenounced/non-multisig ownership, and arbitrary post-launch fee modifiers. Add comprehensive unit tests in `test/agents/test_upgrade5_defi_attacks.py`.
+- **Out of scope:** Phase 4 MCP middleware, network deployment, automated trading bots, or modifying `VulnerableVault.sol`.
 - **Expected files:** `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Interface cleanly typed and imports without errors.
-  - Safe stub returns deterministic structures when mempool data is absent.
-  - Unit tests verify interface contract and safe failure modes.
+  - `rug_pull_scanner` correctly parses AST representations and detects all four rug-pull indicators.
+  - Clean contracts produce empty alert lists with zero false positives on standard patterns.
+  - Unit tests verify each signature detector and pass cleanly.
+  - Project manifest ingestion and Hardhat regression tests pass.
 - **Validation commands:**
   ```bash
-  .venv/bin/python -m pytest test/agents/test_upgrade5_defi_attacks.py
+  python3 -m unittest discover -s test/agents/ -p "test_*.py"
+  ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+  ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python virtual environment with existing dependencies.
-- **Security constraints:** Read-only analysis logic; no live RPC connections or private keys.
-- **Runbook impact:** Update `docs/RUNBOOK.md` to document the front-running detector interface stub.
+- **Dependencies:** Python virtual environment; P03-010 complete and verified.
+- **Security constraints:** Read-only AST analysis; no code execution or key access.
+- **Runbook impact:** Update `docs/RUNBOOK.md` to document the rug-pull scanner AST analysis procedure.
 
 ## Subsequent task queue
 
-1. `P03-010` — Create front-running detector interface/tests as a safe stub pending Phase 11 mempool data.
-2. `P03-011` — Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls.
-3. `P03-012` — Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions.
+1. `P03-011` — Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls.
+2. `P03-012` — Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
