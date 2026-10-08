@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-001 — Complete and verified; P05-002 next |
-| Current thread | P05-001 verified: mTLS/bearer-aware `src/llm_client/ollama_client.py` implemented with per-agent context windows (A=32K, B=16K, C=8K, D=16K, E=8K, F=32K, G=32K), Agent G 300s timeout ceiling, `purge_model()` with `keep_alive: 0`, and `@contextmanager` `agent_stage()`. 6 LLM client unit tests passed, 11 agent swarm unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-002 (safe shell configuration variables on Kali; do not commit secrets). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-002 — Complete and verified; P05-003 next |
+| Current thread | P05-002 verified: safe environment template `config/env.example` and sourcing helper `scripts/export-env.sh.example` created without exposing credentials. `.gitignore` updated to block local active script overrides (`export-env.sh`), TLS certificates, keys, and environment files. 6 LLM client unit tests passed, 11 agent swarm unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-003 (validate raw authenticated chat call end-to-end before agent wiring). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-002 — Safe shell configuration variables & secret hygiene on Kali:** Complete and verified.
+  - Files: `config/env.example`, `scripts/export-env.sh.example`, `.gitignore`
+  - Validation: `git status --short` -> clean of secrets; `python3 -m unittest discover -s test/llm_client/ -p "test_*.py"` -> 6 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Created sanitized configuration template and shell export script for local Ollama transport settings; hardened `.gitignore` against accidental credential tracking; verified zero secrets in git.
 
 - **P05-001 — Ollama client with mTLS/bearer, per-agent context windows, and purge_model():** Complete and verified.
   - Files: `src/llm_client/ollama_client.py`, `test/llm_client/test_ollama_client.py`, `src/agents/graph.py`, `test/agents/test_swarm_graph.py`
@@ -646,30 +651,29 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-002 — Apply safe shell configuration variables on Kali; do not commit secrets.
+- **Active task:** P05-003 — Validate raw authenticated chat call end-to-end before agent wiring.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Document and verify local environment configuration template (`config/env.example` or local shell variable export helpers) for `OLLAMA_HOST`, `OLLAMA_BEARER_TOKEN`, and mTLS paths on Kali Linux. Ensure `.gitignore` strictly excludes real environment credential files (`.env`, `*.secret`, `*.pem`, `*.key`) so zero secrets are tracked in git.
-- **Out of scope:** Hardcoding live secrets into repository source code.
-- **Expected files:** `config/env.example`, `.gitignore`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement an end-to-end integration test/script (`test/llm_client/test_e2e_chat.py` or `scripts/verify-ollama-chat.py`) that exercises `chat()` with authenticated headers, custom model parameters, and offline fallback validation. Ensure connection diagnostics cleanly report server status without unhandled exceptions.
+- **Out of scope:** Phase 6 live automated red-teaming.
+- **Expected files:** `test/llm_client/test_e2e_chat.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Safe environment variable templates documented without exposing live tokens.
-  - `.gitignore` prevents tracking of sensitive files and certificates.
-  - All test suites and manifest ingestion checks pass.
+  - End-to-end test validates request assembly, payload structure, and response parsing.
+  - Offline fallback returns structured diagnostics when host is unreachable.
+  - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
-  git status --short
   python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; P05-001 complete and verified.
-- **Security constraints:** Zero credentials or private keys in git.
+- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; P05-002 complete and verified.
+- **Security constraints:** No live secrets or API keys checked into repository.
 
 ## Subsequent task queue
 
-1. `P05-002` — Apply safe shell configuration variables on Kali; do not commit secrets.
-2. `P05-003` — Validate raw authenticated chat call end-to-end before agent wiring.
-3. `P05-004` — Implement Agent A (auditor) dispatcher node.
+1. `P05-003` — Validate raw authenticated chat call end-to-end before agent wiring.
+2. `P05-004` — Verify model lifecycle: load, call, purge, then confirm host model list is empty.
+3. `P05-005` — Wire Agent A (Auditor) into LangGraph node.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

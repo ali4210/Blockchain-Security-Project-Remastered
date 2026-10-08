@@ -2081,3 +2081,39 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P05-002 — Safe shell configuration variables and secret hygiene validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate sanitized environment variable configuration templates (`config/env.example`, `scripts/export-env.sh.example`) and ensure `.gitignore` blocks sensitive credential files.
+
+**Scope and limitations**
+
+- Provides template configurations; no live secrets committed.
+- Excludes active credential files (`export-env.sh`, `*.pem`, `*.crt`, `*.key`, `.env*`).
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+git status --short
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Working tree reports clean secret tracking.
+- 6 LLM client unit tests pass.
+- 11 agent swarm unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

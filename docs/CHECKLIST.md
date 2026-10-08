@@ -999,7 +999,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P05-001 | Implement mTLS/bearer-aware `src/llm_client/ollama_client.py`, per-agent context sizes, `purge_model()`, and `agent_stage()` wrapper. | ✅ | Complete and verified 2026-10-08: Implemented mTLS and Bearer token authenticated `ollama_client.py` with per-agent context windows (A=32K, B=16K, C=8K, D=16K, E=8K, F=32K, G=32K), Agent G 300s timeout ceiling, `purge_model()` with `keep_alive: 0`, and `@contextmanager` `agent_stage()`; 6 LLM client tests passed, 11 agent tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
-| P05-002 | Apply safe shell configuration variables on Kali; do not commit secrets. | ⬜ | — |
+| P05-002 | Apply safe shell configuration variables on Kali; do not commit secrets. | ✅ | Complete and verified 2026-10-08: Safe environment configuration template created in `config/env.example` and shell helper `scripts/export-env.sh.example` documenting `OLLAMA_HOST`, `OLLAMA_BEARER_TOKEN`, and mTLS paths; `.gitignore` hardened against tracking secrets (`export-env.sh`, `*.pem`, `*.crt`, `*.key`, `.env*`); 6 LLM client tests passed, 11 agent tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P05-003 | Validate raw authenticated chat call end-to-end before agent wiring. | ⬜ | — |
 | P05-004 | Verify model lifecycle: load, call, purge, then confirm host model list is empty. | ⬜ | — |
 | P05-005 | Document practical Tier 1/Tier 2 model schedule for the available VRAM. | ⬜ | — |

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Helper: Export Safe Local Environment Variables for Ollama LLM Client
+# Usage: source scripts/export-env.sh.example (or copy to export-env.sh)
+# ==============================================================================
+
+export OLLAMA_HOST="${OLLAMA_HOST:-http://127.0.0.1:11434}"
+# export OLLAMA_BEARER_TOKEN="your-secret-bearer-token-here"
+# export OLLAMA_CLIENT_CERT="/path/to/client.crt"
+# export OLLAMA_CLIENT_KEY="/path/to/client.key"
+# export OLLAMA_CA_CERT="/path/to/ca.crt"
+
+echo "[+] Ollama environment variables configured: OLLAMA_HOST=${OLLAMA_HOST}"
