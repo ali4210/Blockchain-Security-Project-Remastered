@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-004 — Complete; P04-003 next |
-| Current thread | P04-004 verified: NetworkX DAG attack path synthesizer implemented in `src/storage/attack_path_graph.py` with cycle prevention, cumulative risk weighting, and remediation planning. 10 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Reconciling P04-003 (scripts/enrich-findings.mts mappings for ATT&CK, CIS, ISO 27001, CSET) as immediate next task. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-003 — Complete and verified; P04-005 next |
+| Current thread | P04-003 verified: governance framework mappings implemented in `scripts/enrich-findings.mts` for MITRE ATT&CK, CIS Controls, ISO 27001, and CSET. 5 unit assertions passed in `scripts/verify-enrichment.mts`, strict manifest ingestion valid, 10 storage tests passed, and 83 Hardhat regression tests passed. Advancing to P04-005 (scaffold benchmark-suite interface against sample contracts). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-003 — Governance framework enrichment:** Complete and verified.
+  - Files: `scripts/enrich-findings.mts`, `scripts/verify-enrichment.mts`
+  - Validation: `./node_modules/.bin/tsx --no-cache scripts/verify-enrichment.mts` -> 5 assertions passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Enriches normalized findings with MITRE ATT&CK technique IDs, CIS Controls v8 identifiers, ISO/IEC 27001:2022 controls, and CSET assessment domains; provides deterministic priority mapping for host governance versus smart contract vulnerabilities with baseline fallbacks; supports CLI execution.
 
 - **P04-003 — NetworkX DAG attack path synthesizer:** Complete and verified.
   - Files: `src/storage/attack_path_graph.py`, `test/storage/test_attack_path_graph.py`
@@ -606,30 +611,29 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-003 — Implement `scripts/enrich-findings.mts` mappings for ATT&CK, CIS, ISO 27001, and CSET.
+- **Active task:** P04-005 — Scaffold the benchmark-suite interface against sample contracts.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Implement `scripts/enrich-findings.mts` to enrich normalized findings with cybersecurity governance framework mappings: MITRE ATT&CK techniques, CIS Controls, ISO/IEC 27001 controls, and CSET criteria. Export `enrichFindings()` and support CLI usage.
-- **Out of scope:** Swarm dispatch (Phase 5), live RPC calls, or modifying baseline contracts.
-- **Expected files:** `scripts/enrich-findings.mts`, `scripts/verify-enrichment.mts` (or unit test script), `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Scaffold the benchmark suite interface in `src/storage/benchmark_suite.py` to evaluate static analysis tool accuracy, throughput, and detection latency against sample contracts under `contracts/solidity/`. Implement test harness in `test/storage/test_benchmark_suite.py` asserting synthetic finding ingestion, execution timing, and metrics generation.
+- **Out of scope:** Phase 5 swarm execution, live RPC queries, or external network load tests.
+- **Expected files:** `src/storage/benchmark_suite.py`, `test/storage/test_benchmark_suite.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `enrichFindings` maps vulnerabilities (e.g. reentrancy, access control, front-running) to MITRE ATT&CK, CIS, ISO 27001, and CSET.
-  - Handles unknown or generic findings with deterministic baseline fallback mappings.
-  - Unit tests verify enrichment schemas and accuracy.
+  - `BenchmarkSuite` executes benchmark runs evaluating finding throughput and detection accuracy.
+  - Generates structured summary reports with timing metrics and sample contract coverage.
+  - Unit tests verify benchmark execution and reporting.
   - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
-  ./node_modules/.bin/tsx --no-cache scripts/enrich-findings.mts --help
+  python3 -m unittest discover -s test/storage/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
-  python3 -m unittest discover -s test/storage/ -p "test_*.py"
   ```
-- **Dependencies:** Node.js TypeScript environment; P04-002 complete and verified.
-- **Security constraints:** Read-only schema enrichment; no external execution.
+- **Dependencies:** Python 3 standard library, `src/storage/broker_store.py`; P04-003 and P04-004 complete and verified.
+- **Security constraints:** Read-only evaluation against local sample contracts; no network calls.
 
 ## Subsequent task queue
 
-1. `P04-003` — Implement `scripts/enrich-findings.mts` mappings for ATT&CK, CIS, ISO 27001, and CSET.
-2. `P04-005` — Scaffold the benchmark-suite interface against sample contracts.
+1. `P04-005` — Scaffold the benchmark-suite interface against sample contracts.
+2. `P04-006` — Implement Anvil-fork MCP sandbox with controlled `forge test` execution.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

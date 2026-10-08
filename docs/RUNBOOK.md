@@ -1837,3 +1837,35 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - Storage tests pass 10/10 verifying DAG construction, cycle rejection, path enumeration, and remediation planning.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P04-003 — Findings governance framework enrichment validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate mapping of normalized security findings to cybersecurity governance frameworks: MITRE ATT&CK, CIS Controls v8, ISO/IEC 27001:2022, and CSET.
+
+**Scope and limitations**
+
+- Evaluates local JSON and in-memory finding objects.
+- Deterministic rule-based mapping engine; does not make remote framework API calls.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+./node_modules/.bin/tsx --no-cache scripts/verify-enrichment.mts
+./node_modules/.bin/tsx --no-cache scripts/enrich-findings.mts --help
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+```
+
+**Verified expected result**
+
+- Enrichment verifier passes all 5 assertions.
+- CLI help emits valid command syntax.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
+- 10 storage unit tests pass.
