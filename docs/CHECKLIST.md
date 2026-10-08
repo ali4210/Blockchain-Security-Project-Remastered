@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-GATE — Complete and verified; Phase 3 verified; P04-001 next |
+| Current task | P04-001 — Complete and verified; P04-002 next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -969,7 +969,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P04-001 | Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots. | ⬜ | — |
+| P04-001 | Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots. | ✅ | Complete and verified 2026-10-08: `BrokerStore` implemented with WAL mode, busy timeout, online backup snapshots, and finding queries; 5 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P04-002 | Implement `scripts/normalize-reports.mts` DREAD scoring. | ⬜ | — |
 | P04-003 | Implement `scripts/enrich-findings.mts` mappings for ATT&CK, CIS, ISO 27001, and CSET. | ⬜ | — |
 | P04-004 | Implement attack-path graph, `list_attack_paths()`, and `plan_remediation()`. | ⬜ | — |

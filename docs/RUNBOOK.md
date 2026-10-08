@@ -1749,3 +1749,31 @@ python3 -m unittest discover -s test/agents/ -p "test_*.py"
 - Manifest ingestion emits valid status with intact asset map.
 - 83 Hardhat regression tests pass.
 - 7 agent unit tests pass.
+
+## P04-001 — SQLite broker store and snapshotting verification
+
+**Status:** Verified
+
+**Purpose**
+
+Validate embedded SQLite broker store operation under Write-Ahead Logging (WAL mode), concurrency handling, finding ingestion, and pre-swarm snapshot creation.
+
+**Scope and limitations**
+
+- Evaluates local SQLite database files and snapshots under `data/` or temporary test directories.
+- Operates in-memory or on local disk; does not connect to external database services or cloud endpoints.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Storage tests pass 5/5 verifying WAL mode, findings insertion/retrieval, listing, and atomic pre-swarm backup creation.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

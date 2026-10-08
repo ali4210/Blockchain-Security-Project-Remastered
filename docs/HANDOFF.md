@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P03-GATE — Complete and verified; P04-001 next |
-| Current thread | Phase 3 verified: Zone 2 DevSecOps shield gate criteria passed. All 12 tasks (P03-001 through P03-012) complete with verified evidence. Manifest ingestion valid, 83 Hardhat regression tests passed, 7 agent tests passed. Phase 3 gate annotated tag `v10.3-phase-03` pending publication. Immediate next task is P04-001 (SQLite broker storage). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-001 — Complete and verified; P04-002 next |
+| Current thread | P04-001 verified: SQLite broker storage implemented in `src/storage/broker_store.py` with WAL mode, exclusive/busy locking, pre-swarm snapshots, and findings persistence. 5 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-002 (scripts/normalize-reports.mts DREAD scoring). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-001 — SQLite broker storage:** Complete and verified.
+  - Files: `src/storage/broker_store.py`, `test/storage/test_broker_store.py`
+  - Validation: `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 5 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: SQLite initializes with `PRAGMA journal_mode=WAL` and busy timeout 5000ms; online backup API generates atomic pre-swarm snapshot files with SHA-256 state verification; findings persist with deterministic identifiers.
 
 - **P03-GATE — Phase 3 completion gate:** Complete and verified.
   - Tasks audited: P03-001 through P03-012 verified with commit hashes and factual results.
@@ -591,29 +596,28 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-001 — Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots.
+- **Active task:** P04-002 — Implement `scripts/normalize-reports.mts` to normalize static tool outputs and calculate DREAD risk scores.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Implement the SQLite persistence layer for sanitized vulnerability reports, attack paths, and telemetry in `src/storage/db.py` (or project equivalent). Enable Write-Ahead Logging (WAL) mode, busy timeout, and write locking. Add unit tests verifying schema initialization, concurrent reads, and pre-swarm snapshotting.
-- **Out of scope:** Swarm agent execution (Phase 5), live MCP container orchestration, or live network calls.
-- **Expected files:** `src/storage/db.py`, `test/storage/test_db.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement report normalization in `scripts/normalize-reports.mts` for static tool findings (Slither, Mythril, Semgrep, Lynis), parsing tool-specific finding formats into the normalized schema with deterministic DREAD risk scoring (Damage, Reproducibility, Exploitability, Affected users, Discoverability).
+- **Out of scope:** Phase 5 swarm execution, live RPC queries, or network calls.
+- **Expected files:** `scripts/normalize-reports.mts`, `test/hardhat/normalization.test.js` (or test runner equivalent), `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Database initializes with WAL mode enabled (`PRAGMA journal_mode=WAL`).
-  - Schema supports normalized vulnerability findings, DREAD scores, and snapshot states.
-  - Unit tests verify concurrent reading and atomic pre-swarm snapshot generation.
-  - Manifest ingestion and Hardhat regression suites continue to pass.
+  - Normalization script transforms raw tool outputs into unified JSON schema.
+  - DREAD scoring assigns bounded numeric scores (0.0 to 10.0) based on finding attributes.
+  - Regression test suite passes with full integrity checks.
 - **Validation commands:**
   ```bash
-  python3 -m unittest discover -s test/ -p "*test*.py"
+  ./node_modules/.bin/tsx --no-cache scripts/normalize-reports.mts --help
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library `sqlite3`; Phase 3 gate complete.
-- **Security constraints:** Read-only access enforced for agent roles; storage mutations restricted to authorized broker functions.
+- **Dependencies:** Node.js/TypeScript environment; P04-001 complete and verified.
+- **Security constraints:** Sanitize all untrusted inputs and strip raw binary/terminal data.
 
 ## Subsequent task queue
 
-1. `P04-001` — Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots.
-2. `P04-002` — Implement `scripts/normalize-reports.mts` DREAD scoring.
+1. `P04-002` — Implement `scripts/normalize-reports.mts` DREAD scoring.
+2. `P04-003` — Implement `src/storage/attack_path_graph.py` NetworkX DAG synthesizer.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
