@@ -2323,3 +2323,37 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P05-008 — Agent C implementation (compliance judge)
+
+**Status:** Verified
+
+**Purpose**
+
+Validate Agent C compliance judge node execution, finding evaluation against OWASP/NIST controls, structured verdict generation, and Ephemeral VRAM cleanup.
+
+**Scope and limitations**
+
+- Evaluates static and runtime findings against compliance controls.
+- Enforces Ephemeral VRAM lifecycle management via `agent_stage("C")`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 22 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

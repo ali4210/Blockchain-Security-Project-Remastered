@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-007 — Complete and verified; P05-008 next |
-| Current thread | P05-007 verified: Agent B SIEM threat hunter implemented in `src/agents/agent_b_threat_hunter.py` with unit tests in `test/agents/test_agent_b_threat_hunter.py`. Validated telemetry log ingestion, prompt correlation with static findings under `agent_stage("B")`, structured threat extraction, offline fallback resilience, and immediate VRAM eviction. 19 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-008 (implement Agent C: compliance judge). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-008 — Complete and verified; P05-009 next |
+| Current thread | P05-008 verified: Agent C compliance judge implemented in `src/agents/agent_c_compliance_judge.py` with unit tests in `test/agents/test_agent_c_compliance_judge.py`. Validated compliance evaluation of combined static/runtime findings under `agent_stage("C")`, structured verdict generation, offline fallback resilience, and immediate VRAM eviction. 22 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-009 (implement Agent D: red teamer). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-008 — Agent C implementation (compliance judge):** Complete and verified.
+  - Files: `src/agents/agent_c_compliance_judge.py`, `test/agents/test_agent_c_compliance_judge.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 22 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented Agent C compliance evaluation node assessing combined static and dynamic findings against OWASP Smart Contract Top 10 and NIST SP 800-53 controls using Qwen 2.5 (32B/14B, 8K context); verified structured verdict calculation, offline simulation handling, and Ephemeral VRAM eviction upon completion.
 
 - **P05-007 — Agent B implementation (SIEM threat hunter):** Complete and verified.
   - Files: `src/agents/agent_b_threat_hunter.py`, `test/agents/test_agent_b_threat_hunter.py`
@@ -681,15 +686,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-008 — Implement Agent C: compliance judge.
+- **Active task:** P05-009 — Implement Agent D: red teamer.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Implement `src/agents/agent_c_compliance_judge.py` and unit tests in `test/agents/test_agent_c_compliance_judge.py`. Agent C evaluates combined static audit findings (Agent A) and runtime threat events (Agent B) against regulatory and compliance baselines (e.g. NIST, ISO 27001, OWASP Top 10 for Smart Contracts) using Qwen 2.5 (`qwen2.5:32b`/`14b`, 8K context window) under `agent_stage("C")` for Ephemeral VRAM cleanup, and outputs compliance score and verdict into `SwarmState`.
-- **Out of scope:** Phase 6 live exploit execution.
-- **Expected files:** `src/agents/agent_c_compliance_judge.py`, `test/agents/test_agent_c_compliance_judge.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement `src/agents/agent_d_red_teamer.py` and unit tests in `test/agents/test_agent_d_red_teamer.py`. Agent D analyzes verified vulnerabilities and compliance issues, synthesizes exploit payloads / test scenarios using DeepSeek R1 (`deepseek-r1:32b`/`14b`, 16K context window) under `agent_stage("D")` for Ephemeral VRAM cleanup, and outputs generated PoC attack vectors into `SwarmState`.
+- **Out of scope:** Phase 6 live unconstrained exploit execution.
+- **Expected files:** `src/agents/agent_d_red_teamer.py`, `test/agents/test_agent_d_red_teamer.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Ingests aggregated findings from state.
-  - Dispatches compliance evaluation prompts via `chat()` under `agent_stage("C")` context manager.
-  - Records compliance verdict (PASS / CONDITIONAL / REJECT) and compliance issues into `state["findings"]`.
+  - Ingests vulnerabilities and target contract details from state.
+  - Dispatches exploit hypothesis prompts via `chat()` under `agent_stage("D")` context manager.
+  - Records structured PoC exploit scenarios into `state["findings"]`.
   - Triggers VRAM eviction upon exit.
   - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
@@ -699,14 +704,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-007 complete and verified.
-- **Security constraints:** Read-only analysis; deterministic offline fallback; zero GPU memory retention between stages.
+- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-008 complete and verified.
+- **Security constraints:** Synthetic attack generation restricted to local test fixtures; zero credentials committed.
 
 ## Subsequent task queue
 
-1. `P05-008` — Implement Agent C: compliance judge.
-2. `P05-009` — Implement Agent D: red teamer.
-3. `P05-010` — Implement Agent E: incident commander.
+1. `P05-009` — Implement Agent D: red teamer.
+2. `P05-010` — Implement Agent E: incident commander.
+3. `P05-011` — Implement Agent F: deep logic analyzer.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
