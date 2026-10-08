@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-005 — Complete and verified; P04-006 next |
-| Current thread | P04-005 verified: benchmark-suite interface scaffolded in `src/storage/benchmark_suite.py` with sample contract discovery, SQLite finding ingestion throughput benchmarking, and structured metrics. 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-006 (Anvil-fork MCP sandbox with controlled forge test execution). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-006 — Complete and verified; P04-007 next |
+| Current thread | P04-006 verified: Anvil-fork MCP sandbox implemented in `src/mcp_middleware/anvil_sandbox.py` with process lifecycle management, bounded `forge test` execution, and timeout containment. 7 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-007 (read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-006 — Anvil-fork MCP sandbox manager:** Complete and verified.
+  - Files: `src/mcp_middleware/anvil_sandbox.py`, `test/mcp_middleware/__init__.py`, `test/mcp_middleware/test_anvil_sandbox.py`
+  - Validation: `python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"` -> 7 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `AnvilSandbox` managing ephemeral Anvil subprocesses with automatic dynamic port selection, clean lifecycle termination, and bounded `forge test` runs with timeout containment and error trapping; supports `run_poc()` MCP entrypoint.
 
 - **P04-005 — Benchmark suite scaffolding:** Complete and verified.
   - Files: `src/storage/benchmark_suite.py`, `test/storage/test_benchmark_suite.py`, `src/storage/broker_store.py`
@@ -616,15 +621,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-006 — Implement Anvil-fork MCP sandbox with controlled `forge test` execution.
+- **Active task:** P04-007 — Implement read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Implement the Anvil-fork sandbox manager in Python (`src/mcp_middleware/anvil_sandbox.py` or MCP tool server wrapper). Provide controlled local Anvil process lifecycle (spawn, fork, teardown) and execute targeted `forge test` runs with strict timeouts, sandbox isolation, and structured result capture. Add unit tests in `test/mcp_middleware/test_anvil_sandbox.py` verifying process controls and failure containment.
-- **Out of scope:** Phase 5 multi-agent autonomous decision making or live public testnet connections.
-- **Expected files:** `src/mcp_middleware/anvil_sandbox.py`, `test/mcp_middleware/test_anvil_sandbox.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the Sleuth Kit host-forensics wrapper in `src/mcp_middleware/host_forensics.py` (or `forensic_tools.py`) to parse disk images safely in read-only mode (`mmls`, `fls`, `icat`). Provide structured JSON output capturing partitions, inode tables, and file metadata without modifying underlying raw images. Add unit tests in `test/mcp_middleware/test_host_forensics.py` verifying read-only enforcement, command invocation safety, and JSON normalization.
+- **Out of scope:** Modifying target disk images or mounting raw partitions in write mode.
+- **Expected files:** `src/mcp_middleware/host_forensics.py`, `test/mcp_middleware/test_host_forensics.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Ephemeral Anvil sandbox can be spawned with designated port and clean process cleanup.
-  - `run_forge_test` executes with bounded timeout and returns exit code, stdout, and error status.
-  - Unit tests verify lifecycle and test execution failure handling.
+  - Sleuth Kit wrapper provides read-only operations for partition listing (`mmls`) and file listing (`fls`).
+  - Rejects write flags and blocks unsafe command modifications.
+  - Emits structured JSON schemas for partition maps and directory trees.
+  - Unit tests verify partition parsing, mock tool outputs, and read-only invariants.
   - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
@@ -632,13 +638,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python `subprocess`, `shutil`; Foundry `anvil` and `forge` binaries installed locally.
-- **Security constraints:** Subprocess execution bounded by timeout; no shell injection vulnerabilities.
+- **Dependencies:** Python 3 standard library (`subprocess`, `shutil`, `json`); Sleuth Kit tools (`mmls`, `fls`); P04-006 complete and verified.
+- **Security constraints:** Read-only command flags strictly enforced; subprocess inputs sanitized.
 
 ## Subsequent task queue
 
-1. `P04-006` — Implement Anvil-fork MCP sandbox with controlled `forge test` execution.
-2. `P04-007` — Implement read-only Sleuth Kit host-forensics MCP wrapper.
+1. `P04-007` — Implement read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output.
+2. `P04-008` — Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
