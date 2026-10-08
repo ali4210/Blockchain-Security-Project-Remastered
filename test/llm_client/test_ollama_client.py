@@ -66,5 +66,18 @@ class TestOllamaClient(unittest.TestCase):
             self.assertIn("[OFFLINE_FALLBACK]", res)
 
 
+
+    def test_model_tier_scheduling(self):
+        from src.llm_client.ollama_client import get_model_routing, AGENT_MODEL_ROUTING_TIER1, AGENT_MODEL_ROUTING_TIER2
+        with patch.dict(os.environ, {"OLLAMA_MODEL_TIER": "tier1"}):
+            routing1 = get_model_routing()
+            self.assertEqual(routing1["A"], "qwen2.5-coder:32b")
+            self.assertEqual(routing1["G"], "qwen2.5-coder:32b")
+
+        with patch.dict(os.environ, {"OLLAMA_MODEL_TIER": "tier2"}):
+            routing2 = get_model_routing()
+            self.assertEqual(routing2["A"], "qwen2.5-coder:14b")
+            self.assertEqual(routing2["G"], "qwen2.5-coder:7b")
+
 if __name__ == "__main__":
     unittest.main()

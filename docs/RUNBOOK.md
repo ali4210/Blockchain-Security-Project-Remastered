@@ -2187,3 +2187,37 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P05-005 — Practical Tier 1/Tier 2 model schedule documentation and routing
+
+**Status:** Verified
+
+**Purpose**
+
+Document and validate practical Tier 1 (24GB target, 32B models) and Tier 2 (12–16GB fallback, 14B/7B models) model schedules and runtime switching via `OLLAMA_MODEL_TIER`.
+
+**Scope and limitations**
+
+- Details VRAM envelope, KV cache bounds, and single-model residency rules in `docs/architecture/MODEL_SCHEDULE.md`.
+- Provides fallback routing in `src/llm_client/ollama_client.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 14 LLM client unit tests pass.
+- 11 agent swarm unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

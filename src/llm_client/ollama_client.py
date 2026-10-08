@@ -15,7 +15,7 @@ import ssl
 
 AgentType = Literal["A", "B", "C", "D", "E", "F", "G"]
 
-AGENT_MODEL_ROUTING: Dict[AgentType, str] = {
+AGENT_MODEL_ROUTING_TIER1: Dict[AgentType, str] = {
     "A": "qwen2.5-coder:32b",
     "B": "deepseek-r1:32b",
     "C": "qwen2.5:32b",
@@ -24,6 +24,22 @@ AGENT_MODEL_ROUTING: Dict[AgentType, str] = {
     "F": "deepseek-r1:32b",
     "G": "qwen2.5-coder:32b",
 }
+
+AGENT_MODEL_ROUTING_TIER2: Dict[AgentType, str] = {
+    "A": "qwen2.5-coder:14b",
+    "B": "deepseek-r1:14b",
+    "C": "qwen2.5:14b",
+    "D": "deepseek-r1:14b",
+    "E": "qwen2.5:14b",
+    "F": "deepseek-r1:14b",
+    "G": "qwen2.5-coder:7b",
+}
+
+def get_model_routing() -> Dict[AgentType, str]:
+    tier = os.environ.get("OLLAMA_MODEL_TIER", "tier1").lower().strip()
+    return AGENT_MODEL_ROUTING_TIER2 if tier == "tier2" else AGENT_MODEL_ROUTING_TIER1
+
+AGENT_MODEL_ROUTING = AGENT_MODEL_ROUTING_TIER1
 
 AGENT_NUM_CTX: Dict[AgentType, int] = {
     "A": 32768,
