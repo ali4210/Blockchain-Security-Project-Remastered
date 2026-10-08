@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-005 — Complete and verified; P05-006 next |
-| Current thread | P05-005 verified: practical Tier 1/Tier 2 model schedule documented in `docs/architecture/MODEL_SCHEDULE.md` and dynamic tier routing implemented in `src/llm_client/ollama_client.py` with unit tests in `test/llm_client/test_ollama_client.py`. 14 LLM client unit tests passed, 11 agent swarm unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-006 (implement Agent A: smart-contract auditor). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-006 — Complete and verified; P05-007 next |
+| Current thread | P05-006 verified: Agent A smart-contract auditor implemented in `src/agents/agent_a_auditor.py` with unit tests in `test/agents/test_agent_a_auditor.py`. Validated source extraction, prompt routing under `agent_stage("A")`, structured finding extraction, offline fallback resilience, and immediate VRAM eviction. 15 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-007 (implement Agent B: SIEM threat hunter). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-006 — Agent A implementation (smart-contract auditor):** Complete and verified.
+  - Files: `src/agents/agent_a_auditor.py`, `test/agents/test_agent_a_auditor.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 15 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Created Agent A execution node for AST and source contract analysis with Qwen 2.5 Coder (32B/14B, 32K context window); validated structured JSON finding output, offline simulation parsing, and Ephemeral VRAM eviction upon stage exit.
 
 - **P05-005 — Practical Tier 1/Tier 2 model schedule for available VRAM:** Complete and verified.
   - Files: `docs/architecture/MODEL_SCHEDULE.md`, `src/llm_client/ollama_client.py`, `test/llm_client/test_ollama_client.py`
@@ -671,16 +676,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-006 — Implement Agent A: smart-contract auditor.
+- **Active task:** P05-007 — Implement Agent B: SIEM threat hunter.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Implement `src/agents/agent_a_auditor.py` and unit tests in `test/agents/test_agent_a_auditor.py`. Agent A inspects smart contract source code and AST representations, executes prompt-engineered vulnerability detection for reentrancy, access control, and integer issues, wraps execution with `agent_stage("A")` for VRAM eviction, and produces structured findings conforming to `SwarmState`.
-- **Out of scope:** Phase 6 live automated exploit execution.
-- **Expected files:** `src/agents/agent_a_auditor.py`, `test/agents/test_agent_a_auditor.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement `src/agents/agent_b_threat_hunter.py` and unit tests in `test/agents/test_agent_b_threat_hunter.py`. Agent B ingests runtime telemetry, SIEM alerts, and on-chain log artifacts, executes log-correlation prompts via DeepSeek R1 (`deepseek-r1:32b`/`14b`, 16K context window) under `agent_stage("B")` for Ephemeral VRAM cleanup, and outputs correlated threat events into `SwarmState`.
+- **Out of scope:** Phase 6 live exploit execution or automated on-chain transaction broadcast.
+- **Expected files:** `src/agents/agent_b_threat_hunter.py`, `test/agents/test_agent_b_threat_hunter.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Agent A extracts contract source code from state or disk.
-  - Dispatches audit request via `chat()` under `agent_stage("A")` context manager.
-  - Parses structured findings into `state["findings"]`.
-  - Guarantees VRAM eviction upon completion.
+  - Ingests SIEM and transaction log records from state or mock fixtures.
+  - Dispatches threat hunting prompts via `chat()` under `agent_stage("B")` context manager.
+  - Records structured threat correlation events into `state["findings"]`.
+  - Triggers VRAM eviction upon exit.
   - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
@@ -689,14 +694,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-005 complete and verified.
-- **Security constraints:** Read-only inspection of target contracts; no credentials committed.
+- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-006 complete and verified.
+- **Security constraints:** Read-only analysis of SIEM telemetry; no credentials committed.
 
 ## Subsequent task queue
 
-1. `P05-006` — Implement Agent A: smart-contract auditor.
-2. `P05-007` — Implement Agent B: SIEM threat hunter.
-3. `P05-008` — Implement Agent C: compliance judge.
+1. `P05-007` — Implement Agent B: SIEM threat hunter.
+2. `P05-008` — Implement Agent C: compliance judge.
+3. `P05-009` — Implement Agent D: red teamer.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
