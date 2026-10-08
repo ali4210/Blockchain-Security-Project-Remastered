@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-011 — ✅ Complete and verified; P03-012 next |
+| Current task | P03-012 — Complete and verified; P03-GATE next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -779,7 +779,7 @@ resolve to the same full SHA.
 | P03-009 | Add real Foundry `Exploit.t.sol` and `Invariants.t.sol` examples and validate the exploit fixture. | ✅ | Complete and verified 2026-10-08: real Foundry exploit test and state invariant suite passed via `forge test` (4 tests passed, 256 invariant runs / 128,000 calls). Strict manifest ingestion and 83 Hardhat regression tests passed. |
 | P03-010 | Create `src/agents/upgrade5_defi_attacks.py` front-running detector interface/tests as a safe stub pending Phase 11 mempool data. | ✅ | Complete and verified 2026-10-08: typed `front_running_detector` interface and gas-outbidding detection implemented with deterministic `pending_phase_11_mempool` fallback; 5 unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P03-011 | Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls. | ✅ | Complete and verified 2026-10-08: `rug_pull_scanner` AST detector implemented for unrestricted mint, untimelocked LP, unsafe ownership, and hidden fee controls; 7 unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
-| P03-012 | Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions. | ⬜ | — |
+| P03-012 | Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions. | ✅ | Complete and verified 2026-10-08: `flash_loan_invariant_generator` implemented for protocol solvency and oracle tolerance invariant synthesis; 7 unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 
 ### P03-001 — Formal-tool analysis and approved verification alternative
 

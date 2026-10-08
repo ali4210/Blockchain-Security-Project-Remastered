@@ -1693,3 +1693,31 @@ python3 -m unittest discover -s test/agents/ -p "test_*.py"
 - Unit tests pass 7/7 verifying detection of all four rug-pull categories, clean contract handling, front-running tests, and P03-012 stub behavior.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P03-012 — Flash-loan invariant test synthesis validation
+
+**Status:** Verified
+
+**Purpose**
+
+Synthesize and validate Foundry invariant test fixtures that simulate extreme flash-loan borrowing to test protocol solvency and oracle price manipulation bounds.
+
+**Scope and limitations**
+
+- Generates standalone Solidity invariant test contracts targeting in-memory fixtures.
+- Does not submit live mainnet transactions or require external RPC connectivity.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Unit tests pass 7/7 verifying default and custom invariant synthesis parameter substitution.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

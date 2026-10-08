@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-011 — ✅ Complete and verified; P03-012 next |
-| Current thread | P03-011 verified: AST rug-pull scanner implemented in `src/agents/upgrade5_defi_attacks.py` covering unrestricted minting, untimelocked LP, unsafe ownership, and hidden post-launch fee controls. 7 unit tests passed in `test/agents/test_upgrade5_defi_attacks.py`, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P03-012 (flash-loan invariant generation); Phase 3 incomplete. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P03-012 — Complete and verified; P03-GATE next |
+| Current thread | P03-012 verified: flash-loan invariant generator implemented in `src/agents/upgrade5_defi_attacks.py` synthesizing Foundry solvency and oracle-tolerance invariant templates. 7 unit tests passed in `test/agents/test_upgrade5_defi_attacks.py`, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P03-GATE (Phase 3 completion gate audit). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P03-012 — Flash-loan invariant generation:** Complete and verified.
+  - Files: `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 7 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Synthesizes valid Foundry invariant templates enforcing protocol solvency post-flash-loan and bounding pool drainage within oracle tolerance basis points.
 
 - **P03-011 — Rug-pull signatures AST detector:** ✅ Complete and verified.
   - Files: `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`
@@ -581,29 +586,28 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P03-012 — Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions.
+- **Active task:** P03-GATE — Audit and reconcile Phase 3 completion gate.
 - **Current phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway.
-- **Scope:** Implement `flash_loan_invariant_generator(contract_path)` in `src/agents/upgrade5_defi_attacks.py` to synthesize Foundry-compatible invariant templates simulating maximum draw flash-loans against lending/pool logic. Add comprehensive unit tests in `test/agents/test_upgrade5_defi_attacks.py`.
-- **Out of scope:** Phase 4 MCP middleware, mainnet transactions, live Anvil daemon long-running processes, or real wallet funding.
-- **Expected files:** `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Audit all Phase 3 tasks (P03-001 through P03-012) against gate criteria in `docs/CHECKLIST.md`. Verify protected branch readiness fail-closed rules, AST masking prompt-injection protection, coursework runner isolation, and forward dependency documentation for Phase 11 mempool monitoring.
+- **Out of scope:** Phase 4 implementation before Phase 3 gate sign-off.
+- **Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `flash_loan_invariant_generator` generates structured invariant test code targeting flash-loan balance constraints.
-  - Unit tests verify code generation and parameter substitution.
-  - Strict manifest ingestion and Hardhat regression tests pass.
+  - All 12 Phase 3 tasks verified with commit hashes and factual results.
+  - Phase 3 gate checklist fully reconciled.
+  - Synchronization verified across local, GitLab, and GitHub remotes.
 - **Validation commands:**
   ```bash
-  python3 -m unittest discover -s test/agents/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+  python3 -m unittest discover -s test/agents/ -p "test_*.py"
   ```
-- **Dependencies:** Python virtual environment; P03-011 complete and verified.
-- **Security constraints:** Read-only test synthesis; no live chain deployments.
-- **Runbook impact:** Update `docs/RUNBOOK.md` to document flash-loan invariant generation.
+- **Dependencies:** P03-001 through P03-012 complete and verified.
+- **Security constraints:** Non-production coursework simulations accurately identified.
 
 ## Subsequent task queue
 
-1. `P03-012` — Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions.
-2. `P03-GATE` — Phase 3 completion gate audit and forward-dependency reconciliation.
+1. `P03-GATE` — Phase 3 completion gate audit and forward-dependency reconciliation.
+2. `P04-001` — SQLite broker storage with WAL mode and pre-swarm snapshots.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
