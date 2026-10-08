@@ -1809,3 +1809,31 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
 - 5 storage unit tests pass.
+
+## P04-003 — Attack path DAG knowledge graph synthesis validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate attack path knowledge graph construction, DAG cycle prevention, risk path ranking, and remediation planning.
+
+**Scope and limitations**
+
+- Evaluates in-memory NetworkX directed graph structures built from normalized finding inputs.
+- Local deterministic computation; does not invoke external graph databases or live network listeners.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Storage tests pass 10/10 verifying DAG construction, cycle rejection, path enumeration, and remediation planning.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

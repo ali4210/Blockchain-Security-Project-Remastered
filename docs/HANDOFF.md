@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-002 — Complete and verified; P04-003 next |
-| Current thread | P04-002 verified: static report normalization and DREAD risk scoring implemented in `scripts/normalize-reports.mts`. 4 unit assertions passed in `scripts/verify-normalization.mts`, strict manifest ingestion valid, 5 storage tests passed, and 83 Hardhat regression tests passed. Advancing to P04-003 (src/storage/attack_path_graph.py NetworkX DAG synthesizer). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-004 — Complete; P04-003 next |
+| Current thread | P04-004 verified: NetworkX DAG attack path synthesizer implemented in `src/storage/attack_path_graph.py` with cycle prevention, cumulative risk weighting, and remediation planning. 10 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Reconciling P04-003 (scripts/enrich-findings.mts mappings for ATT&CK, CIS, ISO 27001, CSET) as immediate next task. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-003 — NetworkX DAG attack path synthesizer:** Complete and verified.
+  - Files: `src/storage/attack_path_graph.py`, `test/storage/test_attack_path_graph.py`
+  - Validation: `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 10 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Synthesizes directed acyclic graphs representing attack trajectories from external actors through normalized findings to contract targets; detects and rejects cyclic edges; computes cumulative path weights and DREAD averages; generates prioritized remediation plans.
 
 - **P04-002 — Static report normalization and DREAD scoring:** Complete and verified.
   - Files: `scripts/normalize-reports.mts`, `scripts/verify-normalization.mts`
@@ -601,30 +606,30 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-003 — Implement `src/storage/attack_path_graph.py` NetworkX DAG synthesizer from findings.
+- **Active task:** P04-003 — Implement `scripts/enrich-findings.mts` mappings for ATT&CK, CIS, ISO 27001, and CSET.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Implement attack path directed acyclic graph (DAG) construction using NetworkX in `src/storage/attack_path_graph.py`. Transform normalized findings and contract relations into structured attack paths with cumulative risk weights. Add unit tests in `test/storage/test_attack_path_graph.py` verifying DAG synthesis and cycle prevention.
-- **Out of scope:** Swarm dispatch (Phase 5), live RPC calls, or mainnet transactions.
-- **Expected files:** `src/storage/attack_path_graph.py`, `test/storage/test_attack_path_graph.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement `scripts/enrich-findings.mts` to enrich normalized findings with cybersecurity governance framework mappings: MITRE ATT&CK techniques, CIS Controls, ISO/IEC 27001 controls, and CSET criteria. Export `enrichFindings()` and support CLI usage.
+- **Out of scope:** Swarm dispatch (Phase 5), live RPC calls, or modifying baseline contracts.
+- **Expected files:** `scripts/enrich-findings.mts`, `scripts/verify-enrichment.mts` (or unit test script), `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `AttackPathGraph` initializes and synthesizes DAG from normalized findings.
-  - Detects and prevents cyclic dependencies in attack trajectories.
-  - Computes path risk weights based on DREAD and severity.
-  - Unit tests verify DAG creation and path enumeration.
+  - `enrichFindings` maps vulnerabilities (e.g. reentrancy, access control, front-running) to MITRE ATT&CK, CIS, ISO 27001, and CSET.
+  - Handles unknown or generic findings with deterministic baseline fallback mappings.
+  - Unit tests verify enrichment schemas and accuracy.
   - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
-  python3 -m unittest discover -s test/storage/ -p "test_*.py"
+  ./node_modules/.bin/tsx --no-cache scripts/enrich-findings.mts --help
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+  python3 -m unittest discover -s test/storage/ -p "test_*.py"
   ```
-- **Dependencies:** Python `networkx`; P04-002 complete and verified.
-- **Security constraints:** Read-only graph generation; no external execution.
+- **Dependencies:** Node.js TypeScript environment; P04-002 complete and verified.
+- **Security constraints:** Read-only schema enrichment; no external execution.
 
 ## Subsequent task queue
 
-1. `P04-003` — Implement `src/storage/attack_path_graph.py` NetworkX DAG synthesizer.
-2. `P04-004` — Implement `src/storage/benchmark_suite.py` synthetic benchmarking harness.
+1. `P04-003` — Implement `scripts/enrich-findings.mts` mappings for ATT&CK, CIS, ISO 27001, and CSET.
+2. `P04-005` — Scaffold the benchmark-suite interface against sample contracts.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

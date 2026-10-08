@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P04-002 — Complete and verified; P04-003 next |
+| Current task | P04-004 — Complete; P04-003 next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -958,7 +958,7 @@ resolve to the same full SHA.
 - [x] Zone 2 tests and runner runtime validation passed within the user-approved 🔒 coursework workload scope: pipeline 98/job 140 succeeded; all three jobs had build/helper/cache-init coverage, 12 snapshots without reported violations. Trusted manager host-network/socket dependency retained; no whole-host, separate-network, or service-isolation claim.
 - [x] Phase 11 forward dependency for mempool monitoring is documented.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -972,7 +972,7 @@ resolve to the same full SHA.
 | P04-001 | Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots. | ✅ | Complete and verified 2026-10-08: `BrokerStore` implemented with WAL mode, busy timeout, online backup snapshots, and finding queries; 5 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P04-002 | Implement `scripts/normalize-reports.mts` DREAD scoring. | ✅ | Complete and verified 2026-10-08: `normalizeReports` and `computeDreadScore` implemented for Slither, Mythril, and Lynis; 4 unit assertions passed, strict manifest ingestion valid, 5 storage tests passed, and 83 Hardhat regression tests passed. |
 | P04-003 | Implement `scripts/enrich-findings.mts` mappings for ATT&CK, CIS, ISO 27001, and CSET. | ⬜ | — |
-| P04-004 | Implement attack-path graph, `list_attack_paths()`, and `plan_remediation()`. | ⬜ | — |
+| P04-004 | Implement attack-path graph, `list_attack_paths()`, and `plan_remediation()`. | ✅ | Complete and verified 2026-10-08: `AttackPathGraph` implemented with NetworkX DAG synthesis, cycle rejection, path risk ranking, and remediation planning; 10 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P04-005 | Scaffold the benchmark-suite interface against sample contracts. | ⬜ | — |
 | P04-006 | Implement Anvil-fork MCP sandbox with controlled `forge test` execution. | ⬜ | — |
 | P04-007 | Implement read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output. | ⬜ | — |
@@ -987,7 +987,7 @@ resolve to the same full SHA.
 - [ ] MCP client lists a disk image’s partitions through host-forensics wrapper.
 - [ ] Direct storage write from agent role fails.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1019,7 +1019,7 @@ resolve to the same full SHA.
 - [ ] Model process/list is empty between stages after purge.
 - [ ] All agents respect typed interfaces and least-privilege tool boundaries.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1045,7 +1045,7 @@ resolve to the same full SHA.
 - [ ] Fake exploit is rejected.
 - [ ] Case-opened event is present and schema is recorded.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1070,7 +1070,7 @@ resolve to the same full SHA.
 - [ ] Protected staging snapshot exists in both paths.
 - [ ] Any deployment mechanism is clearly marked as production-capable or coursework simulation.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1094,7 +1094,7 @@ resolve to the same full SHA.
 - [ ] A simulated suspicious authorized fork transaction produces an alert.
 - [ ] Alert reaches Agent B and Phase 9 signal interface.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1120,7 +1120,7 @@ resolve to the same full SHA.
 - [ ] Invalid release-token denial test passes.
 - [ ] Direct-outbound-mirror absence test passes.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1198,7 +1198,7 @@ resolve to the same full SHA.
 - [ ] Evidence originals are not modified by agents.
 - [ ] Every forensic MCP call is OPA checked.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1229,7 +1229,7 @@ resolve to the same full SHA.
 - [ ] Normal window produces no false alert in the test scenario.
 - [ ] Phase 3 forward dependency is resolved or explicitly documented.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1261,7 +1261,7 @@ resolve to the same full SHA.
 - [ ] OPA denial test passes.
 - [ ] No non-operator path can cause a real signature.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1292,7 +1292,7 @@ resolve to the same full SHA.
 - [ ] OPA denial test passes.
 - [ ] No external filing or on-chain transaction blocking path exists.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
@@ -1352,7 +1352,7 @@ resolve to the same full SHA.
 - [ ] No raw sensitive data appears in report fixtures or output.
 - [ ] Browser opens the report without server setup.
 
-**Gate status:** ✅ Complete and verified 2026-10-08  
+**Gate status:** ⬜ Not ready  
 **Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
 
 ---
