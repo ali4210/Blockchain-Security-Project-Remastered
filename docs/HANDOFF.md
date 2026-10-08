@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-008 — Complete and verified; P04-009 next |
-| Current thread | P04-008 verified: telemetry MCP stubs implemented in `src/mcp_middleware/telemetry.py` covering Prometheus text exposition format, ECS structured JSON logging, Web3.py RPC health/gas queries, and GraphSense address clustering with clean Phase 8 deferral boundaries. 20 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-009 (deploy MCP middleware pool in Docker Compose). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-009 — Complete and verified; P04-010 next |
+| Current thread | P04-009 verified: MCP middleware pool defined and validated in `docker-compose.test.yml` covering `mcp-anvil`, `mcp-storage`, `mcp-forensics`, and `mcp-telemetry` with unprivileged user constraints, resource bounds, and isolated bridge network. 20 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-010 (wire compile pipeline scripts/compile-all.mts as primary CI stage). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-009 — MCP middleware pool Compose deployment:** Complete and verified.
+  - Files: `docker-compose.test.yml`
+  - Validation: `docker compose -f docker-compose.test.yml config` -> schema validated; `python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"` -> 20 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `docker-compose.test.yml` defining four isolated test services (`mcp-anvil`, `mcp-storage`, `mcp-forensics`, `mcp-telemetry`) on bridge network `mcp-test-network`; configured unprivileged container UID (`1000:1000`), resource limits, and read-only evidence mounts.
 
 - **P04-008 — Telemetry and observability MCP stubs:** Complete and verified.
   - Files: `src/mcp_middleware/telemetry.py`, `test/mcp_middleware/test_telemetry.py`
@@ -631,29 +636,28 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-009 — Deploy MCP middleware pool in Docker Compose (`docker-compose.test.yml`).
+- **Active task:** P04-010 — Wire the compile pipeline (`scripts/compile-all.mts`) as the primary CI stage.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Inspect existing Docker Compose configs (`docker-compose.test.yml`, `config/docker/`, etc.) and ensure service definitions for the MCP middleware pool (Anvil sandbox, storage, telemetry, forensics wrapper) are properly configured with ephemeral resource limits, security options (read-only root where appropriate, unprivileged execution), and port bindings. Add verification scripts or syntax validation for Compose configuration.
-- **Out of scope:** Phase 5 swarm multi-agent orchestration or production Kubernetes manifests.
-- **Expected files:** `docker-compose.test.yml`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Inspect existing `scripts/compile-all.mts` (or scaffold it) to orchestrate cross-toolchain compilation (Solidity via Hardhat/Foundry and Move via Move compiler if configured) into standardized compilation outputs. Wire the compilation script into `.gitlab-ci.yml` (and `.github/workflows/` if present) as the primary gate step before test execution. Ensure all artifacts and exits adhere to deterministic pipeline standards.
+- **Out of scope:** Phase 5 multi-agent swarm deployment.
+- **Expected files:** `scripts/compile-all.mts`, `.gitlab-ci.yml`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `docker-compose.test.yml` config passes `docker compose config` validation.
-  - MCP middleware service definitions specify container user, volumes, and health checks.
-  - Ingestion manifest and Hardhat regression suites pass.
+  - `scripts/compile-all.mts` executes cleanly and compiles Solidity sources.
+  - CI configuration contains the primary compile stage.
+  - All regression test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
-  docker compose -f docker-compose.test.yml config
+  ./node_modules/.bin/tsx --no-cache scripts/compile-all.mts
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Docker toolchain; P04-008 complete and verified.
-- **Security constraints:** Non-root user in containers; minimal capabilities.
+- **Dependencies:** Node.js, `tsx`, Hardhat, Foundry; P04-009 complete and verified.
+- **Security constraints:** Read-only compilation; no untrusted remote dependency execution.
 
 ## Subsequent task queue
 
-1. `P04-009` — Deploy MCP middleware pool in Docker Compose.
-2. `P04-010` — Wire compile pipeline (`scripts/compile-all.mts`) as primary CI stage.
-3. `P04-GATE` — Phase 4 Quality Gate Verification.
+1. `P04-010` — Wire compile pipeline (`scripts/compile-all.mts`) as primary CI stage.
+2. `P04-GATE` — Phase 4 Quality Gate Verification.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

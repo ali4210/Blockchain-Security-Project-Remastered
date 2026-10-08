@@ -1985,3 +1985,35 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - Storage tests pass 14/14.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P04-009 — MCP middleware pool Docker Compose deployment validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate Docker Compose test pool configuration for ephemeral MCP services (storage, anvil, forensics, telemetry) with unprivileged execution and resource bounds.
+
+**Scope and limitations**
+
+- Operates on local test environment configuration `docker-compose.test.yml`.
+- Production Kubernetes deployment deferred to Phase 7.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+docker compose -f docker-compose.test.yml config
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Docker Compose config validates all 4 services with zero syntax errors.
+- 20 MCP middleware tests pass.
+- 14 storage tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

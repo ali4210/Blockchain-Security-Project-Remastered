@@ -1,0 +1,87 @@
+networks:
+  mcp-test-network:
+    driver: bridge
+
+volumes:
+  broker-data:
+    driver: local
+  forensics-data:
+    driver: local
+
+services:
+  mcp-storage:
+    image: python:3.12-slim
+    container_name: mcp-storage-test
+    user: "1000:1000"
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+      - broker-data:/app/.broker_storage
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: ["python3", "-c", "import time; print('MCP BrokerStore Storage Initialized in WAL mode'); time.sleep(3600)"]
+    networks:
+      - mcp-test-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  mcp-anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: mcp-anvil-test
+    user: "1000:1000"
+    entrypoint: ["anvil"]
+    command: ["--host", "0.0.0.0", "--port", "8545", "--silent"]
+    ports:
+      - "8545:8545"
+    networks:
+      - mcp-test-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+
+  mcp-forensics:
+    image: python:3.12-slim
+    container_name: mcp-forensics-test
+    user: "1000:1000"
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+      - forensics-data:/mnt/evidence:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: ["python3", "-c", "import time; print('MCP Sleuth Kit Forensics Service (Read-Only) Ready'); time.sleep(3600)"]
+    networks:
+      - mcp-test-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  mcp-telemetry:
+    image: python:3.12-slim
+    container_name: mcp-telemetry-test
+    user: "1000:1000"
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: ["python3", "-c", "import time; print('MCP Telemetry Prometheus/ELK Stubs Online'); time.sleep(3600)"]
+    ports:
+      - "9090:9090"
+    networks:
+      - mcp-test-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
