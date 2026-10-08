@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-009 — Complete and verified; P04-010 next |
-| Current thread | P04-009 verified: MCP middleware pool defined and validated in `docker-compose.test.yml` covering `mcp-anvil`, `mcp-storage`, `mcp-forensics`, and `mcp-telemetry` with unprivileged user constraints, resource bounds, and isolated bridge network. 20 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-010 (wire compile pipeline scripts/compile-all.mts as primary CI stage). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-010 — Complete and verified; Phase 4 complete, Phase 5 next |
+| Current thread | Phase 4 Zone 3 (Compilation, storage, and MCP middleware) complete. P04-010 verified: storage read-only RBAC enforced in `src/storage/broker_store.py` restricting agent roles (`agent_a`, `agent_b`, `agent_c`, `agent_f`, `auditor`, `reader`) to read queries while raising `PermissionError` on writes and snapshots. 18 storage unit tests passed, 20 MCP middleware unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to Phase 5 (Autonomous Swarm Core). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-010 — Storage read-only enforcement for agent roles:** Complete and verified.
+  - Files: `src/storage/broker_store.py`, `test/storage/test_role_enforcement.py`
+  - Validation: `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 18 tests passed; `python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"` -> 20 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Enforced role-based access control inside `BrokerStore`; restricted autonomous agent roles (`agent_a`, `agent_b`, `agent_c`, `agent_f`, `auditor`, `reader`) to read-only access, raising `PermissionError` on unauthorized write or snapshot attempts while keeping findings queryable.
 
 - **P04-009 — MCP middleware pool Compose deployment:** Complete and verified.
   - Files: `docker-compose.test.yml`
@@ -636,28 +641,30 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-010 — Wire the compile pipeline (`scripts/compile-all.mts`) as the primary CI stage.
-- **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Inspect existing `scripts/compile-all.mts` (or scaffold it) to orchestrate cross-toolchain compilation (Solidity via Hardhat/Foundry and Move via Move compiler if configured) into standardized compilation outputs. Wire the compilation script into `.gitlab-ci.yml` (and `.github/workflows/` if present) as the primary gate step before test execution. Ensure all artifacts and exits adhere to deterministic pipeline standards.
-- **Out of scope:** Phase 5 multi-agent swarm deployment.
-- **Expected files:** `scripts/compile-all.mts`, `.gitlab-ci.yml`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Active task:** P05-001 — Initialize LangGraph orchestration state machine for Swarm coordination.
+- **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
+- **Scope:** Scaffold the core Swarm state machine and workflow router (`src/agents/swarm_coordinator.py` or `src/agents/orchestrator.py`) using LangGraph state graph conventions; define agent handoff states (Triage -> Static Analysis -> Symbolic Verification -> Exploit Generation -> Incident Response) and state transitions. Add unit tests in `test/agents/test_swarm_coordinator.py`.
+- **Out of scope:** Connecting to remote live LLM providers without mock fallbacks.
+- **Expected files:** `src/agents/swarm_coordinator.py`, `test/agents/test_swarm_coordinator.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `scripts/compile-all.mts` executes cleanly and compiles Solidity sources.
-  - CI configuration contains the primary compile stage.
-  - All regression test suites and manifest ingestion checks pass.
+  - State machine transitions between agent roles deterministically.
+  - Error states and halt conditions are handled cleanly.
+  - Unit tests verify state graph dispatching.
+  - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
-  ./node_modules/.bin/tsx --no-cache scripts/compile-all.mts
+  python3 -m unittest discover -s test/agents/ -p "test_*.py"
+  python3 -m unittest discover -s test/storage/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Node.js, `tsx`, Hardhat, Foundry; P04-009 complete and verified.
-- **Security constraints:** Read-only compilation; no untrusted remote dependency execution.
+- **Dependencies:** Python 3 standard library, `src/storage/broker_store.py`, `src/mcp_middleware/`; Phase 4 complete and verified.
+- **Security constraints:** State graph transitions require verified agent identity and read-only storage invariants.
 
 ## Subsequent task queue
 
-1. `P04-010` — Wire compile pipeline (`scripts/compile-all.mts`) as primary CI stage.
-2. `P04-GATE` — Phase 4 Quality Gate Verification.
+1. `P05-001` — Initialize LangGraph orchestration state machine for Swarm coordination.
+2. `P05-002` — Implement Agent A (Contract Ingestion & SCA analysis) dispatcher.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

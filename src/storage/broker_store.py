@@ -1,11 +1,12 @@
 """
-SQLite Broker Storage Engine (Task P04-001).
+SQLite Broker Storage Engine (Tasks P04-001, P04-010).
 Implements thread-safe SQLite storage with WAL mode, busy timeout,
-pre-swarm online backups, and normalized finding persistence.
+pre-swarm online backups, normalized finding persistence, and strict
+role-based read-only enforcement for agent roles (P04-010).
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 import hashlib
 import json
 import os
@@ -14,14 +15,43 @@ import time
 import uuid
 
 
+# Default role permissions mapping
+READ_ONLY_ROLES: Set[str] = {
+    "agent_a",
+    "agent_b",
+    "agent_c",
+    "agent_d_reader",
+    "agent_f",
+    "auditor",
+    "reader",
+    "forensics_agent",
+}
+
+WRITE_PERMITTED_ROLES: Set[str] = {
+    "pipeline_admin",
+    "coordinator",
+    "ingestion_worker",
+    "default",
+    "admin",
+}
+
+
 class BrokerStore:
     """
-    Broker store backed by SQLite with WAL mode and snapshot support.
+    Broker store backed by SQLite with WAL mode, snapshot support,
+    and role-based read-only access enforcement for autonomous agents.
     """
 
-    def __init__(self, db_path: Optional[str] = None, timeout: float = 30.0):
+    def __init__(
+        self,
+        db_path: Optional[str] = None,
+        timeout: float = 30.0,
+        role: str = "default",
+    ):
+        self.role = (role or "default").lower()
+        self.is_read_only = self.role in READ_ONLY_ROLES
+
         if db_path is None:
-            # Persistent default storage path so in-memory connections don't discard state
             default_dir = Path(".broker_storage").resolve()
             default_dir.mkdir(parents=True, exist_ok=True)
             self.db_path = str(default_dir / "broker.db")
@@ -30,7 +60,10 @@ class BrokerStore:
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
 
         self.timeout = timeout
-        self._init_db()
+
+        # Only initialize schema if role is permitted to write/init
+        if not self.is_read_only:
+            self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
         conn = sqlite3.connect(
@@ -70,7 +103,12 @@ class BrokerStore:
             return mode == "wal"
 
     def write_finding(self, finding: Dict[str, Any]) -> str:
-        """Persists a normalized finding to the broker store."""
+        """Persists a normalized finding, enforcing read-only role restrictions."""
+        if self.is_read_only:
+            raise PermissionError(
+                f"Storage access denied: agent role '{self.role}' is restricted to read-only access."
+            )
+
         finding_id = str(finding.get("id") or f"FINDING-{uuid.uuid4().hex[:8].upper()}")
         source_tool = str(finding.get("source_tool") or finding.get("tool") or "unknown")
         severity = str(finding.get("severity") or "MEDIUM").upper()
@@ -91,7 +129,7 @@ class BrokerStore:
         return finding_id
 
     def get_finding(self, finding_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieves a single finding by identifier."""
+        """Retrieves a single finding by identifier (allowed for all roles)."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM findings WHERE id = ?", (str(finding_id),))
@@ -109,7 +147,7 @@ class BrokerStore:
             }
 
     def list_findings(self, severity: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Retrieves findings optionally filtered by severity."""
+        """Retrieves findings optionally filtered by severity (allowed for all roles)."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
             if severity:
@@ -132,7 +170,12 @@ class BrokerStore:
             return results
 
     def snapshot(self, label: str = "default_snapshot") -> Dict[str, Any]:
-        """Creates an atomic online backup snapshot of the SQLite database."""
+        """Creates an atomic online backup snapshot of the database."""
+        if self.is_read_only:
+            raise PermissionError(
+                f"Storage access denied: agent role '{self.role}' cannot trigger snapshot operations."
+            )
+
         db_dir = Path(self.db_path).parent
         snap_dir = db_dir / "snapshots"
         snap_dir.mkdir(parents=True, exist_ok=True)
@@ -145,7 +188,6 @@ class BrokerStore:
             finally:
                 dest_conn.close()
 
-        # Compute SHA-256 checksum of the created snapshot
         sha = hashlib.sha256()
         with open(dest_path, "rb") as f:
             while chunk := f.read(65536):

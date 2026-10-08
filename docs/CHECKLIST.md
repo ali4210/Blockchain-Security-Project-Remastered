@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P04-008 — Complete and verified; P04-009 next |
+| Current task | P04-009 — Complete and verified; P04-010 next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -977,8 +977,8 @@ resolve to the same full SHA.
 | P04-006 | Implement Anvil-fork MCP sandbox with controlled `forge test` execution. | ✅ | Complete and verified 2026-10-08: `AnvilSandbox` implemented in `src/mcp_middleware/anvil_sandbox.py` with process lifecycle management, bounded `forge test` execution, timeout containment, and `run_poc()`; 7 MCP tests passed, 14 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P04-007 | Implement read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output. | ✅ | Complete and verified 2026-10-08: `HostForensicsWrapper` implemented in `src/mcp_middleware/host_forensics.py` with read-only partition listing (mmls), file listing (fls), injection blocking, and structured JSON output; 14 MCP tests passed, 14 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P04-008 | Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense; defer live integration to Phase 8. | ✅ | Complete and verified 2026-10-08: Telemetry stubs implemented in `src/mcp_middleware/telemetry.py` for Prometheus text exporter, ECS JSON logging, Web3.py RPC stubs, and GraphSense address clustering; 20 MCP tests passed, 14 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
-| P04-009 | Deploy MCP middleware pool in Docker Compose. | ⬜ | — |
-| P04-010 | Enforce storage read-only behavior for agent roles. | ⬜ | — |
+| P04-009 | Deploy MCP middleware pool in Docker Compose. | ✅ | Complete and verified 2026-10-08: `docker-compose.test.yml` deployed and validated covering `mcp-storage`, `mcp-anvil`, `mcp-forensics` (read-only), and `mcp-telemetry` under unprivileged execution (1000:1000) and isolated network; 20 MCP tests passed, 14 storage tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
+| P04-010 | Enforce storage read-only behavior for agent roles. | ✅ | Complete and verified 2026-10-08: Role-based access control implemented in `src/storage/broker_store.py` enforcing strict read-only access for agent roles (`agent_a`, `agent_b`, `agent_c`, `agent_f`, `auditor`, `reader`), raising `PermissionError` on writes or snapshot creation while preserving read query access; 18 storage tests passed, 20 MCP tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 
 ## P04-GATE — Phase 4 completion gate
 

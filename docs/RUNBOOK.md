@@ -2017,3 +2017,33 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - 14 storage tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P04-010 — Storage read-only behavior for agent roles validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate role-based read-only enforcement in the SQLite BrokerStore, ensuring autonomous agent roles are restricted from mutating state or creating unauthorized snapshots.
+
+**Scope and limitations**
+
+- Enforces read-only restrictions for agent roles (`agent_a`, `agent_b`, `agent_c`, `agent_f`, `auditor`, `reader`).
+- Write and snapshot privileges restricted to administrative roles.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 18 storage unit tests pass verifying role restriction enforcement and query availability.
+- 20 MCP middleware tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
