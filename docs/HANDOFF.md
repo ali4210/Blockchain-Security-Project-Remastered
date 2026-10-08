@@ -32,6 +32,11 @@
   - Validation: `python3 -m unittest discover -s test/llm_client/ -p "test_*.py"` -> 14 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
   - Results: Documented VRAM allocation schedules for Tier 1 (24GB target: Qwen 2.5 Coder 32B, DeepSeek R1 32B, Qwen 2.5 32B) and Tier 2 (12–16GB fallback: 14B/7B models); implemented runtime tier switching via `OLLAMA_MODEL_TIER`.
 
+- **P05-005 — Practical Tier 1/Tier 2 model schedule for available VRAM:** Complete and verified.
+  - Files: `docs/architecture/MODEL_SCHEDULE.md`, `src/llm_client/ollama_client.py`, `test/llm_client/test_ollama_client.py`
+  - Validation: `python3 -m unittest discover -s test/llm_client/ -p "test_*.py"` -> 14 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Documented VRAM allocation schedules for Tier 1 (24GB target: Qwen 2.5 Coder 32B, DeepSeek R1 32B, Qwen 2.5 32B) and Tier 2 (12–16GB fallback: 14B/7B models); implemented runtime tier switching via `OLLAMA_MODEL_TIER`.
+
 - **P05-004 — Model lifecycle verification (load, call, purge, empty confirmation):** Complete and verified.
   - Files: `src/llm_client/ollama_client.py`, `test/llm_client/test_model_lifecycle.py`
   - Validation: `python3 -m unittest discover -s test/llm_client/ -p "test_*.py"` -> 13 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
