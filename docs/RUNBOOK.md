@@ -1777,3 +1777,35 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - Storage tests pass 5/5 verifying WAL mode, findings insertion/retrieval, listing, and atomic pre-swarm backup creation.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P04-002 — Static report normalization and DREAD risk scoring validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate static tool output normalization into unified schema and deterministic calculation of DREAD risk index scores.
+
+**Scope and limitations**
+
+- Evaluates static JSON finding payloads from Slither, Mythril, and Lynis governance reports.
+- Local deterministic computation; does not invoke external threat intelligence APIs.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+./node_modules/.bin/tsx --no-cache scripts/verify-normalization.mts
+./node_modules/.bin/tsx --no-cache scripts/normalize-reports.mts --help
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+```
+
+**Verified expected result**
+
+- Normalization verifier reports 4/4 assertions passed.
+- CLI help prints usage syntax without error.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
+- 5 storage unit tests pass.

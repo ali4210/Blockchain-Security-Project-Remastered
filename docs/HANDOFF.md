@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-001 — Complete and verified; P04-002 next |
-| Current thread | P04-001 verified: SQLite broker storage implemented in `src/storage/broker_store.py` with WAL mode, exclusive/busy locking, pre-swarm snapshots, and findings persistence. 5 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-002 (scripts/normalize-reports.mts DREAD scoring). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-002 — Complete and verified; P04-003 next |
+| Current thread | P04-002 verified: static report normalization and DREAD risk scoring implemented in `scripts/normalize-reports.mts`. 4 unit assertions passed in `scripts/verify-normalization.mts`, strict manifest ingestion valid, 5 storage tests passed, and 83 Hardhat regression tests passed. Advancing to P04-003 (src/storage/attack_path_graph.py NetworkX DAG synthesizer). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-002 — Static report normalization and DREAD scoring:** Complete and verified.
+  - Files: `scripts/normalize-reports.mts`, `scripts/verify-normalization.mts`
+  - Validation: `./node_modules/.bin/tsx --no-cache scripts/verify-normalization.mts` -> 4 assertions passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Normalizes Slither, Mythril, and Lynis finding schemas into unified records; computes calibrated DREAD vectors (Damage, Reproducibility, Exploitability, Affected users, Discoverability) with bounded aggregate scores (0.0 to 10.0); supports CLI input/output flags.
 
 - **P04-001 — SQLite broker storage:** Complete and verified.
   - Files: `src/storage/broker_store.py`, `test/storage/test_broker_store.py`
@@ -596,28 +601,30 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-002 — Implement `scripts/normalize-reports.mts` to normalize static tool outputs and calculate DREAD risk scores.
+- **Active task:** P04-003 — Implement `src/storage/attack_path_graph.py` NetworkX DAG synthesizer from findings.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Implement report normalization in `scripts/normalize-reports.mts` for static tool findings (Slither, Mythril, Semgrep, Lynis), parsing tool-specific finding formats into the normalized schema with deterministic DREAD risk scoring (Damage, Reproducibility, Exploitability, Affected users, Discoverability).
-- **Out of scope:** Phase 5 swarm execution, live RPC queries, or network calls.
-- **Expected files:** `scripts/normalize-reports.mts`, `test/hardhat/normalization.test.js` (or test runner equivalent), `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement attack path directed acyclic graph (DAG) construction using NetworkX in `src/storage/attack_path_graph.py`. Transform normalized findings and contract relations into structured attack paths with cumulative risk weights. Add unit tests in `test/storage/test_attack_path_graph.py` verifying DAG synthesis and cycle prevention.
+- **Out of scope:** Swarm dispatch (Phase 5), live RPC calls, or mainnet transactions.
+- **Expected files:** `src/storage/attack_path_graph.py`, `test/storage/test_attack_path_graph.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Normalization script transforms raw tool outputs into unified JSON schema.
-  - DREAD scoring assigns bounded numeric scores (0.0 to 10.0) based on finding attributes.
-  - Regression test suite passes with full integrity checks.
+  - `AttackPathGraph` initializes and synthesizes DAG from normalized findings.
+  - Detects and prevents cyclic dependencies in attack trajectories.
+  - Computes path risk weights based on DREAD and severity.
+  - Unit tests verify DAG creation and path enumeration.
+  - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
-  ./node_modules/.bin/tsx --no-cache scripts/normalize-reports.mts --help
+  python3 -m unittest discover -s test/storage/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Node.js/TypeScript environment; P04-001 complete and verified.
-- **Security constraints:** Sanitize all untrusted inputs and strip raw binary/terminal data.
+- **Dependencies:** Python `networkx`; P04-002 complete and verified.
+- **Security constraints:** Read-only graph generation; no external execution.
 
 ## Subsequent task queue
 
-1. `P04-002` — Implement `scripts/normalize-reports.mts` DREAD scoring.
-2. `P04-003` — Implement `src/storage/attack_path_graph.py` NetworkX DAG synthesizer.
+1. `P04-003` — Implement `src/storage/attack_path_graph.py` NetworkX DAG synthesizer.
+2. `P04-004` — Implement `src/storage/benchmark_suite.py` synthetic benchmarking harness.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
