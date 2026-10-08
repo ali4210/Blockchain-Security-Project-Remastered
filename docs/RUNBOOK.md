@@ -1925,3 +1925,33 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - MCP middleware tests pass 7/7 verifying port discovery, binary checks, process lifecycle, test execution, and timeout handling.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P04-007 — Read-only Sleuth Kit host-forensics MCP wrapper validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate read-only host forensics partition listing (mmls), directory inode tree parsing (fls), command injection blocking, and structured JSON normalization.
+
+**Scope and limitations**
+
+- Operates strictly in read-only mode on raw disk images or loop devices.
+- Prohibits raw partition writes, filesystem modifications, or destructive operations.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- MCP middleware tests pass 14/14 verifying partition parsing, command injection defense, file listing, and analyze wrapper.
+- Storage tests pass 14/14.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

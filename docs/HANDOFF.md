@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-006 — Complete and verified; P04-007 next |
-| Current thread | P04-006 verified: Anvil-fork MCP sandbox implemented in `src/mcp_middleware/anvil_sandbox.py` with process lifecycle management, bounded `forge test` execution, and timeout containment. 7 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-007 (read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-007 — Complete and verified; P04-008 next |
+| Current thread | P04-007 verified: read-only Sleuth Kit host-forensics MCP wrapper implemented in `src/mcp_middleware/host_forensics.py` with command injection blocking, partition table parsing (mmls), file listing (fls), and structured JSON output. 14 MCP middleware unit tests passed, 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-008 (create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-007 — Sleuth Kit host forensics MCP wrapper:** Complete and verified.
+  - Files: `src/mcp_middleware/host_forensics.py`, `test/mcp_middleware/test_host_forensics.py`, `src/storage/broker_store.py`
+  - Validation: `python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"` -> 14 tests passed; `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 14 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `HostForensicsWrapper` executing read-only disk inspection using Sleuth Kit utilities (`mmls`, `fls`, `fsstat`); blocks shell chaining and destructive commands; normalizes unstructured command outputs into structured JSON schemas for partitions and directory trees; reconciled broker store connection lifecycles.
 
 - **P04-006 — Anvil-fork MCP sandbox manager:** Complete and verified.
   - Files: `src/mcp_middleware/anvil_sandbox.py`, `test/mcp_middleware/__init__.py`, `test/mcp_middleware/test_anvil_sandbox.py`
@@ -621,16 +626,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-007 — Implement read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output.
+- **Active task:** P04-008 — Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense; defer live integration to Phase 8.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Implement the Sleuth Kit host-forensics wrapper in `src/mcp_middleware/host_forensics.py` (or `forensic_tools.py`) to parse disk images safely in read-only mode (`mmls`, `fls`, `icat`). Provide structured JSON output capturing partitions, inode tables, and file metadata without modifying underlying raw images. Add unit tests in `test/mcp_middleware/test_host_forensics.py` verifying read-only enforcement, command invocation safety, and JSON normalization.
-- **Out of scope:** Modifying target disk images or mounting raw partitions in write mode.
-- **Expected files:** `src/mcp_middleware/host_forensics.py`, `test/mcp_middleware/test_host_forensics.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Scaffold telemetry and observability MCP stubs in `src/mcp_middleware/telemetry.py` covering metric exposition (Prometheus Counter/Histogram stubs), structured log shipping (ELK/Logstash formatters), Web3.py RPC client stubs for node health and gas tracking, and GraphSense on-chain address clustering stubs. Add unit tests in `test/mcp_middleware/test_telemetry.py` verifying stub execution, interface contracts, and fallback error handling.
+- **Out of scope:** Connecting to live remote ELK or Prometheus daemons, real RPC network calls, or Phase 8 deep forensics.
+- **Expected files:** `src/mcp_middleware/telemetry.py`, `test/mcp_middleware/test_telemetry.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Sleuth Kit wrapper provides read-only operations for partition listing (`mmls`) and file listing (`fls`).
-  - Rejects write flags and blocks unsafe command modifications.
-  - Emits structured JSON schemas for partition maps and directory trees.
-  - Unit tests verify partition parsing, mock tool outputs, and read-only invariants.
+  - Stubs for Prometheus, ELK, Web3.py RPC, and GraphSense define clean programmatic interfaces.
+  - Interfaces return structured mock or placeholder telemetry payloads without crashing.
+  - Unit tests verify telemetry interfaces, schema validation, and safe error handling.
   - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
@@ -638,13 +642,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library (`subprocess`, `shutil`, `json`); Sleuth Kit tools (`mmls`, `fls`); P04-006 complete and verified.
-- **Security constraints:** Read-only command flags strictly enforced; subprocess inputs sanitized.
+- **Dependencies:** Python 3 standard library; P04-007 complete and verified.
+- **Security constraints:** No external network socket listeners created without authentication stubs.
 
 ## Subsequent task queue
 
-1. `P04-007` — Implement read-only Sleuth Kit host-forensics MCP wrapper with structured JSON output.
-2. `P04-008` — Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense.
+1. `P04-008` — Create telemetry MCP stubs for Prometheus, ELK, Web3.py RPC, and GraphSense.
+2. `P04-009` — Deploy MCP middleware pool in Docker Compose.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
