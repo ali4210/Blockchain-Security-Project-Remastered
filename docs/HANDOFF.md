@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-012 — Complete and verified; P03-GATE next |
-| Current thread | P03-012 verified: flash-loan invariant generator implemented in `src/agents/upgrade5_defi_attacks.py` synthesizing Foundry solvency and oracle-tolerance invariant templates. 7 unit tests passed in `test/agents/test_upgrade5_defi_attacks.py`, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P03-GATE (Phase 3 completion gate audit). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
+| Current task | P03-GATE — Complete and verified; P04-001 next |
+| Current thread | Phase 3 verified: Zone 2 DevSecOps shield gate criteria passed. All 12 tasks (P03-001 through P03-012) complete with verified evidence. Manifest ingestion valid, 83 Hardhat regression tests passed, 7 agent tests passed. Phase 3 gate annotated tag `v10.3-phase-03` pending publication. Immediate next task is P04-001 (SQLite broker storage). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P03-GATE — Phase 3 completion gate:** Complete and verified.
+  - Tasks audited: P03-001 through P03-012 verified with commit hashes and factual results.
+  - Gate verification: Protected main fail-closed readiness verified; AST prompt-injection masking verified; coursework runner isolation verified; Phase 11 mempool dependency documented.
+  - Regressions: Strict manifest ingestion valid; 83 Hardhat tests passed; 7 agent unit tests passed.
 
 - **P03-012 — Flash-loan invariant generation:** Complete and verified.
   - Files: `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`
@@ -586,28 +591,29 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P03-GATE — Audit and reconcile Phase 3 completion gate.
-- **Current phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway.
-- **Scope:** Audit all Phase 3 tasks (P03-001 through P03-012) against gate criteria in `docs/CHECKLIST.md`. Verify protected branch readiness fail-closed rules, AST masking prompt-injection protection, coursework runner isolation, and forward dependency documentation for Phase 11 mempool monitoring.
-- **Out of scope:** Phase 4 implementation before Phase 3 gate sign-off.
-- **Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Active task:** P04-001 — Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots.
+- **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
+- **Scope:** Implement the SQLite persistence layer for sanitized vulnerability reports, attack paths, and telemetry in `src/storage/db.py` (or project equivalent). Enable Write-Ahead Logging (WAL) mode, busy timeout, and write locking. Add unit tests verifying schema initialization, concurrent reads, and pre-swarm snapshotting.
+- **Out of scope:** Swarm agent execution (Phase 5), live MCP container orchestration, or live network calls.
+- **Expected files:** `src/storage/db.py`, `test/storage/test_db.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - All 12 Phase 3 tasks verified with commit hashes and factual results.
-  - Phase 3 gate checklist fully reconciled.
-  - Synchronization verified across local, GitLab, and GitHub remotes.
+  - Database initializes with WAL mode enabled (`PRAGMA journal_mode=WAL`).
+  - Schema supports normalized vulnerability findings, DREAD scores, and snapshot states.
+  - Unit tests verify concurrent reading and atomic pre-swarm snapshot generation.
+  - Manifest ingestion and Hardhat regression suites continue to pass.
 - **Validation commands:**
   ```bash
+  python3 -m unittest discover -s test/ -p "*test*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
-  python3 -m unittest discover -s test/agents/ -p "test_*.py"
   ```
-- **Dependencies:** P03-001 through P03-012 complete and verified.
-- **Security constraints:** Non-production coursework simulations accurately identified.
+- **Dependencies:** Python 3 standard library `sqlite3`; Phase 3 gate complete.
+- **Security constraints:** Read-only access enforced for agent roles; storage mutations restricted to authorized broker functions.
 
 ## Subsequent task queue
 
-1. `P03-GATE` — Phase 3 completion gate audit and forward-dependency reconciliation.
-2. `P04-001` — SQLite broker storage with WAL mode and pre-swarm snapshots.
+1. `P04-001` — Implement SQLite broker storage with WAL mode, exclusive locking, optional Redis cache, and pre-swarm snapshots.
+2. `P04-002` — Implement `scripts/normalize-reports.mts` DREAD scoring.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
