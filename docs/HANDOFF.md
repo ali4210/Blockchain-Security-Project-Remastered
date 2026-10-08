@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-008 — Documentation closeout of ✅ Complete and verified approved Lynis/NIST technical scope; closeout commit publication pending; P03-009 not started |
-| Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Earlier GitHub server-error blocker resolved; cause unconfirmed. Current work is documentation-only reconciliation; its own commit/CI/publication remain pending. No CMMC certification, full NIST compliance, host remediation, or production authorization. P03-009 not started; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
+| Current task | P03-008 — ✅ Complete and verified; P03-009 next |
+| Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. Proceeding to P03-009 (Foundry exploit/invariant fixtures); Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -566,158 +566,31 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-### P02-006 — GitLab ingestion job — ✅ Complete and verified
-
-- **Implementation/evidence commit:** `50ab590c4b073f57715bb366d3411c5b6045f75f` — `ci(phase-02): add manifest ingestion job`.
-- **GitLab-CI evidence reconciliation:** `35771ea80843c0c6ee4fd67228fb131395fd5741` — `docs(phase-02): record P02-006 GitLab CI evidence`.
-- **GitLab CI:** Both commits were GitLab-first published and their corresponding pipelines were reported green. The implementation pipeline included a reported-green `ingest_manifests` job. Pipeline identifiers and job URLs were not captured.
-- **GitHub publication and synchronization:** The GitLab-validated reconciliation was published to `origin/main`. Fetched verification proved `main == gitlab/main == origin/main == 35771ea80843c0c6ee4fd67228fb131395fd5741`.
-- **Functional evidence:** The CI job runs controlled lockfile provisioning with `npm ci --ignore-scripts --no-audit --fund=false`, executes the local ingestion verifier, validates `schemaVersion: 1`, `status: "valid"`, `integrity`, and `assetMap`, and retains a successful JSON artifact for 7 days. Local tampering validation failed closed with the expected SHA-256 mismatch and no success artifact.
-- **Security boundary:** No dependency-manifest/lockfile change, CI secret or runner-configuration change, compiler/test/scanner execution, RPC/deployment/account/wallet/key/token/credential action, Docker-in-Docker/service startup, or `docs/.backup/` access occurred.
-
-### Immediate next task
-
-### P02-007 — Replace the Hardhat placeholder with an ingestion smoke test — ✅ Complete and verified
-
-- **Implementation state:** Replaced `test/hardhat/placeholder.test.js` with a manifest-ingestion smoke test. It uses the supported local `node_modules/.bin/tsx` wrapper to invoke `scripts/ingest-manifests.mts`; it does not rely on `node_modules/tsx/dist/cli.mjs`.
-- **Positive validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js` exited `0`. The `manifest ingestion smoke test` suite produced one passing test, `emits a valid integrity and asset-map result`, and empty stderr.
-- **Negative validation:** A temporary copied repository root with a comment appended to `contracts/solidity/VulnerableVault.sol` made ingestion exit `1`, emit no stdout success result, and return structured stderr JSON identifying the component and a `sha256 mismatch`. The temporary root was deleted.
-- **Hygiene:** `git diff --check` passed. `docs/.backup/` remains untracked and excluded.
-- **Completion evidence:** Implementation/evidence commit `68b1b750b66d45c9e16483ef216ac6a69da108d0` was pushed GitLab-first and passed reported green GitLab CI. Pipeline identifier and job URL were not captured. Record this outcome in the documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-verified reconciliation to GitHub, and confirm `main == gitlab/main == origin/main`.
-- **Security boundary:** No dependency manifest/lockfile change or installation, compiler/scan execution, CI configuration/secret/runner change, Docker/service, RPC/network/deployment/funding, account/wallet/key/token/credential action, remote/tag/Git-history/host-shell change, or `docs/.backup/` access occurred.
-
-### P03-008 — Lynis/NIST technical baseline — ✅ Complete and verified within approved scope
-
-- **Approved scope:** Real, bounded non-root Kali audit using Lynis; sanitized adapter plus two reviewed project-authored NIST evidence relationships. No CSET execution, organizational/full-framework assessment, certification, remediation, or production authorization.
-- **Provider:** Package 3.1.6-1/program 3.1.6; executable SHA-256 `a3de3e245c436671347cc13c199f3115b8d88493deb5a78cd999b00a041d1976`; profile `49ffbf504febedeea096fbbb8730825c4805dfaac747c6e530a22174fd77f30f`. One package installed, no upgrades/removals.
-- **Timer and metadata:** Package enabled/started lynis.timer; explicit disable/stop confirmed inactive/disabled, service inactive. No recorded trigger/start in the inspected metadata; no already-running service audit stopped. Initial --help code 64 handled as usage; show help/options returned 0; package health clean.
-- **Real audit:** UID 1000, no plugins, no upload/remote/pentest/forensics/remediation options, 300-second outer limit, exit 0 after 73.77 seconds, no timeout. Network isolation not claimed. Four warnings/46 suggestions, hardening index 63, provider tests-done counter 267. Findings remain for review, not automatic fixes.
-- **Adapter:** Added config/governance-policy.json, scripts/governance-core.cjs, scripts/run-governance.cjs; extended existing placeholder tests. Policy bytes pinned to `7de534c7fb32284e5c0fec30aa4cc95ea13a4722d993188fe446c7fdd1c76684`. Metadata/digest validation is structural, not signed authentication.
-- **Real-format fix:** One omitted hyphenated host field and two bounded contiguous finding-text continuation lines supported without publishing them. Critical malformed/orphan/empty/duplicate/oversized/forbidden input still rejected. Real report and metadata unchanged.
-- **Actual normalized result:** review-required, 50 records, two mapped relationships/48 unmapped, AU-12 and SI-7 needs-review/fullControlAssessed false, index not a compliance percentage, every compliance/certification/readiness/deployment/release/taskComplete claim false.
-- **Evidence:** Private acquisition `/home/kali/.local/state/blockchain-soc/p03-008/lynis-kedsab88`; report digest `e353c841131b7a4469d291d963099b40be86e4e13242bbf34ffdbb646ad71b77`; metadata `b919a39e66b3eebd094786e343450add5a14b34597d246d72a2cf5b241e031d1`. Sanitized result `/home/kali/.local/state/blockchain-soc/p03-008/normalized-_t8qnj0l/governance-result.json`, digest `4b30d711cf1126f7d93db54f7d3237ce8b5f128cb05eec14780d3aaf85420d26`.
-- **Validation:** Node syntax checks and real normalization passed; 105 local tests including 18 governance regressions; strict ingestion valid and approved asset map unchanged. GitLab CI user-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL and remote test count not captured. CI fixtures do not establish an actual Lynis audit of the CI host.
-- **Integrity and scope:** Phase 4 enrichment stub, dependency manifests/lockfiles, CI, ingestion, readiness gate/policy, original fixtures, and runner unchanged. Commit scope is exactly four implementation paths plus CHECKLIST/HANDOFF/RUNBOOK. No private artifact, package state, timer state, or backup is staged.
-- **Publication:** Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed GitLab-first publication with user-reported green CI, GitHub publication, and fetched three-way SHA equality on 2026-10-07. Pipeline ID/job URL not captured. Only documentation reconciliation/review and its separate commit/CI/publication remain; no repeated audit or host remediation required.
-- **Runbook:** Verified provisioning/timer/audit/normalization/regression procedures are recorded; this closeout corrects stale status/publication wording only. Synthetic CI fixtures are not actual Lynis host execution.
-
-### P03-007 — Job-plane isolation — ✅ Complete and verified within approved coursework scope
-
-- **Publication:** Evidence commit `bcb2f997f6061aeeeafe2b006d01a9337656ea75` and final status correction `6779157de76e2a6f821568e49b6d18901eb71d3b` completed user-reported green GitLab CI, successful GitHub publication, and fetched three-way SHA equality. Pipeline IDs not captured. No Task 7 publication blocker remains.
-
-- **Scope acceptance:** User approved 🔒 coursework workload verification after reviewing pipeline 98. Docker-managed volumes permitted; manager retains host networking/read-write Docker socket. No whole-host/manager isolation, separate per-job networks, non-root/all-capabilities-dropped guarantee, or service isolation claimed.
-- **Configuration:** Existing runner 2, Docker executor, version 19.4.1; privileged false, no declared job host bind/socket volume or devices; no configured Docker host cache directory, custom volume driver/options, or runner hooks.
-- **CI:** Pipeline 98 succeeded on `54346bd68089c74e449b3f9801ef60d6d23c7b8c`; smoke 139, ingestion/Zone 2 regressions 140, ordinary readiness 141 all succeeded on runner 2 with allow_failure false. Remote test count not extracted; prior 87 tests remain local evidence.
-- **Runtime:** Three build, three predefined helper, six cache-init containers observed with start events. All 12 reported privileged false, bridge networking, no host PID/IPC/UTS setting, no added capabilities/devices, no host bind or engine socket mount, local managed volumes with zero backing options, and empty violations. No observer errors.
-- **Evidence:** `/home/kali/.local/state/blockchain-soc/p03-007/runtime-rt95oop1/runtime-audit.json`; SHA-256 `d293a791f0762ee5e1725c9a34124cbbcaa78992d5872bf956fe67ee1b46ace4`. Saved taskComplete false remains unchanged; it is not a checklist/publication status.
-- **Files and safety:** Documentation-only update to CHECKLIST/HANDOFF/RUNBOOK. No CI/source/test/runner/policy/dependency changes or new runner/token, manager restart, service reconfiguration, production authorization, or repeat audit required. Evidence/backups remain unstaged.
-- **Acceptance:** Technical scope, documentation review, evidence publication, and final ✅ status correction completed; fetched synchronization verified at `6779157de76e2a6f821568e49b6d18901eb71d3b`. Accepted manager and other isolation limitations remain explicit.
-- **Runbook impact:** Record the tested configuration/runtime audit, actual CI commands, failure handling, evidence identity, and retained manager limitation.
-- **Next:** Task 7 final publication is complete; the user authorized Task 8. Do not reopen the runtime audit or green-status correction; retain the accepted manager limitation. Phase 3 remains incomplete.
-
-### P03-006 — Readiness gate — ✅ Complete and verified within documented scope
-
-- **State:** ✅ Complete and verified within documented deny-by-default scope 2026-10-07: implementation `b5f7c8e411740f420b2adc883671cf3e740d6aeb`; evidence/documentation closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` published and fetched-synchronized after user-reported green GitLab CI. The 87-test count remains local evidence; live hardware readiness is not claimed.
-- **Ordinary CI:** Pipeline 94/job 129 succeeded with allow_failure false. Actual report: not-requested, requested false, target main, ciMetadataValid true; productionReady/deploymentAuthorized/releaseAuthorized/taskComplete false.
-- **Requested-readiness CI:** Pipeline 95/job 132 failed with script_failure and allow_failure false; smoke 130 and ingestion 131 succeeded. Actual report: blocked, requested true, target main, ciMetadataValid true, hardware-check-unconfigured; hardware unconfigured, executed false, adapterConfigured false; all authorization fields and taskComplete false.
-- **Protection and policy:** Main protection confirmed in UI and terminal metadata. Policy SHA-256 `eef3af1f3adca840147cd4bae30623710c0705ba2ecb38e269e344af941009ff`; hardware adapter unconfigured and production allow disabled. No Git-push rejection, live cluster health, or cryptographic CI authentication claimed.
-- **Evidence:** Local `/home/kali/.local/state/blockchain-soc/p03-006/local-vqhg6hij`; pipeline metadata `/home/kali/.local/state/blockchain-soc/p03-006/ci-request-q6et6s7t`; requested report/metadata `/home/kali/.local/state/blockchain-soc/p03-006/pipeline-95-artifact-1prtdqgb`. Requested-report SHA-256 `34d515f7bc625486ef684cbf44ffe7dfdea5edd744efb94e4782eca1c51cac97`. Ordinary report readback is terminal evidence; no new saved ordinary-report copy claimed.
-- **Files and integrity:** Implementation changed policy/script, existing CI/test, and task documents. This reconciliation changes only CHECKLIST/HANDOFF/RUNBOOK. Technical inputs, policy, branch rules, credentials, evidence, and existing backup contents remain untouched.
-- **Publication:** ✅ Evidence closeout `f4a8bd3bd27e0334d5c32d50004931da2cef2a2e` and final status correction `54346bd68089c74e449b3f9801ef60d6d23c7b8c` completed user-reported green GitLab CI, GitHub publication, and fetched main/gitlab/main/origin/main equality. Original closeout/status pipeline IDs not captured. P03-007 audit pipeline 98 later succeeded on the final status-correction commit.
-- **Runbook:** Reconciles actual ordinary/blocking CI evidence and safety interpretation; preserves tested local commands. No new untested operator command introduced.
-- **Hardware dependency:** Live collector, trustworthy attestation, and healthy production-allow path remain unconfigured. Separate target/capability/collector approval and factual validation required; do not provision hardware to make the negative test green.
-- **Next:** Historical P03-006 closeout is complete and P03-007 final publication verified. Current work is authorized P03-008. Preserve Task 6 readiness denial and do not repeat its completed tests.
-
-### P03-005 — Injection-fixture masking — ✅ Complete and verified
-
-- **State:** ✅ Complete and verified within documented scope 2026-10-07. Implementation `f85cd49fae29a82bcc1e04584f7c1d2231989e55` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. 79 local tests passed; native fixture verifier exited 0; strict ingestion valid.
-- **Fixture:** `contracts/solidity/PromptInjectionFixture.sol`, SHA-256 `17f6fba73823f0ed9c00a9253595cb7249c580fcb4dfc79f1e9b6344c26f47a4`; inert seven-literal fixture with documentation; unchanged source parses under native 0.8.24 and npm 0.8.26.
-- **Result:** 24 nodes/depth 4, seven masks, one documentation field omitted; schema and raw-payload absence verified; two native parses deterministic. Evidence `~/.local/state/blockchain-soc/p03-005/fixture-RxiTl5/` stays outside Git.
-- **Policy:** Only the new hash/inventory entry added. Tampered fixture, extra contract, and symlink rejected in disposable copied roots; cleanup confirmed.
-- **Files:** New fixture/verifier; existing ingestion policy and placeholder test changed; three task documents updated. Original vault/masker/dependencies/configuration/CI unchanged.
-- **Limitations:** Fixture-specific data omission and schema verification, not LLM behavior, encryption, semantic security, or complete prompt-injection prevention. No fixture execution/deployment.
-- **Completion reconciliation:** Documentation commit `b770b3b0c7ed857594df0c2473238dd7ee127752` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-006 started. Pipeline ID/URL and individual job logs not captured.
-- **CI evidence:** Pipeline reported green; pipeline ID/URL, individual job logs, and remote test count not captured. Native Solc 0.8.24 integration remains local evidence.
-
-### P03-004 — AST masking — ✅ Complete and verified
-
-- **State:** ✅ Complete and verified within documented scope 2026-10-07. Implementation `42384867ed4a8f2fcda2b58e806ce967a802cd37` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. 73 local tests passed; native approved-fixture masking exited 0; strict ingestion valid.
-- **Result:** 64 projected nodes, semantic depth 10, five literal masks/four string masks, two documentation fields omitted. Evidence `~/.local/state/blockchain-soc/p03-004/mask-Ytb4y1/` stays outside Git.
-- **Scope:** AST parsing and an allowlisted structural projection; decoded literal bytes hashed. Raw names/text/metadata/diagnostics omitted. Depth defaults to 32 with ceiling 64; exceeded limits/unsupported structures do not expose partial accepted ASTs.
-- **Parser distinction:** Native hash-pinned Solc 0.8.24 for source API/original fixture; existing npm Solc 0.8.26 for compatible in-memory CI parser examples. Imports disabled; no dependency or pragma change.
-- **Files:** Existing masker and placeholder test modified; one new core helper; three task documents updated. Original source/configuration/CI/ingestion policy unchanged.
-- **Limitations:** Not a recompilable/semantically complete AST, semantic proof, complete prompt-injection defense, encryption/secret redaction, deployed review queue, or LLM integration. P03-005's tracked fixture is not implemented here.
-- **Completion reconciliation:** Documentation commit `6b6469779454d1820a9a59f8be5f3d07fa213912` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-005 started. Pipeline ID/URL and individual job logs not captured.
-- **CI evidence:** Pipeline reported green; pipeline ID/URL, individual job logs, and remote test count not captured. Native Solc 0.8.24 integration remains local evidence.
-
-### P03-003 — IAST wrappers — ✅ Complete and verified
-
-- **State:** ✅ Complete and verified within documented coursework scope 2026-10-07. Implementation `139ff6a3310675aa6482b1c57cd9b53760d6b364` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. 61 local tests, four original-vault runtime cases, snapshot restoration, and strict ingestion passed.
-- **Scope:** 🔒 In-process non-forked Hardhat only, root execution frame, explicit storage slots. Original fixture/compiler hashes pinned; Paris runtime insertion, not constructor/deployment execution.
-- **Results:** Simulated deposit/withdraw ledger 0→100→60; zero/insufficient withdrawals rejected without ledger changes. CALL-before-SSTORE observed, not an exploit proof. Synthetic write-before-revert regression proves attempted writes are not committed state.
-- **Evidence:** `~/.local/state/blockchain-soc/p03-003/iast-L6LCQu/`; raw/generated evidence stays outside Git.
-- **Files:** Two new IAST scripts; existing placeholder test extended; three documentation files. No dependency, configuration, CI, original source, or asset-allowlist change.
-- **Limitations:** No nested-frame or reentrancy coverage, drain exploit, complete state diff, constructor behavior, or security acceptance. Trace size checks are post-return. Native compiler integration local; existing CI runs offline regressions.
-- **Completion reconciliation:** Documentation commit `20d5d55bf8056db33c9bb21095554238ea86c67e` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-004 started. Pipeline ID/URL and individual job logs not captured.
-
-
-- **CI evidence:** Pipeline reported green; pipeline ID/URL, individual job logs, and remote test count not captured. Native compiler integration remains local evidence.
-
-### P03-002 — SCA implementation — ✅ Complete and verified
-
-- **State:** ✅ Complete and verified within documented scope 2026-10-07. Implementation `bfd7ca3af23c5ebf0c6b491fc4b85ebef0d61f9e` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified. Live scan exited 0, 49 local regressions passed, strict ingestion valid.
-- **Scope:** Existing npm lock resolution plus installed project-venv Python inventory; OSV matching and NVD CVE enrichment. No fresh dependency install/resolution or Python lockfile.
-- **Results:** 249 npm and 39 Python coordinates; 10 matched coordinates, 32 active advisories, 28/28 NVD records. Four advisories without CVE aliases retained. Findings are not remediated or approved as safe.
-- **Coverage limitations:** npm includes optional/platform entries; Python includes tooling/extras and does not prove closure. NVD snapshot: 16 Analyzed, 6 Modified, 5 Deferred, 1 Awaiting Analysis; metric sources/versions remain distinct.
-- **Evidence:** `~/.local/state/blockchain-soc/p03-002/sca-MSfaq3/`; raw responses outside Git; dependency hashes unchanged; lookup lock released.
-- **Files:** Existing shell wrapper and placeholder test; three new SCA helper/runner files; CHECKLIST/HANDOFF/RUNBOOK updates. Existing CI invocation applies without CI configuration changes. Pipeline ID/URL and individual job/test-count logs not captured; live scan remains local.
-- **Completion reconciliation:** Documentation commit `29888c04636e00e4089b47770614ed0b72e0a0a8` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified before P03-003 started. Pipeline ID/URL and individual job logs not captured.
-
-### P03-001 — Formal-tool analysis — ✅ Complete and verified
-
-- **State:** ✅ Complete and verified within documented scope 2026-10-07. Integrated runner exited 0; 23 local regressions passed; strict ingestion valid. Implementation `7110f725e89ee6c0d185474b8f2a5685f1814aef` passed reported green GitLab CI, was published to GitHub, and fetched three-way synchronization was verified.
-- **Implementation:** New pure classifiers and explicit execution runner; existing formal-tools test extended. Policy gate remains no-execution.
-- **Results:** Slither two findings; Mythril three including SWC-107; CHC deposit safe; CHC ordering unknown; BMC ordering violated in the function model.
-- **Alternative:** Approved Solidity SMTChecker with isolated Z3; Certora credentials and service not used.
-- **Evidence:** `~/.local/state/blockchain-soc/p03-001/integrated-Ttw0qi/`; identities, bounds, limitations, and run procedure recorded in CHECKLIST/RUNBOOK. Raw artifacts stay outside Git.
-- **CI:** Implementation pipeline reported green; committed ingestion job includes regressions. Pipeline ID/URL and individual job logs not captured. Scanner/proof runs remain local.
-- **Historical synchronization:** Remediation `856a841d282e235a7389205218ee918ce3abd79a` passed reported green GitLab CI and was synchronized with GitHub on 2026-10-05.
-- **Limitations:** Intentionally vulnerable fixture; CHC unknown unresolved; BMC is function-level, not a drain exploit; instrumented-copy assertions and bounded Paris-EVM Mythril analysis.
-- **Closeout addendum:** Reconciliation `0876b0ae4261d64616814b7d603ea5d646c77e46` passed reported green GitLab CI, was published to GitHub, and was verified synchronized before P03-002 started. Phase 3 remains in progress; preserve untracked `docs/.backup/`.
-
-### P02-008 — Verify Developer Push, webhook, and on-chain-event stub all reach the pipeline entry — ✅ Complete and verified
-
-- **Implementation state:** Added `scripts/verify-pipeline-entrypoints.mts` and `test/hardhat/pipeline-entrypoints.test.js`. The verifier accepts three schema-constrained local fixtures—`developer_push`, `webhook`, and `on_chain_event_stub`—and normalizes each to `pipelineEntry: "verify"` with required jobs `runner_smoke_test` and `ingest_manifests`.
-- **Positive validation:** `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/pipeline-entrypoints.test.js` exited `0` with two passing tests; direct `tsx` checks emitted accepted schema-version-1 JSON for all three fixtures. After remediation, the ingestion verifier returned valid schema-version-1 JSON with exactly the approved two-file Hardhat test inventory; P02-007 and P02-008 smoke regressions passed.
-- **Negative validation:** An unsupported webhook fixture exited `1`, emitted no stdout, and returned exact structured invalid JSON stating `webhook payload must declare manifest_ingestion version 1`. Initial GitLab-first implementation commit `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in `ingest_manifests` because the strict Hardhat inventory expected only `placeholder.test.js`. The remediation explicitly permits the approved `pipeline-entrypoints.test.js`; a disposable unapproved `unexpected.test.js` remained rejected with `tests.hardhat` and `asset inventory mismatch`. Temporary fixtures and copied roots were deleted.
-- **Limitations:** The developer-push source is represented by the existing GitLab push-to-pipeline contract and a typed local fixture. Webhook and on-chain sources are local stubs only; no public endpoint, trigger API, webhook secret, RPC, wallet, account, key, live subscription, deployment, funding, service, Docker, dependency installation, lockfile change, or CI configuration change occurred.
-- **Hygiene:** `git diff --check` passed. `docs/.backup/` remains untracked and excluded.
-- **Completion evidence:** Initial implementation `aeafa75a86726d53bf380a4e315d61884044bafa` failed closed in GitLab `ingest_manifests` because the strict inventory did not yet approve the new test. Remediation `2325e5541f3b2df65ad6d54b8e683d806a8c8d15` explicitly added the approved P02-008 test path and passed reported green GitLab CI; the unapproved-extra-test negative control remains rejected. Record this outcome in a documentation-only reconciliation commit, verify that commit’s GitLab pipeline, publish the GitLab-validated history to GitHub, and confirm `main == gitlab/main == origin/main`.
-
-## Immediate next task
-
-- **Active task:** P03-008 — Add CSET/CISA or an approved open-source CMMC/NIST governance scanner; documentation-only closeout of the completed approved Lynis/NIST technical scope.
-- **Publication status:** Published and verified for implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`: GitLab CI user-reported green, GitHub push succeeded, and fetching both remotes proved full SHA equality. Earlier GitHub publication blocker resolved. Separate documentation-closeout publication remains pending.
-- **Historical first rejection (resolved):** 2026-10-07T16:56:32Z; GitHub Internal Server Error; request ID `E0AA:2791A4:4536A:AD36B:6AC679BD`.
-- **Historical second rejection (resolved):** 2026-10-07T16:58:49Z; GitHub Internal Server Error; request ID `DF10:317D54:45AC8:AE8E2:6AC67A45`.
-- **Recovery evidence:** On 2026-10-07, the controlled exact-commit normal retry succeeded; final fetches verified `main == gitlab/main == origin/main == ae73cc80efd63fc2ce00942818e53e85b1e6a14a`. The original implementation commit and uncommitted HANDOFF record were preserved. Exact server-error cause, global outage, account restriction, and movie-upload connection remain unestablished.
-- **Recovery boundary:** No force-push, history rewrite, remote/SSH change, API recreation, new audit, or host remediation was used. Preserve original evidence and historical failure details; do not repeat the resolved recovery step.
-- **Documentation-closeout publication:** Pending local review/commit, GitLab push and actual CI result, GitHub publication, and fetched three-way SHA equality for that new commit. Do not record these prospective results as completed.
-- **Task hold:** P03-008 evidence status is ✅ Complete and verified within approved technical scope; its evidence publication is verified. P03-009 remains ⬜ Not started until this documentation-closeout commit completes CI/publication/synchronization and task-start scope is confirmed.
-- **Phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway; phase gate incomplete.
-- **Current evidence:** Actual non-root audit and sanitized normalization succeeded; 105 local tests, 18 governance regressions, and strict ingestion passed. User approved the bounded alternative and assessment target.
-- **Scope:** Documentation-only factual correction and final Task 8 status reconciliation. Preserve evidence and tested procedures; publish the correction GitLab-first, verify its CI, then GitHub, then fetched SHA equality. No Task 9 implementation.
-- **Expected files:** docs/CHECKLIST.md; docs/HANDOFF.md; docs/RUNBOOK.md. No source/config/test/CI/dependency changes; universal prompt unchanged.
-- **Acceptance:** Task 8 tracker, detailed status, required checkboxes, current-position/completed records, and runbook status agree with verified evidence. Historical blocker resolved without erasing details; new closeout publication clearly pending until performed; diff and secret-safety review accepted; closeout commit CI/publication/fetched SHA equality verified before advancement.
-- **Validation:** git diff --check; exact three-document diff and task-state/checkbox review; secret-safety and exact staged-file/byte review; actual closeout GitLab CI result; final fetched main/gitlab/main/origin/main SHA equality. Do not rerun the historical audit or normalization merely for this documentation correction.
-- **Out of scope:** Full CMMC/NIST certification, organizational assessment, host fixes, new scans, CSET/service deployment, Phase 4 enrichment, readiness/runner/branch/remote changes, and P03-009 implementation.
-- **Safety:** Keep raw logs/report/process metadata and normalized artifacts owner-only outside Git; never paste them wholesale or stage them. Structural provenance is not attestation. Lynis timer remains disabled; service inactive. No broad staging, force-push, or prospective publication claims.
-- **Runbook impact:** Reconcile procedure/task evidence status and known publication result only; no new or changed operational commands.
+- **Active task:** P03-009 — Add real Foundry `Exploit.t.sol` and `Invariants.t.sol` examples and validate the exploit fixture.
+- **Current phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway.
+- **Scope:** Implement real Foundry exploit test in `test/foundry/Exploit.t.sol` against `contracts/solidity/VulnerableVault.sol` demonstrating reentrancy drain, implement invariant checks in `test/foundry/Invariants.t.sol`, validate execution with local `forge test`, and update asset-map validation accordingly.
+- **Out of scope:** Phase 4 MCP middleware, network deployment, external RPC/mainnet forks, live transaction submission, or wallet keys.
+- **Expected files:** `test/foundry/Exploit.t.sol`, `test/foundry/Invariants.t.sol`, `scripts/ingest-manifests.mts`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Acceptance criteria:**
+  - `forge test --match-contract ExploitTest` demonstrates expected reentrancy drainage.
+  - `forge test --match-contract InvariantsTest` executes invariant assertions.
+  - Ingestion asset validation passes and regressions continue to pass.
+  - Documentation updated, diff reviewed, committed, pushed GitLab-first, and synchronized across remotes.
+- **Validation commands:**
+  ```bash
+  forge test
+  ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+  ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+  ```
+- **Dependencies:** P03-008 complete and synchronized; Foundry 1.8.3 verified.
+- **Security constraints:** Run tests against local in-memory fixtures only; never deploy or fund `VulnerableVault.sol` on live networks.
+- **Runbook impact:** Update `docs/RUNBOOK.md` to document the verified local Foundry test execution procedure.
 
 ## Subsequent task queue
 
-1. `P03-008` — Publish/verify this documentation-only closeout; underlying technical evidence and its publication are complete.
-2. `P03-009` — Add real Foundry Exploit.t.sol and Invariants.t.sol examples and validate the exploit fixture. Not started; do not begin before Task 8 closeout and explicit continuation.
+1. `P03-009` — Add real Foundry Exploit.t.sol and Invariants.t.sol examples and validate the exploit fixture.
+2. `P03-010` — Create front-running detector interface/tests as a safe stub pending Phase 11 mempool data.
+3. `P03-011` — Implement rug-pull signatures.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

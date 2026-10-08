@@ -1490,7 +1490,7 @@ Audit creation used the normal installed application service and verified projec
 
 ## P03-008 — Lynis technical audit and sanitized NIST evidence
 
-**Procedure status:** ✅ Verified within approved Lynis/NIST technical scope 2026-10-07; P03-008 evidence is complete and verified. Implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed GitLab-first publication with user-reported green CI, GitHub publication, and fetched three-way SHA equality. Pipeline ID/job URL not captured. The separate documentation-closeout commit/CI/publication remains pending. Tested commands and technical limitations are unchanged.
+**Procedure status:** ✅ Verified within approved Lynis/NIST technical scope 2026-10-07; P03-008 evidence is complete and verified. Implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed GitLab-first publication with user-reported green CI, GitHub publication, and fetched three-way SHA equality. Pipeline ID/job URL not captured. Documentation closeout reconciled. Tested commands and technical limitations are unchanged.
 
 ### Purpose and scope
 
@@ -1605,4 +1605,4 @@ Provenance verifies structural acquisition fields and byte digests, not signed i
 - Preserve evidence and return masked diagnostics; no raw logs/report bodies in chat or Git.
 - Do not represent project relationships as official crosswalks, unassessed controls as passed, or tooling success as compliance.
 - No Phase 4 enrichment, source fixture, CI, dependency manifest/lockfile, ingestion, readiness, runner, branch-rule, or remote change is part of this integration.
-- Task 8 implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed reported green GitLab CI, GitHub publication, and fetched synchronization. Only the separate documentation-closeout commit/CI/publication remains pending; do not begin Task 9 until that closeout is verified. Preserve the review-required findings and all false runtime compliance/authorization/taskComplete flags.
+- Task 8 implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed reported green GitLab CI, GitHub publication, and fetched synchronization. Documentation closeout is complete and reconciled. Proceed to P03-009 upon verification. Preserve the review-required findings and all false runtime compliance/authorization/taskComplete flags.
