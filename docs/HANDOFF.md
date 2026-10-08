@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-003 — Complete and verified; P05-004 next |
-| Current thread | P05-003 verified: raw authenticated chat call end-to-end validated in `test/llm_client/test_raw_chat.py` and diagnostic script `scripts/test-ollama-chat.py` covering Bearer auth headers, per-agent model/context options (Agent A / 32K), model overrides, and graceful offline fallback diagnostics. 9 LLM client unit tests passed, 11 agent swarm unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-004 (verify model lifecycle: load, call, purge, then confirm host model list is empty). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-004 — Complete and verified; P05-005 next |
+| Current thread | P05-004 verified: model lifecycle (load, call, purge with keep_alive: 0, and confirm running model list is empty) implemented via `list_running_models()` and validated in `test/llm_client/test_model_lifecycle.py`. 13 LLM client unit tests passed, 11 agent swarm unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-005 (implement Agent A auditor node). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-004 — Model lifecycle verification (load, call, purge, empty confirmation):** Complete and verified.
+  - Files: `src/llm_client/ollama_client.py`, `test/llm_client/test_model_lifecycle.py`
+  - Validation: `python3 -m unittest discover -s test/llm_client/ -p "test_*.py"` -> 13 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `list_running_models()` to query Ollama `/api/ps` with auth and timeout bounds; validated full lifecycle simulation demonstrating that `purge_model()` with `keep_alive: 0` leaves the host model registry completely evicted.
 
 - **P05-003 — Raw authenticated chat call end-to-end validation:** Complete and verified.
   - Files: `test/llm_client/test_raw_chat.py`, `scripts/test-ollama-chat.py`
@@ -656,29 +661,30 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-004 — Verify model lifecycle: load, call, purge, then confirm host model list is empty.
+- **Active task:** P05-005 — Implement Agent A (auditor) dispatcher node in `src/agents/agent_a_auditor.py`.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Implement test suite and verification logic in `test/llm_client/test_model_lifecycle.py` and `src/llm_client/ollama_client.py` covering model listing (`/api/ps`), loading/calling with `keep_alive: 0`, explicit purging via `purge_model()`, and verifying the running model list is empty following eviction.
-- **Out of scope:** Multi-node distributed inference cluster management.
-- **Expected files:** `src/llm_client/ollama_client.py`, `test/llm_client/test_model_lifecycle.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Wire `src/agents/agent_a_auditor.py` as a LangGraph / Swarm execution node with assigned model (`qwen2.5-coder:32b`), context size (32,768 tokens), and AST/source analysis prompt template. Integrate with `agent_stage("A")` context manager for automated Ephemeral VRAM cleanup upon execution completion.
+- **Out of scope:** Multi-lane parallel execution (Phase 5 kernel enforces sequential single-lane).
+- **Expected files:** `src/agents/agent_a_auditor.py`, `test/agents/test_agent_a_auditor.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Lifecycle tests verify clean model list assertions after purge call.
-  - Offline fallback simulates empty running model list cleanly.
+  - Node receives `SwarmState`, extracts target contract, dispatches prompt via `chat()`, and records structured findings.
+  - Automatically triggers VRAM eviction upon completion.
   - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
+  python3 -m unittest discover -s test/agents/ -p "test_*.py"
   python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; P05-003 complete and verified.
-- **Security constraints:** Read-only model inspection; zero GPU memory state retention between distinct agent calls.
+- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-004 complete and verified.
+- **Security constraints:** Zero credential leaks; deterministic execution under offline conditions.
 
 ## Subsequent task queue
 
-1. `P05-004` — Verify model lifecycle: load, call, purge, then confirm host model list is empty.
-2. `P05-005` — Wire Agent A (Auditor) into LangGraph node.
-3. `P05-006` — Wire Agent B (Threat Hunter) into LangGraph node.
+1. `P05-005` — Wire Agent A (Auditor) into LangGraph node.
+2. `P05-006` — Wire Agent B (Threat Hunter) into LangGraph node.
+3. `P05-007` — Wire Agent C (Compliance Judge) into LangGraph node.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

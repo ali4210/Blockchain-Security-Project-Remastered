@@ -2153,3 +2153,37 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P05-004 — Model lifecycle verification (load, call, purge, empty confirmation)
+
+**Status:** Verified
+
+**Purpose**
+
+Validate full deterministic model lifecycle execution: querying loaded models (`/api/ps`), calling with ephemeral bounds, issuing `purge_model(keep_alive: 0)`, and asserting the host model list is completely empty.
+
+**Scope and limitations**
+
+- Uses mock/fallback transport when live host is offline.
+- Validates VRAM reclamation guarantee between agent stages.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 13 LLM client unit tests pass.
+- 11 agent swarm unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

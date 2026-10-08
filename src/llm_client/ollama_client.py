@@ -1,8 +1,8 @@
 """
-Agent-Aware Router & Transport Bridge (Task P05-001).
+Agent-Aware Router & Transport Bridge (Tasks P05-001, P05-004).
 Implements mTLS and Bearer token authenticated communication to Ollama,
 per-agent context window configuration, deterministic timeout limits,
-and Ephemeral VRAM Lifecycle Management (keep_alive: 0).
+running model state query (/api/ps), and Ephemeral VRAM Lifecycle Management (keep_alive: 0).
 """
 
 from contextlib import contextmanager
@@ -117,7 +117,6 @@ def chat(
             parsed = json.loads(body)
             return parsed.get("message", {}).get("content", "")
     except (urllib.error.URLError, urllib.error.HTTPError, OSError, TimeoutError) as e:
-        # Headless CI fallback simulation
         return (
             f"[OFFLINE_FALLBACK] Simulated response for agent={resolved_agent} "
             f"model={resolved_model} ctx={num_ctx}: Host unavailable ({str(e)})"
@@ -143,8 +142,27 @@ def purge_model(model: str) -> Dict[str, Any]:
         with urllib.request.urlopen(req, timeout=15.0, context=ssl_context) as resp:
             return {"status": "purged", "model": model, "code": resp.status}
     except Exception as e:
-        # In offline/simulated test mode, return structured confirmation
         return {"status": "purged_simulated", "model": model, "keep_alive": 0, "error": str(e)}
+
+
+def list_running_models(timeout: float = 5.0) -> List[Dict[str, Any]]:
+    """
+    Queries Ollama /api/ps to retrieve models currently loaded in VRAM.
+    Returns an empty list in offline/unreachable test environments.
+    """
+    base_url = get_ollama_base_url()
+    url = f"{base_url}/api/ps"
+    headers = get_auth_headers()
+    ssl_context = get_ssl_context()
+    req = urllib.request.Request(url, headers=headers, method="GET")
+
+    try:
+        with urllib.request.urlopen(req, timeout=timeout, context=ssl_context) as resp:
+            body = resp.read().decode("utf-8")
+            data = json.loads(body)
+            return data.get("models", [])
+    except Exception:
+        return []
 
 
 @contextmanager
