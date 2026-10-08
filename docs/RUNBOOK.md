@@ -1606,3 +1606,33 @@ Provenance verifies structural acquisition fields and byte digests, not signed i
 - Do not represent project relationships as official crosswalks, unassessed controls as passed, or tooling success as compliance.
 - No Phase 4 enrichment, source fixture, CI, dependency manifest/lockfile, ingestion, readiness, runner, branch-rule, or remote change is part of this integration.
 - Task 8 implementation/evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed reported green GitLab CI, GitHub publication, and fetched synchronization. Documentation closeout is complete and reconciled. Proceed to P03-009 upon verification. Preserve the review-required findings and all false runtime compliance/authorization/taskComplete flags.
+
+## P03-009 — Local Foundry exploit and invariant test verification
+
+**Status:** ✅ Verified
+
+**Purpose**
+
+Verify smart contract reentrancy exploit mechanics and state invariants using Foundry in a hermetic local environment without external network connectivity, chain deployments, or live funds.
+
+**Scope and limitations**
+
+- Validated on local Kali Linux with Foundry 1.8.3.
+- Targets in-memory `contracts/solidity/VulnerableVault.sol` fixture only.
+- Coursework simulation: tests demonstrate reentrancy state reversion/drainage and ledger accounting balance under fuzzing, not production mainnet monitoring.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+forge test -vvv
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- `ExploitTest` passes all tests.
+- `InvariantsTest` passes fuzzing runs (256 runs, 128,000 calls).
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

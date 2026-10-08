@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 3 — Zone 2: DevSecOps shield and sanitization gateway |
-| Current task | P03-008 — ✅ Complete and verified; P03-009 next |
-| Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. Proceeding to P03-009 (Foundry exploit/invariant fixtures); Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
+| Current task | P03-009 — ✅ Complete and verified; P03-010 next |
+| Current thread | P03-009 verified: real Foundry exploit and invariant tests passed via forge test (4 tests passed, 256 invariant runs / 128,000 calls). Strict manifest ingestion valid and 83 regression tests passed. Advancing to P03-010 (front-running detector interface and tests stub pending Phase 11 mempool data). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P03-009 — Real Foundry exploit and invariants fixtures:** ✅ Complete and verified.
+  - Files: `test/foundry/Exploit.t.sol`, `test/foundry/Invariants.t.sol`
+  - Validation: `forge test -vvv` -> 4 tests passed (2 suites), 256 invariant runs / 128,000 calls; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Limitations: Tests execute against in-memory local EVM state only; no deployment or external funding.
 
 - **P03-008 — ✅ Complete and verified within approved technical scope:** Lynis 3.1.6-1 provisioning and timer boundary, real non-root audit, 50 retained finding records, partial AU-12/SI-7 review-needed relationships, 105 local tests including 18 governance regressions, valid ingestion, and exact seven-file/secret-safety review completed. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched synchronization. Pipeline ID/job URL not captured. Separate documentation-closeout commit/publication pending. No compliance, certification, or production authorization claimed.
 
@@ -566,31 +571,28 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P03-009 — Add real Foundry `Exploit.t.sol` and `Invariants.t.sol` examples and validate the exploit fixture.
+- **Active task:** P03-010 — Create `src/agents/upgrade5_defi_attacks.py` front-running detector interface/tests as a safe stub pending Phase 11 mempool data.
 - **Current phase:** Phase 3 — Zone 2: DevSecOps shield and sanitization gateway.
-- **Scope:** Implement real Foundry exploit test in `test/foundry/Exploit.t.sol` against `contracts/solidity/VulnerableVault.sol` demonstrating reentrancy drain, implement invariant checks in `test/foundry/Invariants.t.sol`, validate execution with local `forge test`, and update asset-map validation accordingly.
-- **Out of scope:** Phase 4 MCP middleware, network deployment, external RPC/mainnet forks, live transaction submission, or wallet keys.
-- **Expected files:** `test/foundry/Exploit.t.sol`, `test/foundry/Invariants.t.sol`, `scripts/ingest-manifests.mts`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Define the front-running and MEV detection interface in Python, create corresponding unit test fixtures, and document the forward dependency to Phase 11 mempool ingestion.
+- **Out of scope:** Live mempool scraping, network sockets, RPC listeners, or automated transaction front-running execution.
+- **Expected files:** `src/agents/upgrade5_defi_attacks.py`, `test/agents/test_upgrade5_defi_attacks.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `forge test --match-contract ExploitTest` demonstrates expected reentrancy drainage.
-  - `forge test --match-contract InvariantsTest` executes invariant assertions.
-  - Ingestion asset validation passes and regressions continue to pass.
-  - Documentation updated, diff reviewed, committed, pushed GitLab-first, and synchronized across remotes.
+  - Interface cleanly typed and imports without errors.
+  - Safe stub returns deterministic structures when mempool data is absent.
+  - Unit tests verify interface contract and safe failure modes.
 - **Validation commands:**
   ```bash
-  forge test
-  ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
-  ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+  .venv/bin/python -m pytest test/agents/test_upgrade5_defi_attacks.py
   ```
-- **Dependencies:** P03-008 complete and synchronized; Foundry 1.8.3 verified.
-- **Security constraints:** Run tests against local in-memory fixtures only; never deploy or fund `VulnerableVault.sol` on live networks.
-- **Runbook impact:** Update `docs/RUNBOOK.md` to document the verified local Foundry test execution procedure.
+- **Dependencies:** Python virtual environment with existing dependencies.
+- **Security constraints:** Read-only analysis logic; no live RPC connections or private keys.
+- **Runbook impact:** Update `docs/RUNBOOK.md` to document the front-running detector interface stub.
 
 ## Subsequent task queue
 
-1. `P03-009` — Add real Foundry Exploit.t.sol and Invariants.t.sol examples and validate the exploit fixture.
-2. `P03-010` — Create front-running detector interface/tests as a safe stub pending Phase 11 mempool data.
-3. `P03-011` — Implement rug-pull signatures.
+1. `P03-010` — Create front-running detector interface/tests as a safe stub pending Phase 11 mempool data.
+2. `P03-011` — Implement rug-pull signatures: unrestricted mint, untimelocked LP, unsafe ownership, and hidden post-launch fee controls.
+3. `P03-012` — Implement flash-loan invariant generation and Anvil-fork validation for oracle/pool-drain conditions.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
