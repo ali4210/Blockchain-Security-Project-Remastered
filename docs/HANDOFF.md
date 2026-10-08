@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 4 — Zone 3: Compilation, storage, and MCP middleware |
-| Current task | P04-003 — Complete and verified; P04-005 next |
-| Current thread | P04-003 verified: governance framework mappings implemented in `scripts/enrich-findings.mts` for MITRE ATT&CK, CIS Controls, ISO 27001, and CSET. 5 unit assertions passed in `scripts/verify-enrichment.mts`, strict manifest ingestion valid, 10 storage tests passed, and 83 Hardhat regression tests passed. Advancing to P04-005 (scaffold benchmark-suite interface against sample contracts). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P04-005 — Complete and verified; P04-006 next |
+| Current thread | P04-005 verified: benchmark-suite interface scaffolded in `src/storage/benchmark_suite.py` with sample contract discovery, SQLite finding ingestion throughput benchmarking, and structured metrics. 14 storage unit tests passed, 7 agent tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P04-006 (Anvil-fork MCP sandbox with controlled forge test execution). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P04-005 — Benchmark suite scaffolding:** Complete and verified.
+  - Files: `src/storage/benchmark_suite.py`, `test/storage/test_benchmark_suite.py`, `src/storage/broker_store.py`
+  - Validation: `python3 -m unittest discover -s test/storage/ -p "test_*.py"` -> 14 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented `BenchmarkSuite` for evaluating static finding throughput and latency against sample Solidity contracts; patched SQLite connection closing during database initialization; reports structured metrics (precision, recall, throughput ops/sec, MTTR placeholder).
 
 - **P04-003 — Governance framework enrichment:** Complete and verified.
   - Files: `scripts/enrich-findings.mts`, `scripts/verify-enrichment.mts`
@@ -611,29 +616,29 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P04-005 — Scaffold the benchmark-suite interface against sample contracts.
+- **Active task:** P04-006 — Implement Anvil-fork MCP sandbox with controlled `forge test` execution.
 - **Current phase:** Phase 4 — Zone 3: Compilation, storage, and MCP middleware.
-- **Scope:** Scaffold the benchmark suite interface in `src/storage/benchmark_suite.py` to evaluate static analysis tool accuracy, throughput, and detection latency against sample contracts under `contracts/solidity/`. Implement test harness in `test/storage/test_benchmark_suite.py` asserting synthetic finding ingestion, execution timing, and metrics generation.
-- **Out of scope:** Phase 5 swarm execution, live RPC queries, or external network load tests.
-- **Expected files:** `src/storage/benchmark_suite.py`, `test/storage/test_benchmark_suite.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the Anvil-fork sandbox manager in Python (`src/mcp_middleware/anvil_sandbox.py` or MCP tool server wrapper). Provide controlled local Anvil process lifecycle (spawn, fork, teardown) and execute targeted `forge test` runs with strict timeouts, sandbox isolation, and structured result capture. Add unit tests in `test/mcp_middleware/test_anvil_sandbox.py` verifying process controls and failure containment.
+- **Out of scope:** Phase 5 multi-agent autonomous decision making or live public testnet connections.
+- **Expected files:** `src/mcp_middleware/anvil_sandbox.py`, `test/mcp_middleware/test_anvil_sandbox.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - `BenchmarkSuite` executes benchmark runs evaluating finding throughput and detection accuracy.
-  - Generates structured summary reports with timing metrics and sample contract coverage.
-  - Unit tests verify benchmark execution and reporting.
+  - Ephemeral Anvil sandbox can be spawned with designated port and clean process cleanup.
+  - `run_forge_test` executes with bounded timeout and returns exit code, stdout, and error status.
+  - Unit tests verify lifecycle and test execution failure handling.
   - Manifest ingestion and Hardhat regression suites pass.
 - **Validation commands:**
   ```bash
-  python3 -m unittest discover -s test/storage/ -p "test_*.py"
+  python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library, `src/storage/broker_store.py`; P04-003 and P04-004 complete and verified.
-- **Security constraints:** Read-only evaluation against local sample contracts; no network calls.
+- **Dependencies:** Python `subprocess`, `shutil`; Foundry `anvil` and `forge` binaries installed locally.
+- **Security constraints:** Subprocess execution bounded by timeout; no shell injection vulnerabilities.
 
 ## Subsequent task queue
 
-1. `P04-005` — Scaffold the benchmark-suite interface against sample contracts.
-2. `P04-006` — Implement Anvil-fork MCP sandbox with controlled `forge test` execution.
+1. `P04-006` — Implement Anvil-fork MCP sandbox with controlled `forge test` execution.
+2. `P04-007` — Implement read-only Sleuth Kit host-forensics MCP wrapper.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

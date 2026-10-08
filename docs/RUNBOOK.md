@@ -1869,3 +1869,31 @@ python3 -m unittest discover -s test/storage/ -p "test_*.py"
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
 - 10 storage unit tests pass.
+
+## P04-005 — Benchmark suite interface and sample contract evaluation validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate benchmarking scaffold execution, sample Solidity contract discovery, and SQLite finding ingestion throughput measurement under WAL mode.
+
+**Scope and limitations**
+
+- Evaluates sample contracts locally under `contracts/solidity/` or mock temporary directories.
+- Measures local database performance; full historical datasets (Phase 10) deferred.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Storage tests pass 14/14 verifying contract discovery, throughput metrics, and benchmark reporting.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
