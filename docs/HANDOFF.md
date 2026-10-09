@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-001 — Complete and verified; P06-002 next |
-| Current thread | P06-001 verified: Implemented `src/consensus/avs_gate.py` and unit tests in `test/consensus/test_avs_gate.py`. Canonical SHA-256 finding payload digests, nonce/replay protection, validator vote registries, double-voting rejection, and >66.7% BFT supermajority quorum evaluation validated. 7 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-002 (stand up local validator containers for coursework simulation). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-002 — Complete and verified; P06-003 next |
+| Current thread | P06-002 verified: Local validator container cluster established for coursework simulation in `src/consensus/validator_node.py`, `docker/docker-compose.validators.yml`, `docs/architecture/VALIDATOR_SIMULATION.md`, and `test/consensus/test_validator_cluster.py`. Independent node endpoints (/health, /vote), deterministic receipt hashing, and multi-validator AVSGate quorum integration validated. 11 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-003 (re-execute each PoC in isolated Anvil environments). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-002 — Stand up three local validator containers; document this as a coursework simulation:** Complete and verified.
+  - Files: `src/consensus/validator_node.py`, `docker/docker-compose.validators.yml`, `docs/architecture/VALIDATOR_SIMULATION.md`, `test/consensus/test_validator_cluster.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 11 tests passed in 0.563s; full multi-layer regression battery passing.
+  - Results: Implemented isolated validator HTTP microservice exposing `/health` and `/vote` endpoints, configured 3-node container topology across `avs-validator-net`, documented academic coursework simulation context, and validated deterministic signature emission and AVSGate consensus aggregation.
 
 - **P06-001 — Implement src/consensus/avs_gate.py and finding-attestation interface:** Complete and verified.
   - Files: `src/consensus/avs_gate.py`, `test/consensus/test_avs_gate.py`
@@ -721,15 +726,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-002 — Stand up three local validator containers; document this as a coursework simulation.
+- **Active task:** P06-003 — Re-execute each PoC in isolated Anvil environments.
 - **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Configure Docker Compose or lightweight mock service topology standing up three isolated validator container nodes for local coursework simulation; document architecture and validator container endpoints.
-- **Out of scope:** Isolated Anvil sandbox PoC re-execution (P06-003) and threshold BLS integration (P06-005).
-- **Expected files:** `docker-compose.validators.yml` (or `scripts/start-validators.sh`), documentation in `docs/architecture/`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Design and implement isolated Anvil sandbox execution harness (`src/consensus/anvil_sandbox.py`) allowing validator nodes to re-execute smart contract exploit PoCs in ephemeral local state forks; assert state rollback and exploit reproduction.
+- **Out of scope:** Supermajority threshold mathematical policy tuning (P06-004) and threshold BLS aggregation (P06-005).
+- **Expected files:** `src/consensus/anvil_sandbox.py`, `test/consensus/test_anvil_sandbox.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Multi-node validator topology configuration created.
-  - Local coursework simulation documented clearly.
-  - Validator health/attestation readiness verified.
+  - Ephemeral sandbox harness managing isolated Anvil process or JSON-RPC state fork.
+  - Execution of reentrancy/exploit PoCs with deterministic balance/state delta receipts.
+  - Automatic sandbox cleanup and resource reclamation.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -738,14 +743,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P06-001 complete and verified.
-- **Security constraints:** Isolated network namespaces; zero unauthenticated RPC exposure; deterministic container simulation.
+- **Dependencies:** Task P06-002 complete and verified.
+- **Security constraints:** Zero port leakage; deterministic gas/state environments; ephemeral sandbox teardown.
 
 ## Subsequent task queue
 
-1. `P06-002` — Stand up three local validator containers; document this as a coursework simulation.
-2. `P06-003` — Re-execute each PoC in isolated Anvil environments.
-3. `P06-004` — Implement a greater-than-66.7% supermajority rule.
+1. `P06-003` — Re-execute each PoC in isolated Anvil environments.
+2. `P06-004` — Implement a greater-than-66.7% supermajority rule.
+3. `P06-005` — Implement threshold BLS or a documented multisignature-hash-agreement stand-in.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

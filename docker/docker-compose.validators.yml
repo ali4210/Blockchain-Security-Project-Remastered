@@ -1,0 +1,72 @@
+# Task P06-002: Three-Node Local AVS Validator Simulation Topology
+# Educational Coursework Simulation — Not for Public Mainnet Deployment
+services:
+  validator-1:
+    image: python:3.11-slim
+    container_name: bsp_validator_1
+    working_dir: /app
+    volumes:
+      - ..:/app:ro
+    environment:
+      - VALIDATOR_ID=validator-1
+      - VALIDATOR_PORT=8081
+      - PYTHONPATH=/app
+    command: ["python3", "-m", "src.consensus.validator_node"]
+    ports:
+      - "8081:8081"
+    networks:
+      - avs-validator-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8081/health', timeout=2)"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    restart: unless-stopped
+
+  validator-2:
+    image: python:3.11-slim
+    container_name: bsp_validator_2
+    working_dir: /app
+    volumes:
+      - ..:/app:ro
+    environment:
+      - VALIDATOR_ID=validator-2
+      - VALIDATOR_PORT=8082
+      - PYTHONPATH=/app
+    command: ["python3", "-m", "src.consensus.validator_node"]
+    ports:
+      - "8082:8082"
+    networks:
+      - avs-validator-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8082/health', timeout=2)"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    restart: unless-stopped
+
+  validator-3:
+    image: python:3.11-slim
+    container_name: bsp_validator_3
+    working_dir: /app
+    volumes:
+      - ..:/app:ro
+    environment:
+      - VALIDATOR_ID=validator-3
+      - VALIDATOR_PORT=8083
+      - PYTHONPATH=/app
+    command: ["python3", "-m", "src.consensus.validator_node"]
+    ports:
+      - "8083:8083"
+    networks:
+      - avs-validator-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8083/health', timeout=2)"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  avs-validator-net:
+    driver: bridge

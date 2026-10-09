@@ -2599,3 +2599,41 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-002 — Stand up three local validator containers; document this as a coursework simulation
+
+**Status:** Verified
+
+**Purpose**
+
+Provision isolated local validator nodes simulating an educational AVS quorum network, verify health/vote endpoints, and assert consensus voting integration.
+
+**Scope and limitations**
+
+- HTTP microservice simulating validator PoC execution in `src/consensus/validator_node.py`.
+- Docker Compose topology in `docker/docker-compose.validators.yml`.
+- Academic documentation in `docs/architecture/VALIDATOR_SIMULATION.md`.
+- Integration tests in `test/consensus/test_validator_cluster.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 11 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
