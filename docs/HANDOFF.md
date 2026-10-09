@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-010 — Complete and verified; P05-011 next |
-| Current thread | P05-010 verified: Agent E incident commander implemented in `src/agents/agent_e_incident_commander.py` with unit tests in `test/agents/test_agent_e_incident_commander.py`. Validated multi-agent findings triage, SEV classification, emergency escalation flags, containment playbook generation under `agent_stage("E")`, offline fallback resilience, and immediate VRAM eviction. 28 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-011 (implement Agent F: deep logic analyzer). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-011 — Complete and verified; P05-012 next |
+| Current thread | P05-011 verified: Agent F deep logic analyzer implemented in `src/agents/agent_f_logic_analyzer.py` with unit tests in `test/agents/test_agent_f_logic_analyzer.py`. Validated formal business logic and invariant verification under `agent_stage("F")`, structured finding extraction, offline fallback resilience, and immediate VRAM eviction. 31 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-012 (implement Agent G: guardrail and sanitization watchdog). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-011 — Agent F implementation (deep logic analyzer):** Complete and verified.
+  - Files: `src/agents/agent_f_logic_analyzer.py`, `test/agents/test_agent_f_logic_analyzer.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 31 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented Agent F deep logic analyzer execution node evaluating mathematical state invariants, tokenomics mechanics, and economic arbitrage paths using DeepSeek R1 (32B/14B, 16K context); verified structured JSON invariant scenario parsing, offline simulation fallback, and Ephemeral VRAM purge upon completion.
 
 - **P05-010 — Agent E implementation (incident commander):** Complete and verified.
   - Files: `src/agents/agent_e_incident_commander.py`, `test/agents/test_agent_e_incident_commander.py`
@@ -696,16 +701,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-011 — Implement Agent F: deep logic analyzer.
+- **Active task:** P05-012 — Implement Agent G: guardrail and sanitization watchdog.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Implement `src/agents/agent_f_logic_analyzer.py` and unit tests in `test/agents/test_agent_f_logic_analyzer.py`. Agent F performs deep symbolic and business logic verification (e.g. tokenomics invariants, economic arbitrage attack models, state machine transitions) using DeepSeek R1 (`deepseek-r1:32b`/`14b`, 16K context window) under `agent_stage("F")` for Ephemeral VRAM cleanup, updating `SwarmState`.
-- **Out of scope:** Phase 6 live automated exploit execution.
-- **Expected files:** `src/agents/agent_f_logic_analyzer.py`, `test/agents/test_agent_f_logic_analyzer.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement `src/agents/agent_g_guardrail.py` and unit tests in `test/agents/test_agent_g_guardrail.py`. Agent G acts as the terminal sanitization gatekeeper for the multi-agent swarm. It inspects all generated agent outputs, findings, and playbooks to ensure no prompt injections, raw secret leaks, unsanitized exploit strings, or unescaped markdown payloads bypass boundary controls before final persistence using Qwen 2.5 (`qwen2.5:32b`/`14b`, 8K context window) under `agent_stage("G")` for Ephemeral VRAM cleanup, updating `SwarmState`.
+- **Out of scope:** Phase 6 live pipeline orchestration.
+- **Expected files:** `src/agents/agent_g_guardrail.py`, `test/agents/test_agent_g_guardrail.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Ingests contract state machine and mathematical logic context from state.
-  - Dispatches deep business-logic analysis prompts via `chat()` under `agent_stage("F")` context manager.
-  - Identifies token economic flaws, flash-loan arbitrage paths, and state invariant violations.
-  - Records structured business-logic findings into `state["findings"]`.
+  - Ingests cumulative swarm state and findings.
+  - Dispatches sanitization inspection prompts via `chat()` under `agent_stage("G")` context manager.
+  - Detects prompt injection attempts and filters out sensitive token disclosures.
+  - Emits normalized sanitization verification status in `state["metadata"]` and appends watchdog audit record.
   - Triggers VRAM eviction upon exit.
   - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
@@ -715,14 +720,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-010 complete and verified.
-- **Security constraints:** Read-only mathematical and symbolic inspection; zero GPU memory retention between stages.
+- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-011 complete and verified.
+- **Security constraints:** Passive defensive validation; strict redaction of sensitive data; zero GPU memory retention between stages.
 
 ## Subsequent task queue
 
-1. `P05-011` — Implement Agent F: deep logic analyzer.
-2. `P05-012` — Implement Agent G: guardrail and sanitization watchdog.
-3. `P05-013` — Integrate full sequential Swarm pipeline into LangGraph Kernel.
+1. `P05-012` — Implement Agent G: guardrail and sanitization watchdog.
+2. `P05-013` — Integrate full sequential Swarm pipeline into LangGraph Kernel.
+3. `P05-014` — End-to-end swarm regression and performance benchmarking.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
