@@ -9,7 +9,7 @@ import json
 import re
 
 from src.llm_client.ollama_client import chat, agent_stage
-from src.agents.graph import SwarmState
+from src.agents.state import SwarmState
 
 
 def parse_compliance_verdict(response_text: str) -> Dict[str, Any]:

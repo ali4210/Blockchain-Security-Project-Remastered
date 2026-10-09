@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-012 — Complete and verified; P05-013 next |
-| Current thread | P05-012 verified: Agent G guardrail and sanitization watchdog implemented in `src/agents/agent_g_guardrail.py` with unit tests in `test/agents/test_agent_g_guardrail.py`. Validated prompt injection artifact detection, terminal output sanitization under `agent_stage("G")`, structured finding extraction, offline fallback resilience, and immediate VRAM eviction. All seven swarm agents (A through G) are now implemented and tested. 34 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-013 (integrate full sequential Swarm pipeline into LangGraph Kernel). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-013 — Complete and verified; P05-014 next |
+| Current thread | P05-013 verified: End-to-end sequential agent swarm pipeline assembled in `src/agents/graph.py` with decoupled state schema in `src/agents/state.py` and test suites in `test/agents/test_graph_pipeline.py` and `test/agents/test_swarm_graph.py`. Validated end-to-end execution across all 7 nodes (Agents A through G), cumulative state propagation, Ephemeral VRAM cleanup receipts between every stage, error containment, and terminal output sanitization. 38 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-014 (end-to-end swarm regression and performance benchmarking). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-013 — Assemble end-to-end swarm pipeline in LangGraph Kernel:** Complete and verified.
+  - Files: `src/agents/graph.py`, `src/agents/state.py`, `src/agents/agent_g_guardrail.py`, `test/agents/test_graph_pipeline.py`, `test/agents/test_swarm_graph.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 38 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Assembled full 7-agent sequential Swarm pipeline (A -> B -> C -> D -> E -> F -> G) in `SequentialGraph`; decoupled `SwarmState` to eliminate circular imports; validated cumulative findings inheritance, fault isolation, terminal gate clearance, and deterministic Ephemeral VRAM purge receipts between every node execution.
 
 - **P05-012 — Agent G implementation (guardrail and sanitization watchdog):** Complete and verified.
   - Files: `src/agents/agent_g_guardrail.py`, `test/agents/test_agent_g_guardrail.py`
@@ -706,15 +711,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-013 — Assemble end-to-end swarm pipeline in LangGraph Kernel.
+- **Active task:** P05-014 — Swarm integration regression, benchmark harness, and state persistence verification.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Wire Agents A through G sequentially into the main LangGraph pipeline in `src/agents/graph.py` with comprehensive pipeline unit tests in `test/agents/test_graph_pipeline.py`. Ensure end-to-end execution flows through A (Auditor) -> B (Threat Hunter) -> C (Compliance Judge) -> D (Red Teamer) -> E (Incident Commander) -> F (Logic Analyzer) -> G (Guardrail Watchdog) with deterministic VRAM eviction between every step.
+- **Scope:** Implement end-to-end swarm benchmark and state persistence verification harness in `test/agents/test_swarm_benchmark.py`. Validate multi-stage latency tracking, broker storage serialization/deserialization of full `SwarmState`, memory footprint validation under sustained sequential execution, and offline deterministic replay.
 - **Out of scope:** Phase 6 live on-chain orchestrations.
-- **Expected files:** `src/agents/graph.py`, `test/agents/test_graph_pipeline.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Expected files:** `test/agents/test_swarm_benchmark.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Constructs LangGraph sequential workflow connecting all 7 agent nodes.
-  - Propagates cumulative `SwarmState` across all transitions.
-  - Handles offline fallback execution end-to-end cleanly.
+  - Benchmarks execution time and memory profiles across the 7-node pipeline.
+  - Verifies state persistence to SQLite broker store (`src/storage/broker_store.py`).
+  - Validates deterministic replay across multiple consecutive execution cycles.
   - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
@@ -723,14 +728,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; all individual agent modules A-G; P05-012 complete and verified.
-- **Security constraints:** Zero GPU retention across node transitions; strict schema compliance.
+- **Dependencies:** Python 3 standard library; `src/agents/graph.py`; `src/storage/broker_store.py`; P05-013 complete and verified.
+- **Security constraints:** Zero GPU retention across transitions; strict schema compliance; deterministic test assertions.
 
 ## Subsequent task queue
 
-1. `P05-013` — Assemble end-to-end swarm pipeline in LangGraph Kernel.
-2. `P05-014` — End-to-end swarm regression and performance benchmarking.
-3. `P05-015` — Zone 4 autonomous core signoff and Phase 6 transition.
+1. `P05-014` — Swarm integration regression, benchmark harness, and state persistence verification.
+2. `P05-015` — Zone 4 autonomous core signoff and Phase 6 transition.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

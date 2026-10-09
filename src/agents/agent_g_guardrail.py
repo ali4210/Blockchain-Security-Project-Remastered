@@ -10,7 +10,7 @@ import json
 import re
 
 from src.llm_client.ollama_client import chat, agent_stage
-from src.agents.graph import SwarmState
+from src.agents.state import SwarmState
 
 
 def parse_guardrail_report(response_text: str, target_name: str) -> Dict[str, Any]:
@@ -32,6 +32,8 @@ def parse_guardrail_report(response_text: str, target_name: str) -> Dict[str, An
         try:
             parsed = json.loads(json_match.group(1))
             if isinstance(parsed, dict) and "sanitization_status" in parsed:
+                if "terminal_gate_cleared" not in parsed:
+                    parsed["terminal_gate_cleared"] = not parsed.get("injections_detected", False)
                 return parsed
         except json.JSONDecodeError:
             pass
@@ -83,13 +85,14 @@ def guardrail_watchdog_node(state: SwarmState) -> SwarmState:
         )
 
     guardrail_report = parse_guardrail_report(response, str(target))
+    cleared = guardrail_report.get("terminal_gate_cleared", True)
 
     updated_findings = list(findings) + [guardrail_report]
     metadata = dict(state.get("metadata", {}))
     metadata["agent_g_executed"] = True
     metadata["agent_g_model"] = stage_ctx["model"]
     metadata["sanitization_status"] = guardrail_report.get("sanitization_status", "SANITIZED")
-    metadata["terminal_gate_cleared"] = guardrail_report.get("terminal_gate_cleared", True)
+    metadata["terminal_gate_cleared"] = cleared
 
     new_state = SwarmState(
         target_contract=state.get("target_contract", ""),

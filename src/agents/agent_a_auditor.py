@@ -10,7 +10,7 @@ import json
 import re
 
 from src.llm_client.ollama_client import chat, agent_stage
-from src.agents.graph import SwarmState
+from src.agents.state import SwarmState
 
 
 def extract_contract_source(state: SwarmState) -> str:

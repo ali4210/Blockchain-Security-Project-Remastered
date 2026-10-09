@@ -9,7 +9,7 @@ import json
 import re
 
 from src.llm_client.ollama_client import chat, agent_stage
-from src.agents.graph import SwarmState
+from src.agents.state import SwarmState
 
 
 def parse_logic_findings(response_text: str, target_name: str) -> List[Dict[str, Any]]:
