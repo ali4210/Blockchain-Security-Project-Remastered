@@ -2637,3 +2637,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-003 — Re-execute each PoC in isolated Anvil environments
+
+**Status:** Verified
+
+**Purpose**
+
+Provide an isolated sandbox execution harness for validator nodes to re-execute smart contract exploit PoCs, verify state and balance deltas, and generate deterministic cryptographic execution receipts.
+
+**Scope and limitations**
+
+- Isolated sandbox lifecycle in `src/consensus/anvil_sandbox.py`.
+- PoC execution trace, balance drain tracking, and snapshot revert mechanisms.
+- Verification suite in `test/consensus/test_anvil_sandbox.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 17 consensus unit tests pass in <0.6s.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
