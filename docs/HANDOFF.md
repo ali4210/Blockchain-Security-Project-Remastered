@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-011 — Complete and verified; P05-012 next |
-| Current thread | P05-011 verified: Agent F deep logic analyzer implemented in `src/agents/agent_f_logic_analyzer.py` with unit tests in `test/agents/test_agent_f_logic_analyzer.py`. Validated formal business logic and invariant verification under `agent_stage("F")`, structured finding extraction, offline fallback resilience, and immediate VRAM eviction. 31 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-012 (implement Agent G: guardrail and sanitization watchdog). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-012 — Complete and verified; P05-013 next |
+| Current thread | P05-012 verified: Agent G guardrail and sanitization watchdog implemented in `src/agents/agent_g_guardrail.py` with unit tests in `test/agents/test_agent_g_guardrail.py`. Validated prompt injection artifact detection, terminal output sanitization under `agent_stage("G")`, structured finding extraction, offline fallback resilience, and immediate VRAM eviction. All seven swarm agents (A through G) are now implemented and tested. 34 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-013 (integrate full sequential Swarm pipeline into LangGraph Kernel). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-012 — Agent G implementation (guardrail and sanitization watchdog):** Complete and verified.
+  - Files: `src/agents/agent_g_guardrail.py`, `test/agents/test_agent_g_guardrail.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 34 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Implemented Agent G terminal output sanitization watchdog execution node inspecting cumulative multi-agent findings for prompt injections, credential leaks, and format bypasses using Qwen 2.5 (32B/14B, 8K context); verified structured JSON audit report parsing, offline simulation fallback, and Ephemeral VRAM purge upon completion.
 
 - **P05-011 — Agent F implementation (deep logic analyzer):** Complete and verified.
   - Files: `src/agents/agent_f_logic_analyzer.py`, `test/agents/test_agent_f_logic_analyzer.py`
@@ -701,17 +706,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-012 — Implement Agent G: guardrail and sanitization watchdog.
+- **Active task:** P05-013 — Assemble end-to-end swarm pipeline in LangGraph Kernel.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Implement `src/agents/agent_g_guardrail.py` and unit tests in `test/agents/test_agent_g_guardrail.py`. Agent G acts as the terminal sanitization gatekeeper for the multi-agent swarm. It inspects all generated agent outputs, findings, and playbooks to ensure no prompt injections, raw secret leaks, unsanitized exploit strings, or unescaped markdown payloads bypass boundary controls before final persistence using Qwen 2.5 (`qwen2.5:32b`/`14b`, 8K context window) under `agent_stage("G")` for Ephemeral VRAM cleanup, updating `SwarmState`.
-- **Out of scope:** Phase 6 live pipeline orchestration.
-- **Expected files:** `src/agents/agent_g_guardrail.py`, `test/agents/test_agent_g_guardrail.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Wire Agents A through G sequentially into the main LangGraph pipeline in `src/agents/graph.py` with comprehensive pipeline unit tests in `test/agents/test_graph_pipeline.py`. Ensure end-to-end execution flows through A (Auditor) -> B (Threat Hunter) -> C (Compliance Judge) -> D (Red Teamer) -> E (Incident Commander) -> F (Logic Analyzer) -> G (Guardrail Watchdog) with deterministic VRAM eviction between every step.
+- **Out of scope:** Phase 6 live on-chain orchestrations.
+- **Expected files:** `src/agents/graph.py`, `test/agents/test_graph_pipeline.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Ingests cumulative swarm state and findings.
-  - Dispatches sanitization inspection prompts via `chat()` under `agent_stage("G")` context manager.
-  - Detects prompt injection attempts and filters out sensitive token disclosures.
-  - Emits normalized sanitization verification status in `state["metadata"]` and appends watchdog audit record.
-  - Triggers VRAM eviction upon exit.
+  - Constructs LangGraph sequential workflow connecting all 7 agent nodes.
+  - Propagates cumulative `SwarmState` across all transitions.
+  - Handles offline fallback execution end-to-end cleanly.
   - All unit test suites and manifest ingestion checks pass.
 - **Validation commands:**
   ```bash
@@ -720,14 +723,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; `src/agents/graph.py`; P05-011 complete and verified.
-- **Security constraints:** Passive defensive validation; strict redaction of sensitive data; zero GPU memory retention between stages.
+- **Dependencies:** Python 3 standard library; `src/llm_client/ollama_client.py`; all individual agent modules A-G; P05-012 complete and verified.
+- **Security constraints:** Zero GPU retention across node transitions; strict schema compliance.
 
 ## Subsequent task queue
 
-1. `P05-012` — Implement Agent G: guardrail and sanitization watchdog.
-2. `P05-013` — Integrate full sequential Swarm pipeline into LangGraph Kernel.
-3. `P05-014` — End-to-end swarm regression and performance benchmarking.
+1. `P05-013` — Assemble end-to-end swarm pipeline in LangGraph Kernel.
+2. `P05-014` — End-to-end swarm regression and performance benchmarking.
+3. `P05-015` — Zone 4 autonomous core signoff and Phase 6 transition.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
