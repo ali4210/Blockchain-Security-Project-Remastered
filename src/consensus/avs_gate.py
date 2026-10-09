@@ -1,7 +1,8 @@
 """
-Task P06-001: AVS Cryptographic Consensus & Finding-Attestation Interface.
-Defines structured finding attestation schemas, validator voting protocols,
-nonce/replay validation, and >66.7% BFT supermajority quorum evaluation.
+Task P06-004: AVS Cryptographic Consensus & BFT Supermajority Threshold Engine.
+Enforces strictly greater than 66.7% (> 2/3) supermajority quorum rules via exact
+integer arithmetic (3 * validated_votes > 2 * total_validators), preventing floating point
+precision anomalies and securing quorum decisions against byzantine split votes.
 """
 
 from dataclasses import dataclass, field
@@ -89,7 +90,7 @@ class ConsensusResult:
 class AVSGate:
     """
     AVS Consensus Gate coordinating decentralized finding verification
-    across validator node quorums with Byzantine Fault Tolerance rules.
+    across validator node quorums with strict >66.7% BFT rules.
     """
 
     def __init__(self, registered_validators: Optional[List[str]] = None, supermajority_threshold: float = 0.667):
@@ -135,14 +136,23 @@ class AVSGate:
         validated_count = sum(1 for v in votes if v.decision == VoteDecision.VALIDATED)
         rejected_count = sum(1 for v in votes if v.decision == VoteDecision.REJECTED)
         inconclusive_count = sum(1 for v in votes if v.decision == VoteDecision.INCONCLUSIVE)
+        total_voted = len(votes)
 
         ratio = validated_count / total_validators if total_validators > 0 else 0.0
-        # Supermajority requires strictly greater than 66.7% (> 2/3) agreement
-        supermajority = ratio > self.supermajority_threshold
 
-        if supermajority:
+        # Exact integer comparison for BFT > 2/3 (> 66.7%)
+        # 3 * validated_count > 2 * total_validators
+        supermajority_achieved = (3 * validated_count) > (2 * total_validators)
+
+        # Early rejection test: even if all remaining validators vote VALIDATED,
+        # can supermajority ever be achieved?
+        remaining_uncast_votes = total_validators - total_voted
+        max_possible_valid_votes = validated_count + remaining_uncast_votes
+        cannot_reach_supermajority = (3 * max_possible_valid_votes) <= (2 * total_validators)
+
+        if supermajority_achieved:
             attestation.status = ConsensusStatus.AGREED
-        elif (rejected_count / total_validators) >= (1.0 - self.supermajority_threshold) or len(votes) == total_validators:
+        elif cannot_reach_supermajority or total_voted >= total_validators:
             attestation.status = ConsensusStatus.REJECTED
         else:
             attestation.status = ConsensusStatus.PENDING
@@ -156,7 +166,7 @@ class AVSGate:
             rejected_votes=rejected_count,
             inconclusive_votes=inconclusive_count,
             supermajority_ratio=ratio,
-            supermajority_achieved=supermajority,
+            supermajority_achieved=supermajority_achieved,
         )
 
 
@@ -169,7 +179,6 @@ def attest(finding: Dict[str, Any], validator_count: int = 3) -> bool:
     gate = AVSGate(registered_validators=validators)
     attestation = gate.register_finding(finding, validator_count=validator_count)
 
-    # Simulate validator evaluation receipt for valid input payloads
     receipt_hash = hashlib.sha256(attestation.finding_digest.encode("utf-8")).hexdigest()
     for v_id in validators:
         gate.submit_vote(

@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-003 — Complete and verified; P06-004 next |
-| Current thread | P06-003 verified: Implemented isolated Anvil sandbox harness in `src/consensus/anvil_sandbox.py` and test suite `test/consensus/test_anvil_sandbox.py`. Isolated sandbox lifecycle, PoC re-execution fidelity, balance drain tracking, snapshot rollback, and deterministic execution receipt hashing validated. 17 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-004 (implement a greater-than-66.7% supermajority rule). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-004 — Complete and verified; P06-005 next |
+| Current thread | P06-004 verified: Implemented exact integer arithmetic BFT supermajority threshold rule (3*V > 2*N) in `src/consensus/avs_gate.py` and comprehensive test suite in `test/consensus/test_supermajority_rule.py`. Variable quorum scales (N=3, N=4, N=7), boundary condition rejection (66.67% fails strictly), inconclusive vote accounting, and early unreachable supermajority termination validated. Fixed `test_agent_g_guardrail.py` namespace mock patching. 23 consensus tests passed and 42 agent swarm tests passed. Advancing to P06-005 (threshold BLS or multisignature-hash-agreement stand-in). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-004 — Implement a greater-than-66.7% supermajority rule:** Complete and verified.
+  - Files: `src/consensus/avs_gate.py`, `test/consensus/test_supermajority_rule.py`, `test/agents/test_agent_g_guardrail.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 23 tests passed in 0.560s; `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 42 tests passed.
+  - Results: Replaced floating point ratio checks with exact integer arithmetic `(3 * V) > (2 * N)` enforcing strictly greater than 66.7% BFT agreement, implemented early unreachable supermajority rejection, validated arbitrary quorum sizes, ensured inconclusive votes count against the quorum denominator, and resolved namespace mocking in Agent G tests.
 
 - **P06-003 — Re-execute each PoC in isolated Anvil environments:** Complete and verified.
   - Files: `src/consensus/anvil_sandbox.py`, `test/consensus/test_anvil_sandbox.py`
@@ -731,15 +736,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-004 — Implement a greater-than-66.7% supermajority rule.
+- **Active task:** P06-005 — Implement threshold BLS or a documented multisignature-hash-agreement stand-in.
 - **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Formalize and test the mathematical threshold policy enforcing strictly greater than 66.7% (> 2/3) validator supermajority agreement; test edge cases with variable quorum sizes (N=3, N=4, N=7, N=10), rounding boundaries, abstentions, and byzantine split votes in `src/consensus/avs_gate.py`.
-- **Out of scope:** Threshold BLS signature aggregation (P06-005) and downstream forensic event bus emission (P06-008).
-- **Expected files:** `src/consensus/avs_gate.py`, `test/consensus/test_supermajority_rule.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Design and implement cryptographic multisignature/threshold BLS attestation aggregation (`src/consensus/bls_aggregation.py`) that aggregates individual validator signatures into a single canonical quorum certificate; document cryptographic properties or multisignature stand-in mechanics.
+- **Out of scope:** Rejecting non-reproducible findings (P06-006) and Zone 4 forwarding pipeline (P06-007).
+- **Expected files:** `src/consensus/bls_aggregation.py`, `test/consensus/test_bls_aggregation.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Strict mathematical rule (> 2/3) enforced across arbitrary quorum sizes.
-  - Boundary condition tests for exact 66.666% vs > 66.7% thresholds.
-  - Byzantine split vote and tie handling asserted.
+  - Multi-signature or threshold signature aggregation interface.
+  - Validation of aggregated quorum certificate against registered public keys.
+  - Tamper detection on individual and aggregated signatures.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -748,14 +753,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P06-003 complete and verified.
-- **Security constraints:** No floating point ambiguity; strict Byzantine fault tolerance thresholds.
+- **Dependencies:** Task P06-004 complete and verified.
+- **Security constraints:** Nonce binding; prevention of rogue-key attacks; deterministic signature verification.
 
 ## Subsequent task queue
 
-1. `P06-004` — Implement a greater-than-66.7% supermajority rule.
-2. `P06-005` — Implement threshold BLS or a documented multisignature-hash-agreement stand-in.
-3. `P06-006` — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
+1. `P06-005` — Implement threshold BLS or a documented multisignature-hash-agreement stand-in.
+2. `P06-006` — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
+3. `P06-007` — Forward validated findings to Zone 4 (Automated Incident Response).
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

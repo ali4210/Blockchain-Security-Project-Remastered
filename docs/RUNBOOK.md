@@ -2674,3 +2674,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-004 — Implement a greater-than-66.7% supermajority rule
+
+**Status:** Verified
+
+**Purpose**
+
+Enforce exact integer arithmetic BFT supermajority threshold rules (3*V > 2*N) across arbitrary quorum sizes, assert boundary condition rejections, handle inconclusive votes, and support early unreachable supermajority termination.
+
+**Scope and limitations**
+
+- Mathematical threshold evaluation in `src/consensus/avs_gate.py`.
+- Edge case and boundary verification suite in `test/consensus/test_supermajority_rule.py`.
+- Namespace mock fix in `test/agents/test_agent_g_guardrail.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 23 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

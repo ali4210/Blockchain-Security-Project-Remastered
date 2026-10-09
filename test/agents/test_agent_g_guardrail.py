@@ -46,7 +46,7 @@ class TestAgentGGuardrail(unittest.TestCase):
 
         purged = []
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
+            with patch("src.agents.agent_g_guardrail.chat", return_value="[OFFLINE_FALLBACK] host offline"):
                 next_state = guardrail_watchdog_node(state)
 
         self.assertEqual(next_state["current_step"], "agent_g_completed")
