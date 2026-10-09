@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-006 — Complete and verified; P06-007 next |
-| Current thread | P06-006 verified: Implemented resilient batch finding consensus pipeline in `src/consensus/avs_gate.py` and test suite `test/consensus/test_finding_rejection.py`. Rejection of hallucinated/non-reproducible findings, QuorumCertificate suppression, pipeline execution continuity, and mixed-batch processing validated. 32 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-007 (forward validated findings to Zone 4 Automated Incident Response). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-007 — Complete and verified; P06-008 next |
+| Current thread | P06-007 verified: Implemented dual-path test suite in `test/consensus/test_dual_path_verification.py`. Confirmed-exploit path (sandbox balance drain delta tracking, unanimous validator voting, QuorumCertificate verification), deliberate-false-finding path (zero state mutation, validator rejection, certificate denial), and interleaved pipeline execution validated. 35 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-008. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-007 — Test confirmed-exploit and deliberate-false-finding paths:** Complete and verified.
+  - Files: `test/consensus/test_dual_path_verification.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 35 tests passed in 0.561s; full multi-layer regression battery passing.
+  - Results: Validated end-to-end confirmed-exploit path with 100 ETH state drainage and verified QuorumCertificate generation, deliberate false-finding path with 0 ETH mutation and strict certificate denial, and interleaved mixed batch execution with zero cross-contamination.
 
 - **P06-006 — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline:** Complete and verified.
   - Files: `src/consensus/avs_gate.py`, `test/consensus/test_finding_rejection.py`
@@ -746,15 +751,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-007 — Forward validated findings to Zone 4 (Automated Incident Response).
+- **Active task:** P06-008 — Emit a versioned `case-opened` event for Phase 10 forensic consumption.
 - **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Implement the forwarding bridge (`src/consensus/zone4_forwarder.py`) connecting the AVS consensus gate to Zone 4 (Automated Incident Response); ensure only findings backed by verified `QuorumCertificate` objects are forwarded for automated pause/firewall mitigation.
-- **Out of scope:** SOC forensic event bus Kafka/webhook publishing (P06-008).
-- **Expected files:** `src/consensus/zone4_forwarder.py`, `test/consensus/test_zone4_forwarder.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the forensic event publisher (`src/consensus/forensic_event_emitter.py`) emitting canonical, schema-versioned `case-opened` events when a finding receives a valid QuorumCertificate; ensure compatibility with Phase 10 SOC forensic storage formats, strict JSON schema validation, cryptographic payload binding, and event log integrity.
+- **Out of scope:** Phase 10 SOC dashboard ingestion and long-term cold storage retention adapters.
+- **Expected files:** `src/consensus/forensic_event_emitter.py`, `test/consensus/test_forensic_event_emitter.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Forwarder verifies QuorumCertificate before submitting incident payload.
-  - Rejects uncertified or rejected findings from entering Zone 4 response pipeline.
-  - Structured incident action triggers (pause, blacklist, alert).
+  - Schema-versioned (e.g. schemaVersion: 1) `case-opened` event emission.
+  - Cryptographic binding to QuorumCertificate aggregate signatures and execution receipts.
+  - Rejection of uncertified or rejected findings from triggering forensic event creation.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -763,13 +768,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P06-006 complete and verified.
-- **Security constraints:** Non-certified findings must never trigger automated smart contract state pauses.
+- **Dependencies:** Task P06-007 complete and verified.
+- **Security constraints:** Non-repudiation of emitted events; deterministic hashing of case payloads.
 
 ## Subsequent task queue
 
-1. `P06-007` — Forward validated findings to Zone 4 (Automated Incident Response).
-2. `P06-008` — Publish attestation events to the SOC forensic event bus.
+1. `P06-008` — Emit a versioned `case-opened` event for Phase 10 forensic consumption.
+2. `P06-009` — Phase 6 integration sign-off and multi-zone attestation audit.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

@@ -2783,3 +2783,39 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-007 — Test confirmed-exploit and deliberate-false-finding paths
+
+**Status:** Verified
+
+**Purpose**
+
+Formally validate dual-path consensus pipeline execution: confirmed-exploit paths (verifiable balance drainage, unanimous validator votes, QuorumCertificate issuance and verification) versus deliberate-false-finding paths (zero balance mutation, validator rejection, certificate denial) with zero cross-contamination in interleaved batches.
+
+**Scope and limitations**
+
+- Dual-path verification test suite in `test/consensus/test_dual_path_verification.py`.
+- End-to-end sandbox execution trace and receipt verification.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 35 consensus unit tests pass in <0.6s.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
