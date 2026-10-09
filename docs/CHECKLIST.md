@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-001 — Complete and verified; P07-002 next |
+| Current task | P07-002 — Complete and verified; P07-003 next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -1057,7 +1057,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P07-001 | Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation. | ✅ | Complete and verified 2026-10-09: Implemented `src/deployment/consensus_deployer.py`, `docker-compose.deploy.yml`, and test suite `test/deployment/test_consensus_deployer.py`; enforced QuorumCertificate verification, bytecode digest binding, hard PermissionError blocking on uncertified plans, and deterministic DeploymentReceipt generation; 4 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
-| P07-002 | Add Vault dev-mode or documented safe coursework secret-store integration for deploy. | ⬜ | — |
+| P07-002 | Add Vault dev-mode or documented safe coursework secret-store integration for deploy. | ✅ | Complete and verified 2026-10-09: Implemented `src/deployment/vault_secret_store.py` and test suite `test/deployment/test_vault_secret_store.py`; integrated `VaultSecretStore` with `ConsensusDeployer`; validated Vault dev-mode HTTP client and safe coursework in-memory fallback, string/repr redaction, buffer zeroization, lease revocation, and automated credential lifecycle cleanup; 8 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P07-003 | Implement consensus-rejected abort path and readiness-policy failure. | ⬜ | — |
 | P07-004 | Generate any swarm patch only inside an offline/sandboxed container. | ⬜ | — |
 | P07-005 | Create draft GitLab Merge Request workflow with tracking labels and finding references. | ⬜ | — |

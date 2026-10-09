@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-001 — Complete and verified; P07-002 next |
-| Current thread | P07-001 verified: Implemented consensus-confirmed deployer in `src/deployment/consensus_deployer.py`, simulation manifest `docker-compose.deploy.yml`, and test suite `test/deployment/test_consensus_deployer.py`. QuorumCertificate cryptographic verification, bytecode binding, tamper rejection, and deterministic receipt generation validated. 4 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-002 (Vault dev-mode or safe secret-store integration). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P07-002 — Complete and verified; P07-003 next |
+| Current thread | P07-002 verified: Implemented `VaultSecretStore` and `VaultSecret` in `src/deployment/vault_secret_store.py` and test suite `test/deployment/test_vault_secret_store.py`. Connected secret store to `ConsensusDeployer` in `src/deployment/consensus_deployer.py`. Redaction of secrets, byte buffer zeroization, lease revocation, and lifecycle secret cleanup validated. 8 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-003 (consensus-rejected abort path and readiness-policy failure). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P07-002 — Add Vault dev-mode or documented safe coursework secret-store integration for deploy:** Complete and verified.
+  - Files: `src/deployment/vault_secret_store.py`, `src/deployment/consensus_deployer.py`, `test/deployment/test_vault_secret_store.py`
+  - Validation: `python3 -m unittest discover -s test/deployment/ -p "test_*.py"` -> 8 tests passed in 0.001s; full multi-layer regression battery passing.
+  - Results: Implemented `VaultSecretStore` and `VaultSecret` supporting Vault dev-mode HTTP client and authenticated in-memory coursework fallback. Enforced zero-leakage redaction in string representations, explicit buffer zeroization, and lease revocation integrated with `ConsensusDeployer`.
 
 - **P07-001 — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation:** Complete and verified.
   - Files: `src/deployment/consensus_deployer.py`, `docker-compose.deploy.yml`, `test/deployment/test_consensus_deployer.py`
@@ -761,15 +766,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P07-002 — Add Vault dev-mode or documented safe coursework secret-store integration for deploy.
+- **Active task:** P07-003 — Implement consensus-rejected abort path and readiness-policy failure.
 - **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
-- **Scope:** Implement the secret management adapter (`src/deployment/vault_secret_store.py`) connecting HashiCorp Vault (or documented in-memory safe coursework secret-store stand-in) for secure deployment key retrieval; ensure deployer private keys are never hardcoded or leaked into manifests, audit trails, or git history.
-- **Out of scope:** Production HSM key ceremonies and multi-cloud KMS federations.
-- **Expected files:** `src/deployment/vault_secret_store.py`, `test/deployment/test_vault_secret_store.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the consensus-rejected abort path and production readiness-policy enforcement (`src/deployment/readiness_policy_gate.py` and deployer abort paths); ensure deployment aborts cleanly with hard failure codes, structured audit logging, and zero state persistence when attestation is rejected or readiness policy checks fail.
+- **Out of scope:** Phase 7 post-deploy rollback alert loops (P07-004) and canary gates (P07-005).
+- **Expected files:** `src/deployment/readiness_policy_gate.py`, `test/deployment/test_readiness_policy_gate.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Vault dev-mode / safe secret store client interface (`VaultSecretStore`).
-  - Ephemeral deployment key fetching, lease renewal, and secret revocation.
-  - Scrubbing and zeroization of secret values from memory/logs.
+  - Rejection abort path triggers hard exit on consensus-rejected finding/plan.
+  - Readiness policy fails on incomplete gates or uncertified releases.
+  - Emits structured ABORT event audit payload.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -779,14 +784,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P07-001 complete and verified.
-- **Security constraints:** Zero key leakage in exceptions, logs, or serialized receipts.
+- **Dependencies:** Task P07-002 complete and verified.
+- **Security constraints:** Abort must be fail-closed; zero partial deployment state emitted on failure.
 
 ## Subsequent task queue
 
-1. `P07-002` — Add Vault dev-mode or documented safe coursework secret-store integration for deploy.
-2. `P07-003` — Enforce canary verification gate before full rollout.
-3. `P07-004` — Implement automated rollback mechanics on post-deploy alert.
+1. `P07-003` — Implement consensus-rejected abort path and readiness-policy failure.
+2. `P07-004` — Implement automated rollback mechanics on post-deploy alert.
+3. `P07-005` — Enforce canary verification gate before full rollout.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
