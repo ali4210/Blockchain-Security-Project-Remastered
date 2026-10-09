@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-014 — Complete and verified; P05-015 next |
-| Current thread | P05-014 verified: Swarm integration regression, benchmark harness, and state persistence verified in `test/agents/test_swarm_benchmark.py` and `test/agents/test_graph_pipeline.py`. Multi-stage latency profiling across 7 nodes, JSON state serialization fidelity, SQLite broker store persistence, and deterministic offline replay consistency validated. 42 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-015 (Zone 4 autonomous core signoff and Phase 6 transition). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-001 — Implement src/consensus/avs_gate.py and finding-attestation interface |
+| Current thread | Phase 5 (Zone 4: Autonomous Swarm Core) formally verified and closed across all 14 tasks (P05-001 through P05-014). Advancing to Phase 6 (Zone 5: Decentralized Consensus & AVS Quorum Attestation). Active task is P06-001: Implement `src/consensus/avs_gate.py` and finding-attestation interface. 42 agent swarm unit tests passing, 14 LLM client tests passing, 18 storage tests passing, 20 MCP middleware tests passing, strict manifest ingestion valid, and 83 Hardhat regression tests passing. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -716,29 +716,32 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-015 — Zone 4 autonomous core signoff and Phase 6 transition.
-- **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Conduct formal Phase 5 (Zone 4) architectural verification, signoff checklist audits, security boundary reviews, and transition preparation for Phase 6 (Decentralized SOC On-Chain Execution & Toolchain Integration).
-- **Out of scope:** Phase 6 live on-chain orchestrations.
-- **Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Active task:** P06-001 — Implement `src/consensus/avs_gate.py` and finding-attestation interface.
+- **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
+- **Scope:** Design and implement `src/consensus/avs_gate.py`, defining the finding attestation schema, validator signature validation interface, and threshold consensus evaluation logic.
+- **Out of scope:** Phase 6 multi-container Anvil deployment (P06-002/P06-003) and forensic event bus integration (P06-008).
+- **Expected files:** `src/consensus/avs_gate.py`, `test/consensus/test_avs_gate.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Complete Phase 5 verification and audit records.
-  - All unit test suites and manifest ingestion checks pass.
-  - Phase 6 transition plan validated.
+  - Define structured finding attestation dataclass/schema.
+  - Implement AVSGate class validating quorum threshold configurations.
+  - Unit tests covering attestation verification, threshold logic, and role checks.
+  - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
+  python3 -m unittest discover -s test/consensus/ -p "test_*.py"
   python3 -m unittest discover -s test/agents/ -p "test_*.py"
-  python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Phase 5 Tasks P05-001 through P05-014 complete and verified.
-- **Security constraints:** Zero GPU retention across transitions; strict schema compliance; deterministic test assertions.
+- **Dependencies:** Phase 5 completed and verified.
+- **Security constraints:** Nonce/replay protection on attestations; strict cryptographic signature verification stubs; immutable attestation logs.
 
 ## Subsequent task queue
 
-1. `P05-015` — Zone 4 autonomous core signoff and Phase 6 transition.
-2. `P06-001` — Phase 6 environment baseline and toolchain initialization.
+1. `P06-001` — Implement `src/consensus/avs_gate.py` and finding-attestation interface.
+2. `P06-002` — Stand up three local validator containers; document this as a coursework simulation.
+3. `P06-003` — Re-execute each PoC in isolated Anvil environments.
+4. `P06-004` — Implement a greater-than-66.7% supermajority rule.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
