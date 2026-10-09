@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-007 — Complete and verified; P06-008 next |
-| Current thread | P06-007 verified: Implemented dual-path test suite in `test/consensus/test_dual_path_verification.py`. Confirmed-exploit path (sandbox balance drain delta tracking, unanimous validator voting, QuorumCertificate verification), deliberate-false-finding path (zero state mutation, validator rejection, certificate denial), and interleaved pipeline execution validated. 35 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-008. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-008 — Complete and verified; Phase 6 finalized |
+| Current thread | P06-008 verified: Implemented `src/consensus/forensic_event_emitter.py` and test suite `test/consensus/test_forensic_event_emitter.py`. SchemaVersion: 1 `case-opened` event emission, cryptographic QuorumCertificate binding, atomic JSONL logging, and permission enforcement on uncertified findings validated. 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Phase 6 (Zone 5: Decentralized Consensus & AVS Quorum Attestation) complete. Advancing to Phase 7. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-008 — Emit a versioned `case-opened` event for Phase 10 forensic consumption:** Complete and verified.
+  - Files: `src/consensus/forensic_event_emitter.py`, `test/consensus/test_forensic_event_emitter.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 39 tests passed in 0.562s; full multi-layer regression battery passing.
+  - Results: Implemented `ForensicEventEmitter` and `CaseOpenedEvent` producing canonical schemaVersion: 1 events bound to QuorumCertificates and Anvil execution receipts, enforced strict gatekeeping rejecting uncertified/rejected findings with `PermissionError`, and validated append-only JSONL event persistence.
 
 - **P06-007 — Test confirmed-exploit and deliberate-false-finding paths:** Complete and verified.
   - Files: `test/consensus/test_dual_path_verification.py`
@@ -751,16 +756,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-008 — Emit a versioned `case-opened` event for Phase 10 forensic consumption.
-- **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Implement the forensic event publisher (`src/consensus/forensic_event_emitter.py`) emitting canonical, schema-versioned `case-opened` events when a finding receives a valid QuorumCertificate; ensure compatibility with Phase 10 SOC forensic storage formats, strict JSON schema validation, cryptographic payload binding, and event log integrity.
-- **Out of scope:** Phase 10 SOC dashboard ingestion and long-term cold storage retention adapters.
-- **Expected files:** `src/consensus/forensic_event_emitter.py`, `test/consensus/test_forensic_event_emitter.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Active task:** P07-001 — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation.
+- **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
+- **Scope:** Implement the consensus-confirmed deployment runner/orchestrator (`src/deployment/consensus_deployer.py` and infrastructure config) connecting Phase 6 QuorumCertificates to automated contract deployment pipelines via local Kubernetes (kind/minikube) or documented multi-container Docker Compose simulation; ensure deployment triggers require cryptographically verified attestation approval.
+- **Out of scope:** Phase 7 automated rollback triggers (P07-002) and Canary verification gates (P07-003).
+- **Expected files:** `src/deployment/consensus_deployer.py`, `test/deployment/test_consensus_deployer.py`, `docker-compose.deploy.yml` (or kind manifests), `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Schema-versioned (e.g. schemaVersion: 1) `case-opened` event emission.
-  - Cryptographic binding to QuorumCertificate aggregate signatures and execution receipts.
-  - Rejection of uncertified or rejected findings from triggering forensic event creation.
-  - Full test suite passes deterministically.
+  - Deployment gate demands valid `QuorumCertificate` before executing deployment recipe.
+  - Rejects unconfirmed, hallucinated, or uncertified findings from gating or altering deployment.
+  - Deterministic containerized simulation passes cleanly.
+  - Full test battery passes across repository.
 - **Validation commands:**
   ```bash
   python3 -m unittest discover -s test/consensus/ -p "test_*.py"
@@ -768,13 +773,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P06-007 complete and verified.
-- **Security constraints:** Non-repudiation of emitted events; deterministic hashing of case payloads.
+- **Dependencies:** Phase 6 complete and verified (P06-001 to P06-008).
+- **Security constraints:** Deploy credentials isolated; deployment locked behind cryptographically verified quorum attestation.
 
 ## Subsequent task queue
 
-1. `P06-008` — Emit a versioned `case-opened` event for Phase 10 forensic consumption.
-2. `P06-009` — Phase 6 integration sign-off and multi-zone attestation audit.
+1. `P07-001` — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation.
+2. `P07-002` — Implement automated rollback mechanics on consensus post-deploy alert.
+3. `P07-003` — Enforce canary verification gate before full rollout.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

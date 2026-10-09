@@ -2819,3 +2819,39 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-008 — Emit a versioned `case-opened` event for Phase 10 forensic consumption
+
+**Status:** Verified
+
+**Purpose**
+
+Emit canonical schemaVersion: 1 `case-opened` audit events bound to cryptographically verified QuorumCertificates and deterministic Anvil execution receipts for Phase 10 forensic ingestion, enforcing permission rejection on uncertified findings and atomic append-only persistence.
+
+**Scope and limitations**
+
+- Forensic event generation in `src/consensus/forensic_event_emitter.py`.
+- Schema validation and rejection tests in `test/consensus/test_forensic_event_emitter.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 39 consensus unit tests pass in <0.6s.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
