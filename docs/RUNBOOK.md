@@ -2562,3 +2562,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-001 — Implement src/consensus/avs_gate.py and finding-attestation interface
+
+**Status:** Verified
+
+**Purpose**
+
+Define structured finding attestation schemas, validator voting interfaces, replay protection, and Byzantine Fault Tolerant (>66.7%) supermajority quorum evaluation.
+
+**Scope and limitations**
+
+- Structured FindingAttestation and ValidatorVote dataclasses.
+- Cryptographic SHA-256 finding payload digests and nonce replay tracking.
+- AVSGate quorum consensus evaluator enforcing supermajority rules.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 7 consensus unit tests pass in <0.01s.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

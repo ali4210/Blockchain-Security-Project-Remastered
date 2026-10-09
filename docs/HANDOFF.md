@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-001 — Implement src/consensus/avs_gate.py and finding-attestation interface |
-| Current thread | Phase 5 (Zone 4: Autonomous Swarm Core) formally verified and closed across all 14 tasks (P05-001 through P05-014). Advancing to Phase 6 (Zone 5: Decentralized Consensus & AVS Quorum Attestation). Active task is P06-001: Implement `src/consensus/avs_gate.py` and finding-attestation interface. 42 agent swarm unit tests passing, 14 LLM client tests passing, 18 storage tests passing, 20 MCP middleware tests passing, strict manifest ingestion valid, and 83 Hardhat regression tests passing. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-001 — Complete and verified; P06-002 next |
+| Current thread | P06-001 verified: Implemented `src/consensus/avs_gate.py` and unit tests in `test/consensus/test_avs_gate.py`. Canonical SHA-256 finding payload digests, nonce/replay protection, validator vote registries, double-voting rejection, and >66.7% BFT supermajority quorum evaluation validated. 7 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-002 (stand up local validator containers for coursework simulation). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-001 — Implement src/consensus/avs_gate.py and finding-attestation interface:** Complete and verified.
+  - Files: `src/consensus/avs_gate.py`, `test/consensus/test_avs_gate.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 7 tests passed in 0.000s; full regression battery passing.
+  - Results: Structured `FindingAttestation` data schema, SHA-256 canonical payload digest computation, nonce-based replay protection, validator registration, and >66.7% BFT supermajority quorum validation implemented and verified.
 
 - **P05-014 — Swarm integration regression, benchmark harness, and state persistence verification:** Complete and verified.
   - Files: `test/agents/test_swarm_benchmark.py`, `test/agents/test_graph_pipeline.py`
@@ -716,15 +721,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-001 — Implement `src/consensus/avs_gate.py` and finding-attestation interface.
+- **Active task:** P06-002 — Stand up three local validator containers; document this as a coursework simulation.
 - **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Design and implement `src/consensus/avs_gate.py`, defining the finding attestation schema, validator signature validation interface, and threshold consensus evaluation logic.
-- **Out of scope:** Phase 6 multi-container Anvil deployment (P06-002/P06-003) and forensic event bus integration (P06-008).
-- **Expected files:** `src/consensus/avs_gate.py`, `test/consensus/test_avs_gate.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Configure Docker Compose or lightweight mock service topology standing up three isolated validator container nodes for local coursework simulation; document architecture and validator container endpoints.
+- **Out of scope:** Isolated Anvil sandbox PoC re-execution (P06-003) and threshold BLS integration (P06-005).
+- **Expected files:** `docker-compose.validators.yml` (or `scripts/start-validators.sh`), documentation in `docs/architecture/`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Define structured finding attestation dataclass/schema.
-  - Implement AVSGate class validating quorum threshold configurations.
-  - Unit tests covering attestation verification, threshold logic, and role checks.
+  - Multi-node validator topology configuration created.
+  - Local coursework simulation documented clearly.
+  - Validator health/attestation readiness verified.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -733,15 +738,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Phase 5 completed and verified.
-- **Security constraints:** Nonce/replay protection on attestations; strict cryptographic signature verification stubs; immutable attestation logs.
+- **Dependencies:** Task P06-001 complete and verified.
+- **Security constraints:** Isolated network namespaces; zero unauthenticated RPC exposure; deterministic container simulation.
 
 ## Subsequent task queue
 
-1. `P06-001` — Implement `src/consensus/avs_gate.py` and finding-attestation interface.
-2. `P06-002` — Stand up three local validator containers; document this as a coursework simulation.
-3. `P06-003` — Re-execute each PoC in isolated Anvil environments.
-4. `P06-004` — Implement a greater-than-66.7% supermajority rule.
+1. `P06-002` — Stand up three local validator containers; document this as a coursework simulation.
+2. `P06-003` — Re-execute each PoC in isolated Anvil environments.
+3. `P06-004` — Implement a greater-than-66.7% supermajority rule.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

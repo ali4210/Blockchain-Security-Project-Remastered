@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-001 — Implement src/consensus/avs_gate.py and finding-attestation interface |
+| Current task | P06-001 — Complete and verified; P06-002 next |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -1030,7 +1030,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P06-001 | Implement `src/consensus/avs_gate.py` and finding-attestation interface. | ⬜ | — |
+| P06-001 | Implement `src/consensus/avs_gate.py` and finding-attestation interface. | ✅ | Complete and verified 2026-10-09: Implemented `src/consensus/avs_gate.py` and test suite `test/consensus/test_avs_gate.py`; canonical SHA-256 finding payload digests, nonce replay protection, validator registration, duplicate vote rejection, and >66.7% BFT supermajority quorum evaluation validated; 7 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P06-002 | Stand up three local validator containers; document this as a coursework simulation. | ⬜ | — |
 | P06-003 | Re-execute each PoC in isolated Anvil environments. | ⬜ | — |
 | P06-004 | Implement a greater-than-66.7% supermajority rule. | ⬜ | — |
