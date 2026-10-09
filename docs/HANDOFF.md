@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-005 — Complete and verified; P06-006 next |
-| Current thread | P06-005 verified: Implemented threshold BLS / multisignature-hash-agreement aggregator in `src/consensus/bls_aggregation.py` and test suite `test/consensus/test_bls_aggregation.py`. Keyring registration, deterministic signature generation, canonical `QuorumCertificate` threshold aggregation, tamper detection, and verification validated. 29 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-006 (verify hallucinated/non-reproducible findings are rejected and do not block the pipeline). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-006 — Complete and verified; P06-007 next |
+| Current thread | P06-006 verified: Implemented resilient batch finding consensus pipeline in `src/consensus/avs_gate.py` and test suite `test/consensus/test_finding_rejection.py`. Rejection of hallucinated/non-reproducible findings, QuorumCertificate suppression, pipeline execution continuity, and mixed-batch processing validated. 32 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-007 (forward validated findings to Zone 4 Automated Incident Response). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-006 — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline:** Complete and verified.
+  - Files: `src/consensus/avs_gate.py`, `test/consensus/test_finding_rejection.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 32 tests passed in 0.560s; full multi-layer regression battery passing.
+  - Results: Implemented `process_finding_batch` coordinating isolated sandbox replay, validator voting, and certificate minting; confirmed that non-reproducible and benign findings transition to `REJECTED` without throwing unhandled errors, leaving pipeline throughput uninterrupted for valid exploits.
 
 - **P06-005 — Implement threshold BLS or a documented multisignature-hash-agreement stand-in:** Complete and verified.
   - Files: `src/consensus/bls_aggregation.py`, `test/consensus/test_bls_aggregation.py`
@@ -741,15 +746,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-006 — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
+- **Active task:** P06-007 — Forward validated findings to Zone 4 (Automated Incident Response).
 - **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Verify that hallucinated, false-positive, or non-reproducible findings submitted to the consensus gate are safely rejected by the validator quorum without crashing, throwing unhandled exceptions, or stalling downstream pipeline execution; implement dedicated filter and rejection pipeline integration tests in `test/consensus/test_finding_rejection.py`.
-- **Out of scope:** Zone 4 incident response forwarding (P06-007) and SOC forensic event bus publishing (P06-008).
-- **Expected files:** `src/consensus/avs_gate.py`, `test/consensus/test_finding_rejection.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the forwarding bridge (`src/consensus/zone4_forwarder.py`) connecting the AVS consensus gate to Zone 4 (Automated Incident Response); ensure only findings backed by verified `QuorumCertificate` objects are forwarded for automated pause/firewall mitigation.
+- **Out of scope:** SOC forensic event bus Kafka/webhook publishing (P06-008).
+- **Expected files:** `src/consensus/zone4_forwarder.py`, `test/consensus/test_zone4_forwarder.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Validator nodes identify non-reproducible PoCs via Anvil sandbox and emit REJECTED votes.
-  - AVSGate flags status as REJECTED without terminating pipeline execution.
-  - Rejection metrics and audit logs cleanly record unverified claims.
+  - Forwarder verifies QuorumCertificate before submitting incident payload.
+  - Rejects uncertified or rejected findings from entering Zone 4 response pipeline.
+  - Structured incident action triggers (pause, blacklist, alert).
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -758,14 +763,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P06-005 complete and verified.
-- **Security constraints:** Non-reproducible findings must never receive QuorumCertificates; zero unhandled exceptions.
+- **Dependencies:** Task P06-006 complete and verified.
+- **Security constraints:** Non-certified findings must never trigger automated smart contract state pauses.
 
 ## Subsequent task queue
 
-1. `P06-006` — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
-2. `P06-007` — Forward validated findings to Zone 4 (Automated Incident Response).
-3. `P06-008` — Publish attestation events to the SOC forensic event bus.
+1. `P06-007` — Forward validated findings to Zone 4 (Automated Incident Response).
+2. `P06-008` — Publish attestation events to the SOC forensic event bus.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

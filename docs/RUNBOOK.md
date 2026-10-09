@@ -2747,3 +2747,39 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P06-006 — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline
+
+**Status:** Verified
+
+**Purpose**
+
+Ensure non-reproducible, false-positive, and hallucinated findings are rejected by the validator quorum without interrupting pipeline continuity, and that QuorumCertificates are minted exclusively for verified exploits.
+
+**Scope and limitations**
+
+- Batch pipeline coordination in `src/consensus/avs_gate.py`.
+- Mixed-batch rejection and resilience tests in `test/consensus/test_finding_rejection.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 32 consensus unit tests pass in <0.6s.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

@@ -1,8 +1,8 @@
 """
-Task P06-004: AVS Cryptographic Consensus & BFT Supermajority Threshold Engine.
+Task P06-006: AVS Cryptographic Consensus & Resilient Pipeline Coordination.
 Enforces strictly greater than 66.7% (> 2/3) supermajority quorum rules via exact
-integer arithmetic (3 * validated_votes > 2 * total_validators), preventing floating point
-precision anomalies and securing quorum decisions against byzantine split votes.
+integer arithmetic (3 * validated_votes > 2 * total_validators), prevents pipeline stalls
+when non-reproducible/hallucinated findings are rejected, and produces signed QuorumCertificates.
 """
 
 from dataclasses import dataclass, field
@@ -10,7 +10,10 @@ from datetime import datetime, timezone
 from enum import Enum
 import hashlib
 import json
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+from src.consensus.anvil_sandbox import AnvilSandbox, ExecutionReceipt
+from src.consensus.bls_aggregation import BLSAggregator, QuorumCertificate, ValidatorKeyring
 
 
 class VoteDecision(str, Enum):
@@ -85,21 +88,38 @@ class ConsensusResult:
     inconclusive_votes: int
     supermajority_ratio: float
     supermajority_achieved: bool
+    certificate: Optional[QuorumCertificate] = None
+
+
+@dataclass(frozen=True)
+class BatchProcessingReport:
+    total_processed: int
+    agreed_count: int
+    rejected_count: int
+    certificates: List[QuorumCertificate]
+    rejected_finding_ids: List[str]
 
 
 class AVSGate:
     """
     AVS Consensus Gate coordinating decentralized finding verification
-    across validator node quorums with strict >66.7% BFT rules.
+    across validator node quorums with strict >66.7% BFT rules and non-blocking pipeline handling.
     """
 
-    def __init__(self, registered_validators: Optional[List[str]] = None, supermajority_threshold: float = 0.667):
+    def __init__(
+        self,
+        registered_validators: Optional[List[str]] = None,
+        supermajority_threshold: float = 0.667,
+        keyring: Optional[ValidatorKeyring] = None,
+    ):
         self.supermajority_threshold = supermajority_threshold
         self.registered_validators: Set[str] = (
             set(registered_validators) if registered_validators else {"validator-1", "validator-2", "validator-3"}
         )
         self.attestations: Dict[str, FindingAttestation] = {}
         self.seen_nonces: Set[str] = set()
+        self.keyring = keyring or ValidatorKeyring()
+        self.aggregator = BLSAggregator(list(self.registered_validators), keyring=self.keyring)
 
     def register_finding(self, finding: Dict[str, Any], validator_count: Optional[int] = None) -> FindingAttestation:
         v_count = validator_count or len(self.registered_validators)
@@ -144,14 +164,34 @@ class AVSGate:
         # 3 * validated_count > 2 * total_validators
         supermajority_achieved = (3 * validated_count) > (2 * total_validators)
 
-        # Early rejection test: even if all remaining validators vote VALIDATED,
-        # can supermajority ever be achieved?
+        # Early rejection test
         remaining_uncast_votes = total_validators - total_voted
         max_possible_valid_votes = validated_count + remaining_uncast_votes
         cannot_reach_supermajority = (3 * max_possible_valid_votes) <= (2 * total_validators)
 
+        cert: Optional[QuorumCertificate] = None
+
         if supermajority_achieved:
             attestation.status = ConsensusStatus.AGREED
+            # Aggregate signed certificate if signatures are provided
+            sig_map = {
+                v.validator_id: v.signature
+                for v in votes
+                if v.decision == VoteDecision.VALIDATED and v.signature
+            }
+            if (3 * len(sig_map)) > (2 * total_validators):
+                primary_receipt = next(
+                    (v.execution_receipt_hash for v in votes if v.decision == VoteDecision.VALIDATED), ""
+                )
+                try:
+                    cert = self.aggregator.aggregate_signatures(
+                        attestation_id=attestation.attestation_id,
+                        finding_digest=attestation.finding_digest,
+                        receipt_hash=primary_receipt,
+                        votes=sig_map,
+                    )
+                except Exception:
+                    cert = None
         elif cannot_reach_supermajority or total_voted >= total_validators:
             attestation.status = ConsensusStatus.REJECTED
         else:
@@ -167,6 +207,74 @@ class AVSGate:
             inconclusive_votes=inconclusive_count,
             supermajority_ratio=ratio,
             supermajority_achieved=supermajority_achieved,
+            certificate=cert,
+        )
+
+    def process_finding_batch(self, findings: List[Dict[str, Any]]) -> BatchProcessingReport:
+        """
+        Coordinates full consensus processing over a batch of findings:
+        - Re-executes each finding in an isolated Anvil sandbox.
+        - Casts validator votes based on verifiable state deltas.
+        - Safely marks non-reproducible findings as REJECTED without raising exceptions or blocking.
+        - Aggregates QuorumCertificates strictly for verified findings.
+        """
+        agreed_certs: List[QuorumCertificate] = []
+        rejected_ids: List[str] = []
+        total_count = len(findings)
+
+        sandbox = AnvilSandbox(sandbox_id="avs-batch-coordinator")
+        sandbox.start()
+
+        try:
+            for finding in findings:
+                f_id = str(finding.get("id") or finding.get("finding_id") or "UNKNOWN")
+                attestation = self.register_finding(finding)
+
+                # Re-execute in isolated sandbox
+                receipt = sandbox.execute_poc(finding)
+                msg_digest = self.aggregator.compute_message_digest(
+                    attestation.attestation_id, attestation.finding_digest, receipt.receipt_hash
+                )
+
+                # Each validator node evaluates execution receipt
+                for v_id in sorted(list(self.registered_validators)):
+                    if receipt.success:
+                        sig = self.keyring.sign(v_id, msg_digest)
+                        self.submit_vote(
+                            attestation.attestation_id,
+                            ValidatorVote(
+                                validator_id=v_id,
+                                decision=VoteDecision.VALIDATED,
+                                execution_receipt_hash=receipt.receipt_hash,
+                                signature=sig,
+                            ),
+                        )
+                    else:
+                        self.submit_vote(
+                            attestation.attestation_id,
+                            ValidatorVote(
+                                validator_id=v_id,
+                                decision=VoteDecision.REJECTED,
+                                execution_receipt_hash=receipt.receipt_hash,
+                                signature="",
+                            ),
+                        )
+
+                consensus_res = self.evaluate_consensus(attestation.attestation_id)
+                if consensus_res.status == ConsensusStatus.AGREED and consensus_res.certificate:
+                    agreed_certs.append(consensus_res.certificate)
+                elif consensus_res.status == ConsensusStatus.REJECTED:
+                    rejected_ids.append(f_id)
+                sandbox.revert_to_snapshot()
+        finally:
+            sandbox.stop()
+
+        return BatchProcessingReport(
+            total_processed=total_count,
+            agreed_count=len(agreed_certs),
+            rejected_count=len(rejected_ids),
+            certificates=agreed_certs,
+            rejected_finding_ids=rejected_ids,
         )
 
 
@@ -180,14 +288,18 @@ def attest(finding: Dict[str, Any], validator_count: int = 3) -> bool:
     attestation = gate.register_finding(finding, validator_count=validator_count)
 
     receipt_hash = hashlib.sha256(attestation.finding_digest.encode("utf-8")).hexdigest()
+    msg_digest = gate.aggregator.compute_message_digest(
+        attestation.attestation_id, attestation.finding_digest, receipt_hash
+    )
     for v_id in validators:
+        sig = gate.keyring.sign(v_id, msg_digest)
         gate.submit_vote(
             attestation.attestation_id,
             ValidatorVote(
                 validator_id=v_id,
                 decision=VoteDecision.VALIDATED,
                 execution_receipt_hash=receipt_hash,
-                signature=f"sig-{v_id}",
+                signature=sig,
             ),
         )
 
