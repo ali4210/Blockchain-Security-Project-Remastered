@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-004 — Complete and verified; P06-005 next |
-| Current thread | P06-004 verified: Implemented exact integer arithmetic BFT supermajority threshold rule (3*V > 2*N) in `src/consensus/avs_gate.py` and comprehensive test suite in `test/consensus/test_supermajority_rule.py`. Variable quorum scales (N=3, N=4, N=7), boundary condition rejection (66.67% fails strictly), inconclusive vote accounting, and early unreachable supermajority termination validated. Fixed `test_agent_g_guardrail.py` namespace mock patching. 23 consensus tests passed and 42 agent swarm tests passed. Advancing to P06-005 (threshold BLS or multisignature-hash-agreement stand-in). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P06-005 — Complete and verified; P06-006 next |
+| Current thread | P06-005 verified: Implemented threshold BLS / multisignature-hash-agreement aggregator in `src/consensus/bls_aggregation.py` and test suite `test/consensus/test_bls_aggregation.py`. Keyring registration, deterministic signature generation, canonical `QuorumCertificate` threshold aggregation, tamper detection, and verification validated. 29 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P06-006 (verify hallucinated/non-reproducible findings are rejected and do not block the pipeline). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P06-005 — Implement threshold BLS or a documented multisignature-hash-agreement stand-in:** Complete and verified.
+  - Files: `src/consensus/bls_aggregation.py`, `test/consensus/test_bls_aggregation.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 29 tests passed in 0.560s; full multi-layer regression battery passing.
+  - Results: Implemented `ValidatorKeyring`, `BLSAggregator`, and canonical `QuorumCertificate` structures. Verified deterministic signature emission, BFT threshold aggregation enforcing >66.7% supermajority, payload and receipt binding, and tamper rejection across arbitrary validator counts.
 
 - **P06-004 — Implement a greater-than-66.7% supermajority rule:** Complete and verified.
   - Files: `src/consensus/avs_gate.py`, `test/consensus/test_supermajority_rule.py`, `test/agents/test_agent_g_guardrail.py`
@@ -736,15 +741,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P06-005 — Implement threshold BLS or a documented multisignature-hash-agreement stand-in.
+- **Active task:** P06-006 — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
 - **Current phase:** Phase 6 — Zone 5: Decentralized Consensus & AVS Quorum Attestation.
-- **Scope:** Design and implement cryptographic multisignature/threshold BLS attestation aggregation (`src/consensus/bls_aggregation.py`) that aggregates individual validator signatures into a single canonical quorum certificate; document cryptographic properties or multisignature stand-in mechanics.
-- **Out of scope:** Rejecting non-reproducible findings (P06-006) and Zone 4 forwarding pipeline (P06-007).
-- **Expected files:** `src/consensus/bls_aggregation.py`, `test/consensus/test_bls_aggregation.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Verify that hallucinated, false-positive, or non-reproducible findings submitted to the consensus gate are safely rejected by the validator quorum without crashing, throwing unhandled exceptions, or stalling downstream pipeline execution; implement dedicated filter and rejection pipeline integration tests in `test/consensus/test_finding_rejection.py`.
+- **Out of scope:** Zone 4 incident response forwarding (P06-007) and SOC forensic event bus publishing (P06-008).
+- **Expected files:** `src/consensus/avs_gate.py`, `test/consensus/test_finding_rejection.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Multi-signature or threshold signature aggregation interface.
-  - Validation of aggregated quorum certificate against registered public keys.
-  - Tamper detection on individual and aggregated signatures.
+  - Validator nodes identify non-reproducible PoCs via Anvil sandbox and emit REJECTED votes.
+  - AVSGate flags status as REJECTED without terminating pipeline execution.
+  - Rejection metrics and audit logs cleanly record unverified claims.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -753,14 +758,14 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P06-004 complete and verified.
-- **Security constraints:** Nonce binding; prevention of rogue-key attacks; deterministic signature verification.
+- **Dependencies:** Task P06-005 complete and verified.
+- **Security constraints:** Non-reproducible findings must never receive QuorumCertificates; zero unhandled exceptions.
 
 ## Subsequent task queue
 
-1. `P06-005` — Implement threshold BLS or a documented multisignature-hash-agreement stand-in.
-2. `P06-006` — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
-3. `P06-007` — Forward validated findings to Zone 4 (Automated Incident Response).
+1. `P06-006` — Verify hallucinated/non-reproducible findings are rejected and do not block the pipeline.
+2. `P06-007` — Forward validated findings to Zone 4 (Automated Incident Response).
+3. `P06-008` — Publish attestation events to the SOC forensic event bus.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
