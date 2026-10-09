@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-002 — Complete and verified; P07-003 next |
-| Current thread | P07-002 verified: Implemented `VaultSecretStore` and `VaultSecret` in `src/deployment/vault_secret_store.py` and test suite `test/deployment/test_vault_secret_store.py`. Connected secret store to `ConsensusDeployer` in `src/deployment/consensus_deployer.py`. Redaction of secrets, byte buffer zeroization, lease revocation, and lifecycle secret cleanup validated. 8 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-003 (consensus-rejected abort path and readiness-policy failure). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P07-003 — Complete and verified; P07-004 next |
+| Current thread | P07-003 verified: Implemented `ReadinessPolicyGate` and `DeploymentAbortEvent` in `src/deployment/readiness_policy_gate.py` with test suite `test/deployment/test_readiness_policy_gate.py`. Enforced fail-closed aborts on consensus rejection, unconfigured hardware security, and missing certificates. Zero-state persistency guarantees and JSONL audit logging validated. 13 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-004 (generate swarm patches only inside offline/sandboxed container). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P07-003 — Implement consensus-rejected abort path and readiness-policy failure:** Complete and verified.
+  - Files: `src/deployment/readiness_policy_gate.py`, `test/deployment/test_readiness_policy_gate.py`
+  - Validation: `python3 -m unittest discover -s test/deployment/ -p "test_*.py"` -> 13 tests passed in 0.002s; full multi-layer regression battery passing.
+  - Results: Implemented `ReadinessPolicyGate`, `ProductionReadinessPolicy`, and `DeploymentAbortEvent` emitting canonical schemaVersion: 1 abort records on consensus rejection, unconfigured hardware tokens, or missing QuorumCertificates; verified zero mutable state persistence upon deployment abort.
 
 - **P07-002 — Add Vault dev-mode or documented safe coursework secret-store integration for deploy:** Complete and verified.
   - Files: `src/deployment/vault_secret_store.py`, `src/deployment/consensus_deployer.py`, `test/deployment/test_vault_secret_store.py`
@@ -766,15 +771,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P07-003 — Implement consensus-rejected abort path and readiness-policy failure.
+- **Active task:** P07-004 — Generate any swarm patch only inside an offline/sandboxed container.
 - **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
-- **Scope:** Implement the consensus-rejected abort path and production readiness-policy enforcement (`src/deployment/readiness_policy_gate.py` and deployer abort paths); ensure deployment aborts cleanly with hard failure codes, structured audit logging, and zero state persistence when attestation is rejected or readiness policy checks fail.
-- **Out of scope:** Phase 7 post-deploy rollback alert loops (P07-004) and canary gates (P07-005).
-- **Expected files:** `src/deployment/readiness_policy_gate.py`, `test/deployment/test_readiness_policy_gate.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the offline patch generation runner (`src/deployment/patch_sandbox.py`) ensuring any swarm remediation patch is synthesized strictly inside an isolated, network-disabled container/sandbox; enforce cryptographic diff hashing and AST invariant validation before release to deployment pipelines.
+- **Out of scope:** Canary automated verification (P07-005) and multi-region deployment synchronization.
+- **Expected files:** `src/deployment/patch_sandbox.py`, `test/deployment/test_patch_sandbox.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Rejection abort path triggers hard exit on consensus-rejected finding/plan.
-  - Readiness policy fails on incomplete gates or uncertified releases.
-  - Emits structured ABORT event audit payload.
+  - Patch generation strictly verifies network isolation (offline container environment).
+  - Emits canonical Unified Diff with cryptographic SHA-256 patch digest.
+  - Rejects patches modifying unauthorized contracts or violating AST invariants.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -784,14 +789,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P07-002 complete and verified.
-- **Security constraints:** Abort must be fail-closed; zero partial deployment state emitted on failure.
+- **Dependencies:** Task P07-003 complete and verified.
+- **Security constraints:** Air-gapped/offline execution; strictly zero egress during patch synthesis.
 
 ## Subsequent task queue
 
-1. `P07-003` — Implement consensus-rejected abort path and readiness-policy failure.
-2. `P07-004` — Implement automated rollback mechanics on post-deploy alert.
-3. `P07-005` — Enforce canary verification gate before full rollout.
+1. `P07-004` — Generate any swarm patch only inside an offline/sandboxed container.
+2. `P07-005` — Enforce canary verification gate before full rollout.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
