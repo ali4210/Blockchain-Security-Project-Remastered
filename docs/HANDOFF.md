@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P05-013 — Complete and verified; P05-014 next |
-| Current thread | P05-013 verified: End-to-end sequential agent swarm pipeline assembled in `src/agents/graph.py` with decoupled state schema in `src/agents/state.py` and test suites in `test/agents/test_graph_pipeline.py` and `test/agents/test_swarm_graph.py`. Validated end-to-end execution across all 7 nodes (Agents A through G), cumulative state propagation, Ephemeral VRAM cleanup receipts between every stage, error containment, and terminal output sanitization. 38 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-014 (end-to-end swarm regression and performance benchmarking). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P05-014 — Complete and verified; P05-015 next |
+| Current thread | P05-014 verified: Swarm integration regression, benchmark harness, and state persistence verified in `test/agents/test_swarm_benchmark.py` and `test/agents/test_graph_pipeline.py`. Multi-stage latency profiling across 7 nodes, JSON state serialization fidelity, SQLite broker store persistence, and deterministic offline replay consistency validated. 42 agent swarm unit tests passed, 14 LLM client unit tests passed, 18 storage unit tests passed, 20 MCP middleware unit tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P05-015 (Zone 4 autonomous core signoff and Phase 6 transition). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P05-014 — Swarm integration regression, benchmark harness, and state persistence verification:** Complete and verified.
+  - Files: `test/agents/test_swarm_benchmark.py`, `test/agents/test_graph_pipeline.py`
+  - Validation: `python3 -m unittest discover -s test/agents/ -p "test_*.py"` -> 42 tests passed; `scripts/ingest-manifests.mts` -> status: valid; Hardhat regression suite -> 83 passing tests.
+  - Results: Verified per-stage execution profiling across Agents A through G, JSON round-trip serialization of `SwarmState`, persistent storage of swarm findings into SQLite via `BrokerStore`, deterministic offline replay reproducibility, and end-to-end terminal gate clearance.
 
 - **P05-013 — Assemble end-to-end swarm pipeline in LangGraph Kernel:** Complete and verified.
   - Files: `src/agents/graph.py`, `src/agents/state.py`, `src/agents/agent_g_guardrail.py`, `test/agents/test_graph_pipeline.py`, `test/agents/test_swarm_graph.py`
@@ -711,16 +716,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P05-014 — Swarm integration regression, benchmark harness, and state persistence verification.
+- **Active task:** P05-015 — Zone 4 autonomous core signoff and Phase 6 transition.
 - **Current phase:** Phase 5 — Zone 4: Autonomous Swarm Core.
-- **Scope:** Implement end-to-end swarm benchmark and state persistence verification harness in `test/agents/test_swarm_benchmark.py`. Validate multi-stage latency tracking, broker storage serialization/deserialization of full `SwarmState`, memory footprint validation under sustained sequential execution, and offline deterministic replay.
+- **Scope:** Conduct formal Phase 5 (Zone 4) architectural verification, signoff checklist audits, security boundary reviews, and transition preparation for Phase 6 (Decentralized SOC On-Chain Execution & Toolchain Integration).
 - **Out of scope:** Phase 6 live on-chain orchestrations.
-- **Expected files:** `test/agents/test_swarm_benchmark.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Expected files:** `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Benchmarks execution time and memory profiles across the 7-node pipeline.
-  - Verifies state persistence to SQLite broker store (`src/storage/broker_store.py`).
-  - Validates deterministic replay across multiple consecutive execution cycles.
+  - Complete Phase 5 verification and audit records.
   - All unit test suites and manifest ingestion checks pass.
+  - Phase 6 transition plan validated.
 - **Validation commands:**
   ```bash
   python3 -m unittest discover -s test/agents/ -p "test_*.py"
@@ -728,13 +732,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Python 3 standard library; `src/agents/graph.py`; `src/storage/broker_store.py`; P05-013 complete and verified.
+- **Dependencies:** Phase 5 Tasks P05-001 through P05-014 complete and verified.
 - **Security constraints:** Zero GPU retention across transitions; strict schema compliance; deterministic test assertions.
 
 ## Subsequent task queue
 
-1. `P05-014` — Swarm integration regression, benchmark harness, and state persistence verification.
-2. `P05-015` — Zone 4 autonomous core signoff and Phase 6 transition.
+1. `P05-015` — Zone 4 autonomous core signoff and Phase 6 transition.
+2. `P06-001` — Phase 6 environment baseline and toolchain initialization.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

@@ -1,13 +1,25 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+from typing import List, Any
 
+from src.agents.state import SwarmState
 from src.agents.graph import (
-    SwarmState,
     EphemeralVRAMManager,
     SequentialGraph,
     build_graph,
     run_swarm_pipeline,
 )
+
+AGENT_MODULES = [
+    "src.agents.agent_a_auditor",
+    "src.agents.agent_b_threat_hunter",
+    "src.agents.agent_c_compliance_judge",
+    "src.agents.agent_d_red_teamer",
+    "src.agents.agent_e_incident_commander",
+    "src.agents.agent_f_logic_analyzer",
+    "src.agents.agent_g_guardrail",
+    "src.llm_client.ollama_client",
+]
 
 
 class TestGraphPipeline(unittest.TestCase):
@@ -52,12 +64,31 @@ class TestGraphPipeline(unittest.TestCase):
 
     def test_end_to_end_swarm_pipeline_offline(self):
         purged_models = []
-        with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged_models.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
-                final_state = run_swarm_pipeline(
-                    target_contract="contracts/solidity/VulnerableVault.sol",
-                    telemetry_logs="TEST_EVENT=DEPOSIT AMOUNT=100",
-                )
+        patches: List[Any] = []
+
+        for mod in AGENT_MODULES:
+            try:
+                p = patch(f"{mod}.chat", return_value="[OFFLINE_FALLBACK] host offline")
+                p.start()
+                patches.append(p)
+            except (AttributeError, ModuleNotFoundError):
+                pass
+
+        p_purge = patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged_models.append(m))
+        p_purge.start()
+        patches.append(p_purge)
+
+        try:
+            final_state = run_swarm_pipeline(
+                target_contract="contracts/solidity/VulnerableVault.sol",
+                telemetry_logs="TEST_EVENT=DEPOSIT AMOUNT=100",
+            )
+        finally:
+            for p in patches:
+                try:
+                    p.stop()
+                except RuntimeError:
+                    pass
 
         # Assert clean completion
         self.assertEqual(final_state["current_stage"], "COMPLETED")

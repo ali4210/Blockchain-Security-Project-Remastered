@@ -2527,3 +2527,38 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P05-014 — Swarm integration regression, benchmark harness, and state persistence verification
+
+**Status:** Verified
+
+**Purpose**
+
+Validate multi-stage latency tracking across all 7 swarm nodes, verify lossless JSON serialization of SwarmState, validate SQLite broker store persistence, and assert deterministic offline replay consistency.
+
+**Scope and limitations**
+
+- Profiles stage duration across Agents A through G.
+- Verifies state serialization and SQLite storage round-trips.
+- Validates offline replay determinism.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
