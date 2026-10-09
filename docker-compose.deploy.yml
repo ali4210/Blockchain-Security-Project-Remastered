@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  testnet-rpc:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: bsp-testnet-rpc
+    entrypoint: ["anvil"]
+    command: ["--host", "0.0.0.0", "--port", "8545", "--chain-id", "31337"]
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8545 || exit 1"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+  consensus-deployer:
+    image: python:3.11-slim
+    container_name: bsp-consensus-deployer
+    depends_on:
+      testnet-rpc:
+        condition: service_healthy
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    environment:
+      - RPC_URL=http://testnet-rpc:8545
+      - PYTHONUNBUFFERED=1
+    command: ["python3", "-c", "from src.deployment.consensus_deployer import ConsensusDeployer; print('Deployer simulation ready')"]

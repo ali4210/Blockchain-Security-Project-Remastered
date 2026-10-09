@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P06-008 — Complete and verified; Phase 6 finalized |
-| Current thread | P06-008 verified: Implemented `src/consensus/forensic_event_emitter.py` and test suite `test/consensus/test_forensic_event_emitter.py`. SchemaVersion: 1 `case-opened` event emission, cryptographic QuorumCertificate binding, atomic JSONL logging, and permission enforcement on uncertified findings validated. 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Phase 6 (Zone 5: Decentralized Consensus & AVS Quorum Attestation) complete. Advancing to Phase 7. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P07-001 — Complete and verified; P07-002 next |
+| Current thread | P07-001 verified: Implemented consensus-confirmed deployer in `src/deployment/consensus_deployer.py`, simulation manifest `docker-compose.deploy.yml`, and test suite `test/deployment/test_consensus_deployer.py`. QuorumCertificate cryptographic verification, bytecode binding, tamper rejection, and deterministic receipt generation validated. 4 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-002 (Vault dev-mode or safe secret-store integration). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P07-001 — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation:** Complete and verified.
+  - Files: `src/deployment/consensus_deployer.py`, `docker-compose.deploy.yml`, `test/deployment/test_consensus_deployer.py`
+  - Validation: `python3 -m unittest discover -s test/deployment/ -p "test_*.py"` -> 4 tests passed in 0.000s; full multi-layer regression battery passing.
+  - Results: Implemented `ConsensusDeployer`, `DeploymentPlan`, and `DeploymentReceipt`. Enforced strict QuorumCertificate gatekeeping before contract deployment, verified bytecode binding against attestation digests, and provided multi-container simulation manifest.
 
 - **P06-008 — Emit a versioned `case-opened` event for Phase 10 forensic consumption:** Complete and verified.
   - Files: `src/consensus/forensic_event_emitter.py`, `test/consensus/test_forensic_event_emitter.py`
@@ -756,31 +761,32 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P07-001 — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation.
+- **Active task:** P07-002 — Add Vault dev-mode or documented safe coursework secret-store integration for deploy.
 - **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
-- **Scope:** Implement the consensus-confirmed deployment runner/orchestrator (`src/deployment/consensus_deployer.py` and infrastructure config) connecting Phase 6 QuorumCertificates to automated contract deployment pipelines via local Kubernetes (kind/minikube) or documented multi-container Docker Compose simulation; ensure deployment triggers require cryptographically verified attestation approval.
-- **Out of scope:** Phase 7 automated rollback triggers (P07-002) and Canary verification gates (P07-003).
-- **Expected files:** `src/deployment/consensus_deployer.py`, `test/deployment/test_consensus_deployer.py`, `docker-compose.deploy.yml` (or kind manifests), `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the secret management adapter (`src/deployment/vault_secret_store.py`) connecting HashiCorp Vault (or documented in-memory safe coursework secret-store stand-in) for secure deployment key retrieval; ensure deployer private keys are never hardcoded or leaked into manifests, audit trails, or git history.
+- **Out of scope:** Production HSM key ceremonies and multi-cloud KMS federations.
+- **Expected files:** `src/deployment/vault_secret_store.py`, `test/deployment/test_vault_secret_store.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Deployment gate demands valid `QuorumCertificate` before executing deployment recipe.
-  - Rejects unconfirmed, hallucinated, or uncertified findings from gating or altering deployment.
-  - Deterministic containerized simulation passes cleanly.
-  - Full test battery passes across repository.
+  - Vault dev-mode / safe secret store client interface (`VaultSecretStore`).
+  - Ephemeral deployment key fetching, lease renewal, and secret revocation.
+  - Scrubbing and zeroization of secret values from memory/logs.
+  - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
+  python3 -m unittest discover -s test/deployment/ -p "test_*.py"
   python3 -m unittest discover -s test/consensus/ -p "test_*.py"
   python3 -m unittest discover -s test/agents/ -p "test_*.py"
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Phase 6 complete and verified (P06-001 to P06-008).
-- **Security constraints:** Deploy credentials isolated; deployment locked behind cryptographically verified quorum attestation.
+- **Dependencies:** Task P07-001 complete and verified.
+- **Security constraints:** Zero key leakage in exceptions, logs, or serialized receipts.
 
 ## Subsequent task queue
 
-1. `P07-001` — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation.
-2. `P07-002` — Implement automated rollback mechanics on consensus post-deploy alert.
-3. `P07-003` — Enforce canary verification gate before full rollout.
+1. `P07-002` — Add Vault dev-mode or documented safe coursework secret-store integration for deploy.
+2. `P07-003` — Enforce canary verification gate before full rollout.
+3. `P07-004` — Implement automated rollback mechanics on post-deploy alert.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

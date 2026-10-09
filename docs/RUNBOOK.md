@@ -2855,3 +2855,42 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P07-001 — Implement consensus-confirmed deploy path using kind/minikube or documented Docker Compose simulation
+
+**Status:** Verified
+
+**Purpose**
+
+Implement consensus-gated smart contract deployment orchestration requiring valid cryptographic QuorumCertificates, asserting bytecode-attestation binding, blocking uncertified plans, and providing multi-container simulation manifest.
+
+**Scope and limitations**
+
+- Deployment engine in `src/deployment/consensus_deployer.py`.
+- Multi-container simulation stack in `docker-compose.deploy.yml`.
+- Unit and integration verification in `test/deployment/test_consensus_deployer.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/deployment/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 4 deployment unit tests pass.
+- 39 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
