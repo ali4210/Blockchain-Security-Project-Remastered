@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-005 — Complete and verified; P07-006 next |
-| Current thread | P07-005 verified: Implemented `GitLabMRWorkflow` and `GitLabMRPayload` in `src/deployment/gitlab_mr_workflow.py` with test suite `test/deployment/test_gitlab_mr_workflow.py`. Enforced draft title gating, finding reference binding, QuorumCertificate attestation tracking, standardized GitLab labels, and pre-merge checklists. 21 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-006 (snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P07-006 — Complete and verified; P07-007 next |
+| Current thread | P07-006 verified: Implemented `ForensicStagingSnapshot` and `StagingManifest` in `src/deployment/forensic_staging_snapshot.py` with test suite `test/deployment/test_forensic_staging_snapshot.py`. Bundled job logs, WAL journals, masked ASTs, PoCs, and deployment receipts into `staging/forensics/run-<run_id>/`. Canonical `manifest.json` generation, SHA-256 root digests, post-snapshot read-only permission freezing, and tamper-detection APIs validated. 25 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-007 (test deploy and abort branches end-to-end on authorized sample contracts). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P07-006 — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing:** Complete and verified.
+  - Files: `src/deployment/forensic_staging_snapshot.py`, `test/deployment/test_forensic_staging_snapshot.py`
+  - Validation: `python3 -m unittest discover -s test/deployment/ -p "test_*.py"` -> 25 tests passed in 0.003s; full multi-layer regression battery passing.
+  - Results: Implemented `ForensicStagingSnapshot` and `StagingManifest` creating protected, read-only staging bundles under `staging/forensics/run-<run_id>/`; captured job logs, WAL journals, masked ASTs, PoCs, and receipts; computed canonical SHA-256 root manifests and verified write-protection freezing (`0o444`/`0o555`).
 
 - **P07-005 — Create draft GitLab Merge Request workflow with tracking labels and finding references:** Complete and verified.
   - Files: `src/deployment/gitlab_mr_workflow.py`, `test/deployment/test_gitlab_mr_workflow.py`
@@ -781,15 +786,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P07-006 — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing.
+- **Active task:** P07-007 — Test deploy and abort branches end-to-end on authorized sample contracts.
 - **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
-- **Scope:** Implement the forensic staging snapshot engine (`src/deployment/forensic_staging_snapshot.py`) collecting runtime job logs, SQLite WAL journals, masked AST projections, exploit PoCs, QuorumCertificates, and deployment receipts into an immutable, read-only staging directory layout (`staging/forensics/run-<id>/`) ready for Phase 10 sealing; compute a canonical SHA-256 root manifest (`manifest.json`) verifying tamper-evident integrity.
-- **Out of scope:** Phase 10 cryptographic Merkle sealing, IPFS pinning, and hardware attestation.
-- **Expected files:** `src/deployment/forensic_staging_snapshot.py`, `test/deployment/test_forensic_staging_snapshot.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Execute end-to-end integration testing for all deployment pipeline execution branches on authorized sample contracts (`contracts/solidity/VulnerableVault.sol` and `contracts/solidity/PromptInjectionFixture.sol`); test the success branch (full quorum consensus, Vault secrets loaded, readiness policy satisfied, mock transaction submitted, forensic bundle snapshotted) and abort branches (consensus rejected, uncertified plan, unconfigured hardware security, and tampering detection); assert strict zero-state persistence and fail-closed termination on all abort paths.
+- **Out of scope:** Phase 8 continuous live monitoring / telemetry streaming.
+- **Expected files:** `test/deployment/test_deploy_e2e.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Captures execution logs, WAL journals, masked ASTs, and PoCs into staging.
-  - Generates canonical `manifest.json` with per-file SHA-256 digests.
-  - Enforces read-only permissions on completed staging bundles.
+  - Deploy branch executes end-to-end and yields verified DeploymentReceipt.
+  - Abort branch cleanly raises DeploymentAbortError on consensus rejection.
+  - Zero state persists across all failed/aborted deployment attempts.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -799,13 +804,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P07-005 complete and verified.
-- **Security constraints:** Read-only post-snapshot boundary; strictly zero unhashed artifacts.
+- **Dependencies:** Task P07-006 complete and verified.
+- **Security constraints:** Fail-closed deployment invariant; zero partial state persistence.
 
 ## Subsequent task queue
 
-1. `P07-006` — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing.
-2. `P07-007` — Run Canary verification gate before full rollout.
+1. `P07-007` — Test deploy and abort branches end-to-end on authorized sample contracts.
+2. `P07-008` — Phase 7 completion gate review and signoff.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

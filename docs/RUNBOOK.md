@@ -3047,3 +3047,41 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P07-006 — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing
+
+**Status:** Verified
+
+**Purpose**
+
+Capture runtime job logs, WAL journals, masked AST projections, exploit PoCs, QuorumCertificates, and deployment receipts into an immutable, read-only staging directory (`staging/forensics/run-<run_id>/`) with canonical SHA-256 root manifests for downstream Phase 10 sealing.
+
+**Scope and limitations**
+
+- Forensic snapshot engine in `src/deployment/forensic_staging_snapshot.py`.
+- Unit tests and immutability assertions in `test/deployment/test_forensic_staging_snapshot.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/deployment/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 25 deployment unit tests pass.
+- 39 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
