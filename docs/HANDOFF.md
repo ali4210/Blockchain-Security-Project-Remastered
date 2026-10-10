@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-004 — Complete and verified; P07-005 next |
-| Current thread | P07-004 verified: Implemented `PatchSandbox` and `PatchManifest` in `src/deployment/patch_sandbox.py` with test suite `test/deployment/test_patch_sandbox.py`. Enforced air-gapped network egress isolation, approved directory confinement under `contracts/solidity`, traversal rejection, unified diff synthesis, and cryptographic patch digests. 18 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-005 (draft GitLab Merge Request workflow with tracking labels and finding references). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P07-005 — Complete and verified; P07-006 next |
+| Current thread | P07-005 verified: Implemented `GitLabMRWorkflow` and `GitLabMRPayload` in `src/deployment/gitlab_mr_workflow.py` with test suite `test/deployment/test_gitlab_mr_workflow.py`. Enforced draft title gating, finding reference binding, QuorumCertificate attestation tracking, standardized GitLab labels, and pre-merge checklists. 21 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-006 (snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P07-005 — Create draft GitLab Merge Request workflow with tracking labels and finding references:** Complete and verified.
+  - Files: `src/deployment/gitlab_mr_workflow.py`, `test/deployment/test_gitlab_mr_workflow.py`
+  - Validation: `python3 -m unittest discover -s test/deployment/ -p "test_*.py"` -> 21 tests passed in 0.003s; full multi-layer regression battery passing.
+  - Results: Implemented `GitLabMRWorkflow` and `GitLabMRPayload` generating compliant draft Merge Requests; enforced `Draft: [Remediation]` prefix, tracking labels (`security::finding`, `remediation::swarm`, `status::draft-review`, `zone::deployment`), QuorumCertificate attestation anchors, Unified Diff descriptions, and JSON payload export.
 
 - **P07-004 — Generate any swarm patch only inside an offline/sandboxed container:** Complete and verified.
   - Files: `src/deployment/patch_sandbox.py`, `test/deployment/test_patch_sandbox.py`
@@ -776,15 +781,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P07-005 — Create draft GitLab Merge Request workflow with tracking labels and finding references.
+- **Active task:** P07-006 — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing.
 - **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
-- **Scope:** Implement the automated GitLab Merge Request generator (`src/deployment/gitlab_mr_workflow.py`) creating draft MRs for verified patches; bind MR descriptions to canonical finding identifiers, QuorumCertificate attestation IDs, remediation patch digests, and automated security verification checklists; apply standardized GitLab labels (`security-finding`, `remediation`, `draft-review`).
-- **Out of scope:** Direct production deployment without human-in-the-loop review.
-- **Expected files:** `src/deployment/gitlab_mr_workflow.py`, `test/deployment/test_gitlab_mr_workflow.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
+- **Scope:** Implement the forensic staging snapshot engine (`src/deployment/forensic_staging_snapshot.py`) collecting runtime job logs, SQLite WAL journals, masked AST projections, exploit PoCs, QuorumCertificates, and deployment receipts into an immutable, read-only staging directory layout (`staging/forensics/run-<id>/`) ready for Phase 10 sealing; compute a canonical SHA-256 root manifest (`manifest.json`) verifying tamper-evident integrity.
+- **Out of scope:** Phase 10 cryptographic Merkle sealing, IPFS pinning, and hardware attestation.
+- **Expected files:** `src/deployment/forensic_staging_snapshot.py`, `test/deployment/test_forensic_staging_snapshot.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
 - **Acceptance criteria:**
-  - Generates draft MR specifications with finding reference binding.
-  - Embeds QuorumCertificate verification digests and Unified Diff summaries.
-  - Applies standardized tracking labels and target branch configurations.
+  - Captures execution logs, WAL journals, masked ASTs, and PoCs into staging.
+  - Generates canonical `manifest.json` with per-file SHA-256 digests.
+  - Enforces read-only permissions on completed staging bundles.
   - Full test suite passes deterministically.
 - **Validation commands:**
   ```bash
@@ -794,13 +799,13 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
   ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
   ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
   ```
-- **Dependencies:** Task P07-004 complete and verified.
-- **Security constraints:** MRs created strictly in draft mode; never bypass branch protection.
+- **Dependencies:** Task P07-005 complete and verified.
+- **Security constraints:** Read-only post-snapshot boundary; strictly zero unhashed artifacts.
 
 ## Subsequent task queue
 
-1. `P07-005` — Create draft GitLab Merge Request workflow with tracking labels and finding references.
-2. `P07-006` — Block release or alert if Lynis/Trivy fails.
+1. `P07-006` — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing.
+2. `P07-007` — Run Canary verification gate before full rollout.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
