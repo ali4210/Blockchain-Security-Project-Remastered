@@ -3290,3 +3290,44 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P08-005 — Route validated RASP findings to Agent B
+
+**Status:** Verified
+
+**Purpose**
+
+Route shadow-fork validated RASP exploit findings to Agent B (Threat Hunter / SIEM correlation), format execution trace metrics into SIEM event logs, augment SwarmState, and suppress benign/SEV-4 runs.
+
+**Scope and limitations**
+
+- Routing logic in `src/observability/rasp_router.py`.
+
+- Unit tests in `test/observability/test_rasp_router.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/observability/ -p "test_*.py"
+python3 -m unittest discover -s test/deployment/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 32 observability unit tests pass.
+- 29 deployment unit tests pass.
+- 39 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P08-005 — Route validated RASP findings to Agent B |
-| Current thread | P08-004 verified: Implemented `src/observability/shadow_fork_verifier.py` connecting Agent E incident triage to isolated shadow-fork replays. Verified asset drain exploit confirmation, SEV-1 classification, containment playbook synthesis, and persistent append-only logging in `audit/shadow_network_logs.jsonl` with deterministic SHA-256 audit hashing. 28 observability tests passed, 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Transitioning to P08-005. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P08-006 — Confirm deploy and abort branches emit continuous telemetry |
+| Current thread | P08-005 verified: Implemented `src/observability/rasp_router.py` with `RaspThreatRouter` connecting shadow-fork verification reports to Agent B threat hunter pipeline. Verified exploit routing (CONFIRMED_EXPLOIT / SEV-1), SIEM log line generation, benign report suppression (SEV-4), and fail-closed error handling. 32 observability tests passed, 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Transitioning to P08-006. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P08-005 — Route validated RASP findings to Agent B:** Complete and verified.
+  - Files: `src/observability/rasp_router.py`, `test/observability/test_rasp_router.py`
+  - Validation: `python3 -m unittest discover -s test/observability/ -p "test_*.py"` -> 32 tests passed in 0.009s; full multi-layer regression battery passing.
+  - Results: Built `RaspThreatRouter` routing confirmed RASP exploits to Agent B (`threat_hunter_node`), serializing shadow trace execution metrics into SIEM log strings, updating `SwarmState`, and implementing fail-closed handling for benign cases and model exceptions.
 
 - **P08-004 — Wire Agent E shadow-fork transaction verification and persistent network logs:** Complete and verified.
   - Files: `src/observability/shadow_fork_verifier.py`, `test/observability/test_shadow_fork_verifier.py`
@@ -811,18 +816,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P08-005 — Route validated RASP findings to Agent B.
+- **Active task:** P08-006 — Confirm deploy and abort branches emit continuous telemetry.
 - **Current phase:** Phase 8 — Observability network and RASP shield.
-- **Scope:** Route shadow-fork validated RASP exploit findings to Agent B (Threat Hunter / Vulnerability Analyst) for root-cause bytecode inspection, AST attack vector matching, and automated threat profile ingestion into the SOC knowledge base.
-- **Out of scope:** Continuous deploy/abort telemetry assertions (P08-006) and fast-path mitigation signal emission (P08-007).
-- **Dependencies:** P08-004 complete; Agent B triage pipeline from Phase 5; `AgentEShadowVerificationReport` from `src/observability/shadow_fork_verifier.py`.
-- **Security constraints:** Read-only ingestion into Agent B, fail-closed handling of malformed reports, and non-blocking state queues.
+- **Scope:** Verify and enforce that deployment success branches (`deploy_target`), pipeline abort branches (policy/consensus/hardware gate aborts), and RASP mitigation branches continuously emit Prometheus counter/gauge metrics and structured Elasticsearch ECS event logs.
+- **Out of scope:** Phase 8 fast-path mitigation signal emission (P08-007) and phase readiness handoff (P08-008).
+- **Dependencies:** P08-001 through P08-005 complete; deployment orchestrator in `src/deployment/` and telemetry client in `src/observability/`.
+- **Security constraints:** Non-blocking telemetry emissions (telemetry failures must never alter contract deployment outcomes), audit trail immutability, and zero secret leakage in logs.
 
 ## Subsequent task queue
 
-1. `P08-006` — Confirm deploy and abort branches emit continuous telemetry.
-2. `P08-007` — Emit fast-path mitigation signal payload to Phase 9.
-3. `P08-008` — Phase 8 handoff and readiness review.
+1. `P08-007` — Emit fast-path mitigation signal payload to Phase 9.
+2. `P08-008` — Phase 8 handoff and readiness review.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
