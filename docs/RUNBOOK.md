@@ -3122,3 +3122,46 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P08-001 — Deploy Prometheus plus ELK, or document Grafana/Loki lightweight replacement
+
+**Status:** Verified
+
+**Purpose**
+
+Establish telemetry architecture supporting dual profiles (Enterprise ELK vs Lightweight Grafana/Loki), wire scrape configurations, and implement health probe manager interfacing with host-networked Docker monitoring services.
+
+**Scope and limitations**
+
+- Configuration in `config/telemetry/prometheus.blockchain-soc.yml`.
+
+- Architecture specification in `docs/OBSERVABILITY_STACK.md`.
+
+- Harness in `src/observability/telemetry_stack.py` and unit tests in `test/observability/test_telemetry_stack.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/observability/ -p "test_*.py"
+python3 -m unittest discover -s test/deployment/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 10 observability unit tests pass.
+- 29 deployment unit tests pass.
+- 39 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.

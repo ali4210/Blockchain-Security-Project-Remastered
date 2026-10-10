@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-007 — Complete and verified; Phase 7 complete |
-| Current thread | P07-007 verified: Implemented `TestDeploymentE2E` in `test/deployment/test_deploy_e2e.py` validating end-to-end execution across authorized contracts `VulnerableVault.sol` and `PromptInjectionFixture.sol`. Verified success branch (BLS attestation -> Vault leasing & zeroization -> ReadinessGate evaluation -> ConsensusDeployer dispatch -> ForensicStagingSnapshot root manifest generation) and abort branches (consensus rejection `ERR_CONSENSUS_REJECTED`, hardware token failure `ERR_UNCONFIGURED_HARDWARE`, and bytecode tampering digest mismatch). Verified zero-state invariants across all abort conditions. 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Phase 7 is fully implemented and verified. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P08-002 — Implement real Prometheus and ELK telemetry query functions |
+| Current thread | P08-001 verified: Established dual-profile observability topology (Enterprise ELK vs Lightweight Grafana/Loki) in `docs/OBSERVABILITY_STACK.md`, configured Prometheus scrape profiles in `config/telemetry/prometheus.blockchain-soc.yml`, and implemented `TelemetryStackManager` in `src/observability/telemetry_stack.py`. Verified live host connectivity to running Docker services (Prometheus :9090 ONLINE, Elasticsearch :9200 ONLINE, Kibana :5601 ONLINE, Grafana :3000 ONLINE). 10 observability tests passed, 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Transitioning to P08-002. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P08-001 — Deploy Prometheus plus ELK, or document Grafana/Loki lightweight replacement:** Complete and verified.
+  - Files: `docs/OBSERVABILITY_STACK.md`, `config/telemetry/prometheus.blockchain-soc.yml`, `src/observability/telemetry_stack.py`, `test/observability/test_telemetry_stack.py`
+  - Validation: `python3 -m unittest discover -s test/observability/ -p "test_*.py"` -> 10 tests passed in 0.002s; live host probe confirmed Prometheus (9090), Elasticsearch (9200), Kibana (5601), and Grafana (3000) ONLINE; full multi-layer regression battery passing.
+  - Results: Architecture documented supporting both Enterprise ELK and Lightweight Grafana/Loki configurations; implemented `TelemetryStackConfig` and `TelemetryStackManager` probing TCP reachability and HTTP status endpoints (including HTTP 401 basic auth challenges).
 
 - **P07-007 — Test deploy and abort branches end-to-end on authorized sample contracts:** Complete and verified.
   - Files: `test/deployment/test_deploy_e2e.py`
@@ -791,16 +796,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** Phase 7 Final Signoff and Transition to Phase 8 (Continuous Monitoring & Runtime Telemetry).
-- **Current phase:** Phase 7 — Deployment Orchestration & Production Gates (Complete).
-- **Scope:** Complete Phase 7 gate review and transition to Phase 8; prepare runtime observability and telemetry monitors.
-- **Out of scope:** Phase 9 incident response drills.
-- **Dependencies:** All Phase 7 tasks (P07-001 through P07-007) complete and verified.
-- **Security constraints:** Zero partial deployments, fail-closed policy gates, and read-only forensic staging.
+- **Active task:** P08-002 — Implement real Prometheus and ELK telemetry query functions.
+- **Current phase:** Phase 8 — Observability network and RASP shield.
+- **Scope:** Implement live query clients interfacing with Prometheus instant/range query API (`/api/v1/query`, `/api/v1/query_range`) and Elasticsearch search/aggregation API (`/_search`) or Logstash ingest pipeline; wire metric extractions for SOC telemetry.
+- **Out of scope:** Phase 8 RASP on-chain trace hooking (P08-003) and Agent E shadow-fork wiring (P08-004).
+- **Dependencies:** P08-001 complete; Prometheus and Elasticsearch endpoints live on host.
+- **Security constraints:** Non-blocking query timeouts, credential sanitization in query logs, and graceful fallback when endpoints are partitioned.
 
 ## Subsequent task queue
 
-1. `Phase 8` — Continuous Monitoring, Anomaly Detection & Telemetry Ingestion.
+1. `P08-003` — Implement RASP shield: read-only RPC traces, GraphSense integration/adapter, and optional Forta/Rekt signals.
+2. `P08-004` — Wire Agent E shadow-fork transaction verification and persistent network logs.
+3. `P08-005` — Route validated RASP findings to Agent B.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

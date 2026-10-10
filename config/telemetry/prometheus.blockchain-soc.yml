@@ -1,0 +1,24 @@
+# Blockchain SOC Scrape Targets for Host-Mode Prometheus
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "blockchain-soc-agents"
+    static_configs:
+      - targets: ["localhost:9100"]
+    metrics_path: "/metrics"
+
+  - job_name: "blockchain-soc-consensus-avs"
+    static_configs:
+      - targets: ["localhost:9101"]
+    metrics_path: "/metrics"
+
+  - job_name: "blockchain-soc-rasp"
+    static_configs:
+      - targets: ["localhost:9102"]
+    metrics_path: "/metrics"
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["localhost:9100"]
