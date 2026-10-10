@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P07-006 — Complete and verified; P07-007 next |
-| Current thread | P07-006 verified: Implemented `ForensicStagingSnapshot` and `StagingManifest` in `src/deployment/forensic_staging_snapshot.py` with test suite `test/deployment/test_forensic_staging_snapshot.py`. Bundled job logs, WAL journals, masked ASTs, PoCs, and deployment receipts into `staging/forensics/run-<run_id>/`. Canonical `manifest.json` generation, SHA-256 root digests, post-snapshot read-only permission freezing, and tamper-detection APIs validated. 25 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Advancing to P07-007 (test deploy and abort branches end-to-end on authorized sample contracts). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P07-007 — Complete and verified; Phase 7 complete |
+| Current thread | P07-007 verified: Implemented `TestDeploymentE2E` in `test/deployment/test_deploy_e2e.py` validating end-to-end execution across authorized contracts `VulnerableVault.sol` and `PromptInjectionFixture.sol`. Verified success branch (BLS attestation -> Vault leasing & zeroization -> ReadinessGate evaluation -> ConsensusDeployer dispatch -> ForensicStagingSnapshot root manifest generation) and abort branches (consensus rejection `ERR_CONSENSUS_REJECTED`, hardware token failure `ERR_UNCONFIGURED_HARDWARE`, and bytecode tampering digest mismatch). Verified zero-state invariants across all abort conditions. 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Phase 7 is fully implemented and verified. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P07-007 — Test deploy and abort branches end-to-end on authorized sample contracts:** Complete and verified.
+  - Files: `test/deployment/test_deploy_e2e.py`
+  - Validation: `python3 -m unittest discover -s test/deployment/ -p "test_*.py"` -> 29 tests passed in 0.007s; full multi-layer regression battery passing.
+  - Results: Implemented end-to-end integration tests exercising the entire Phase 7 deployment pipeline against authorized contracts (`VulnerableVault.sol` and `PromptInjectionFixture.sol`); validated success deployment and forensic bundling; validated fail-closed abort paths on consensus rejection, unconfigured hardware security, and bytecode tampering; verified strict zero-state persistence on all abort paths.
 
 - **P07-006 — Snapshot job logs, WAL, AST, PoC, and relevant artifacts into protected staging for Phase 10 sealing:** Complete and verified.
   - Files: `src/deployment/forensic_staging_snapshot.py`, `test/deployment/test_forensic_staging_snapshot.py`
@@ -786,31 +791,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P07-007 — Test deploy and abort branches end-to-end on authorized sample contracts.
-- **Current phase:** Phase 7 — Deployment Orchestration & Production Gates.
-- **Scope:** Execute end-to-end integration testing for all deployment pipeline execution branches on authorized sample contracts (`contracts/solidity/VulnerableVault.sol` and `contracts/solidity/PromptInjectionFixture.sol`); test the success branch (full quorum consensus, Vault secrets loaded, readiness policy satisfied, mock transaction submitted, forensic bundle snapshotted) and abort branches (consensus rejected, uncertified plan, unconfigured hardware security, and tampering detection); assert strict zero-state persistence and fail-closed termination on all abort paths.
-- **Out of scope:** Phase 8 continuous live monitoring / telemetry streaming.
-- **Expected files:** `test/deployment/test_deploy_e2e.py`, `docs/CHECKLIST.md`, `docs/HANDOFF.md`, and `docs/RUNBOOK.md`.
-- **Acceptance criteria:**
-  - Deploy branch executes end-to-end and yields verified DeploymentReceipt.
-  - Abort branch cleanly raises DeploymentAbortError on consensus rejection.
-  - Zero state persists across all failed/aborted deployment attempts.
-  - Full test suite passes deterministically.
-- **Validation commands:**
-  ```bash
-  python3 -m unittest discover -s test/deployment/ -p "test_*.py"
-  python3 -m unittest discover -s test/consensus/ -p "test_*.py"
-  python3 -m unittest discover -s test/agents/ -p "test_*.py"
-  ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
-  ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
-  ```
-- **Dependencies:** Task P07-006 complete and verified.
-- **Security constraints:** Fail-closed deployment invariant; zero partial state persistence.
+- **Active task:** Phase 7 Final Signoff and Transition to Phase 8 (Continuous Monitoring & Runtime Telemetry).
+- **Current phase:** Phase 7 — Deployment Orchestration & Production Gates (Complete).
+- **Scope:** Complete Phase 7 gate review and transition to Phase 8; prepare runtime observability and telemetry monitors.
+- **Out of scope:** Phase 9 incident response drills.
+- **Dependencies:** All Phase 7 tasks (P07-001 through P07-007) complete and verified.
+- **Security constraints:** Zero partial deployments, fail-closed policy gates, and read-only forensic staging.
 
 ## Subsequent task queue
 
-1. `P07-007` — Test deploy and abort branches end-to-end on authorized sample contracts.
-2. `P07-008` — Phase 7 completion gate review and signoff.
+1. `Phase 8` — Continuous Monitoring, Anomaly Detection & Telemetry Ingestion.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

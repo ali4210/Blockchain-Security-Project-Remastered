@@ -3085,3 +3085,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P07-007 — Test deploy and abort branches end-to-end on authorized sample contracts
+
+**Status:** Verified
+
+**Purpose**
+
+Execute full-lifecycle integration testing of Phase 7 deployment orchestration, validating deploy success paths, consensus-rejected abort paths, hardware security abort paths, bytecode tamper rejection, and zero-state fail-closed guarantees across authorized contracts `VulnerableVault.sol` and `PromptInjectionFixture.sol`.
+
+**Scope and limitations**
+
+- E2E test suite in `test/deployment/test_deploy_e2e.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/deployment/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 29 deployment unit tests pass.
+- 39 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
