@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
-| Current task | P09-005 — Implement GitHub mirror trigger only after explicit valid human release |
-| Current thread | P09-004 verified: Implemented `src/mitigation/quarantine_staging.py` providing encrypted quarantine staging and signed human release token verification (`soc-operator` HMAC-SHA256 gating). Rejection of forged signatures, expired tokens, and agent authors validated across 5 unit tests in `test/mitigation/test_quarantine_staging.py` (32 MCP tests, 85 Hardhat tests, strict manifest ingestion valid, 306 total workspace tests). Transitioning to P09-005. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P09-006 — Test agent denial for remediation write/live isolation and operator allowance |
+| Current thread | P09-005 verified: Implemented `src/mitigation/mirror_gate.py` and `scripts/mirror-release-gate.sh` establishing human release token gating for GitHub synchronization. Rejection of unauthenticated agent releases, forged signatures, and commit digest mismatches verified across 10 mitigation tests (32 MCP tests, 85 Hardhat tests, strict manifest ingestion valid, 311 total workspace tests). Transitioning to P09-006. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-005 — Implement GitHub mirror trigger only after explicit valid human release:** Complete and verified.
+  - Files: `src/mitigation/mirror_gate.py`, `scripts/mirror-release-gate.sh`, `test/mitigation/test_mitigation_mirror_gate.py`
+  - Validation: `python3 -m unittest discover -s test/mitigation/ -p "test_*.py"` -> 10 tests passed in 0.066s; full multi-layer regression battery passing with 311 total tests.
+  - Results: Delivered `MirrorReleaseGate` and CLI wrapper `scripts/mirror-release-gate.sh` enforcing prerequisite validation of `SignedReleaseToken` authored exclusively by `soc-operator` targeting `github-mirror` bound to the commit digest before authorizing synchronization; verified rejection of forged signatures, agent authors, and expired tokens.
 
 - **P09-004 — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification:** Complete and verified.
   - Files: `src/mitigation/quarantine_staging.py`, `test/mitigation/test_quarantine_staging.py`
@@ -851,18 +856,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P09-005 — Implement GitHub mirror trigger only after explicit valid human release; no automatic public mirror.
+- **Active task:** P09-006 — Test agent denial for remediation write/live isolation and operator allowance for authorized action.
 - **Current phase:** Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway.
-- **Scope:** Implement the mirror release gate script (`scripts/mirror-release-gate.sh` / `src/mitigation/mirror_gate.py`) ensuring GitHub synchronization is never triggered automatically by CI or autonomous agents; enforce prerequisite validation of a signed human release token (`SignedReleaseToken`) before authorizing git push to GitHub `origin/main`.
-- **Out of scope:** Agent denial unit test suite (P09-006) and token tampering negative regression test (P09-007).
-- **Dependencies:** P09-001 through P09-004 complete; `src/mitigation/quarantine_staging.py`.
-- **Security constraints:** Zero automatic public egress, explicit human-in-the-loop release token check, fail-closed on missing/invalid token.
+- **Scope:** Author comprehensive integration test suite (`test/mitigation/test_role_boundary_enforcement.py`) rigorously validating the security boundary across all 7 autonomous agent swarm roles (Agents A through G) and human operator (`soc-operator`); assert that every agent role is rejected when attempting remediation writes, live network isolation, circuit-breaker tripping, or release signing; assert that `soc-operator` is permitted for all authorized operations.
+- **Out of scope:** Invalid release token public mirror blocking test (P09-007) and proving direct outbound mirroring path absence (P09-008).
+- **Dependencies:** P09-001 through P09-005 complete; `src/mcp_middleware/opa_guardrail.py` and `config/opa/agent_policy.rego`.
+- **Security constraints:** Non-bypassable role checks, zero state mutation on agent attempts, strict least-privilege verification across all swarm roles.
 
 ## Subsequent task queue
 
-1. `P09-006` — Test agent denial for remediation write/live isolation and operator allowance for authorized action.
-2. `P09-007` — Test invalid/unsigned release token blocks public mirror.
-3. `P09-008` — Prove no direct outbound mirroring path exists.
+1. `P09-007` — Test invalid/unsigned release token blocks public mirror.
+2. `P09-008` — Prove no direct outbound mirroring path exists.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
