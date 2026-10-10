@@ -3206,3 +3206,44 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 20 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
+
+## P08-003 — Implement RASP shield: read-only RPC traces, GraphSense integration/adapter, and optional Forta/Rekt signals
+
+**Status:** Verified
+
+**Purpose**
+
+Implement runtime application self-protection (RASP) shield engine to inspect read-only RPC execution traces, incorporate GraphSense address clustering, ingest Forta/Rekt threat intelligence, and compute probabilistic composite risk scores.
+
+**Scope and limitations**
+
+- Engine implemented in `src/observability/rasp_shield.py`.
+
+- Unit tests implemented in `test/observability/test_rasp_shield.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/observability/ -p "test_*.py"
+python3 -m unittest discover -s test/deployment/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 24 observability unit tests pass.
+- 29 deployment unit tests pass.
+- 39 consensus unit tests pass.
+- 42 agent swarm unit tests pass.
+- 14 LLM client unit tests pass.
+- 18 storage unit tests pass.
+- 20 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 83 Hardhat regression tests pass.
