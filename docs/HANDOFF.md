@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
-| Current task | P09-002 — Implement config/opa/agent_policy.rego least-privilege rules |
-| Current thread | P09-001 verified: Implemented `scripts/incident-orchestrator.mts` handling test-safe Gnosis Safe multisig pause proposals, GitLab incident issue generation, Kubernetes NetworkPolicy YAML simulation for RPC ingress isolation, and non-sensitive telemetry emission. Hardhat suite passing at 85/85 tests, strict manifest ingestion valid, and 289 total workspace tests passing. Transitioning to P09-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P09-003 — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call |
+| Current thread | P09-002 verified: Implemented `config/opa/agent_policy.rego` establishing strict deny-by-default least-privilege boundaries in OPA Rego. Agents restricted to read-only toolsets, while mutation, isolation, and signing are reserved exclusively for `soc-operator`. 6 OPA tests passed in `test/mcp_middleware/test_opa_agent_policy.py`, 85 Hardhat tests passed, strict manifest ingestion valid, and 295 total workspace tests passing. Transitioning to P09-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-002 — Implement config/opa/agent_policy.rego least-privilege rules:** Complete and verified.
+  - Files: `config/opa/agent_policy.rego`, `test/mcp_middleware/test_opa_agent_policy.py`
+  - Validation: `python3 -m unittest discover -s test/mcp_middleware/ -p "test_opa_*.py"` -> 6 tests passed in 0.000s; full multi-layer regression battery passing.
+  - Results: Implemented Rego policy rules under `soc.guardrails` enforcing default-deny (`default allow = false`), permit autonomous agent roles read-only access to inspection tools, deny agent roles for write/isolation tools, and restrict operational execution exclusively to human `soc-operator`.
 
 - **P09-001 — Implement scripts/incident-orchestrator.mts:** Complete and verified.
   - Files: `scripts/incident-orchestrator.mts`, `test/hardhat/placeholder.test.js`
@@ -836,18 +841,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P09-002 — Implement config/opa/agent_policy.rego least-privilege rules for agent and soc-operator roles.
+- **Active task:** P09-003 — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call.
 - **Current phase:** Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway.
-- **Scope:** Author Open Policy Agent (OPA) policy rules in `config/opa/agent_policy.rego` defining strict least-privilege boundaries; permit autonomous agents read-only queries on telemetry, storage, and AST projections while denying write, live network isolation, and remediation modification actions; restrict remediation execution, evidence acquisition, and release actions strictly to the human `soc-operator` role.
-- **Out of scope:** MCP OPA guardrail interceptor middleware integration (P09-003) and encrypted quarantine release token verification (P09-004).
-- **Dependencies:** Phase 8 complete; P09-001 complete.
-- **Security constraints:** Deny by default (`default allow = false`), role-based boundary validation, no token or key exposure, strict input shape validation.
+- **Scope:** Integrate the OPA policy engine (`config/opa/agent_policy.rego`) into the MCP middleware dispatcher (`src/mcp_middleware/opa_guardrail.py`), ensuring that every agent tool call is intercepted and evaluated against the Rego least-privilege policy before tool dispatch, raising `PermissionError` on unauthorized tool invocations.
+- **Out of scope:** Encrypted GitLab Quarantine staging workflow and signed-human-release-token verification (P09-004).
+- **Dependencies:** P09-001 and P09-002 complete; `config/opa/agent_policy.rego`.
+- **Security constraints:** Fail-closed on missing/malformed input context, zero tool execution on policy denial, preserve read-only boundaries for autonomous agent swarms.
 
 ## Subsequent task queue
 
-1. `P09-003` — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call.
-2. `P09-004` — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification.
-3. `P09-005` — Implement GitHub mirror trigger only after explicit valid human release; no automatic public mirror.
+1. `P09-004` — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification.
+2. `P09-005` — Implement GitHub mirror trigger only after explicit valid human release; no automatic public mirror.
+3. `P09-006` — Test agent denial for remediation write/live isolation and operator allowance for authorized action.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

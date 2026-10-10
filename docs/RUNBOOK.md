@@ -3490,3 +3490,32 @@ cd ~/Blockchain-Security-Project-Remastered
 - Simulated orchestrator execution outputs JSON containing `multisigProposal`, `gitLabIssue`, `networkPolicy`, and `telemetry`.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass.
+
+## P09-002 — Policy-as-Code least-privilege agent policy validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate Open Policy Agent (OPA) least-privilege Rego rules restricting autonomous agents to read-only tool calls and reserving sensitive mutations and isolations exclusively for human soc-operator.
+
+**Scope and limitations**
+
+- Rego policy in `config/opa/agent_policy.rego`.
+
+- Unit tests in `test/mcp_middleware/test_opa_agent_policy.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_opa_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 6 OPA unit tests pass in <0.01s.
+- Manifest ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass.
