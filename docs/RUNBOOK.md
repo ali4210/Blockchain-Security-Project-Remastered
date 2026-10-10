@@ -3606,3 +3606,30 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 10 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass.
+
+## P09-006 — Agent denial and operator allowance boundary validation
+
+**Status:** Verified
+
+**Purpose**
+
+Verify OPA role boundary enforcement across all 7 autonomous agent swarm roles (A through G), ensuring fail-closed rejection on mutation/isolation tools and authorized execution for human soc-operator.
+
+**Scope and limitations**
+
+- Integration tests in `test/mitigation/test_role_boundary_enforcement.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 15 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass.
