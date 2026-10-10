@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
-| Current task | P09-GATE — Phase 9 completion gate verification |
-| Current thread | P09-008 verified: Implemented `scripts/audit-egress-barriers.sh` and `test/mitigation/test_outbound_mirror_isolation.py` proving zero automated outbound mirroring paths or hooks exist in CI or Git. 26 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 327 total workspace tests passing. Transitioning to P09-GATE. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity |
+| Current task | P10A-001 — Implement streaming SHA-256 and SHA-512, manifest Merkle root, signing, and verification |
+| Current thread | Phase 9 gate cleared (P09-GATE): Zone 4 mitigation, proposal layer, and egress gateway complete and verified. Delivered incident response orchestrator, OPA least-privilege guardrails, MCP interceptor middleware, encrypted quarantine staging, human release token gatekeeper, and outbound mirror isolation proofs. Full workspace battery passing at 327 tests, manifest ingestion valid. Transitioning to Phase 10a (Task P10A-001: Integrity core hashing and Merkle manifest). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,10 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-GATE — Phase 9 completion gate verification:** Complete and verified.
+  - Validation: Full multi-layer battery passing (327 tests total): `scripts/audit-egress-barriers.sh` -> AUDIT PASSED; `test/mitigation/` -> 26/26 tests passing; `test/mcp_middleware/` -> 32/32 tests passing; `test/hardhat/placeholder.test.js` -> 85/85 tests passing; strict manifest ingestion valid.
+  - Results: All 8 tasks of Phase 9 (P09-001 through P09-008) verified and sealed. Established multi-sig pause proposal generation, NetworkPolicy ingress isolation, OPA Policy-as-Code least-privilege boundaries, MCP interceptor middleware, AES/HMAC encrypted quarantine staging, signed human release token verification, and proof of outbound mirror isolation. Phase 9 complete.
 
 - **P09-008 — Prove no direct outbound mirroring path exists:** Complete and verified.
   - Files: `scripts/audit-egress-barriers.sh`, `test/mitigation/test_outbound_mirror_isolation.py`
@@ -876,15 +880,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P09-GATE — Phase 9 completion gate verification.
-- **Current phase:** Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway.
-- **Scope:** Finalize Phase 9 completion gate review; verify that all Phase 9 deliverables (P09-001 through P09-008) are complete, documented, tested, and green across the entire multi-layer test battery; update phase status in checklist to complete and prepare handoff to Phase 10.
-- **Dependencies:** P09-001 through P09-008 complete.
-- **Security constraints:** 100% test battery green, strict manifest ingestion valid, zero regressions.
+- **Active task:** P10A-001 — Implement streaming SHA-256 and SHA-512, manifest Merkle root, signing, and verification.
+- **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity.
+- **Scope:** Implement the DFIR integrity core module (`src/forensics/hasher.py` / `src/forensics/merkle_manifest.py`) providing streaming SHA-256 and SHA-512 digest calculations for evidence artifacts without loading entire memory, Merkle root tree construction across forensic manifests, and cryptographic signing/verification.
+- **Out of scope:** SQLite forensics database schema and chain triggers (P10A-002) and write-once vault sealing (P10A-003).
+- **Dependencies:** Phase 9 complete and gate-verified.
+- **Security constraints:** Constant memory streaming buffers, deterministic canonical JSON manifest serialization, strict cryptographic signature verification.
 
 ## Subsequent task queue
 
-1. `Phase 10` — Capstone synthesis and system delivery.
+1. `P10A-002` — Implement `forensics.db`, evidence/custody tables, append-only triggers, entry hash chain, and chain verification.
+2. `P10A-003` — Implement write-once evidence vault: `seal()`, `verify()`, and re-hashing `open_working_copy()`.
+3. `P10A-004` — Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

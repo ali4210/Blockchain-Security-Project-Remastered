@@ -1116,12 +1116,12 @@ resolve to the same full SHA.
 
 ## P09-GATE — Phase 9 completion gate
 
-- [ ] Agent-denial policy test passes.
-- [ ] Invalid release-token denial test passes.
-- [ ] Direct-outbound-mirror absence test passes.
+- [x] Agent-denial policy test passes.
+- [x] Invalid release-token denial test passes.
+- [x] Direct-outbound-mirror absence test passes.
 
-**Gate status:** ⬜ Not ready  
-**Gate commit/tag:** `7dde514b8b18bfdcfe65512a46b0fbdc40021127` / `v10.3-phase-03`  
+**Gate status:** ✅ Complete and verified (2026-10-11)  
+**Gate commit/tag:** `4ecf1a019a19bf0c755004b580206c99f3ee7b59` / `v10.3-phase-09`  
 
 ---
 
