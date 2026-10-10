@@ -3457,3 +3457,36 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 83 Hardhat regression tests pass.
 - Total 287 workspace tests passing.
+
+## P09-001 — Active incident response orchestrator execution
+
+**Status:** Verified
+
+**Purpose**
+
+Execute the Zone 4 incident response orchestrator to synthesize test-safe multi-sig proposals, generate GitLab incident issue Markdown, simulate Kubernetes NetworkPolicy ingress isolation, and emit public telemetry.
+
+**Scope and limitations**
+
+- Orchestrator script in `scripts/incident-orchestrator.mts`.
+
+- Regressions in `test/hardhat/placeholder.test.js`.
+
+- Coursework simulation: multi-sig proposals operate in simulation mode (`simulationMode: true`); network policies are declarative manifests for review.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+./node_modules/.bin/tsx --no-cache scripts/incident-orchestrator.mts --help
+./node_modules/.bin/tsx --no-cache scripts/incident-orchestrator.mts --simulate
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- CLI prints usage and options with exit code 0.
+- Simulated orchestrator execution outputs JSON containing `multisigProposal`, `gitLabIssue`, `networkPolicy`, and `telemetry`.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass.

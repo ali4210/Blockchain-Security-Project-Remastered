@@ -1349,3 +1349,51 @@ describe("Lynis governance normalization regressions", function () {
     }
   });
 });
+
+describe("Incident orchestrator regressions (P09-001)", function () {
+  const tsxBinary = resolve(__dirname, "../../node_modules/.bin/tsx");
+  const scriptPath = resolve(__dirname, "../../scripts/incident-orchestrator.mts");
+
+  it("prints CLI usage with --help", function () {
+    const result = spawnSync(process.execPath, [tsxBinary, "--no-cache", scriptPath, "--help"], {
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /Usage: tsx scripts\/incident-orchestrator\.mts/);
+    assert.match(result.stdout, /--simulate/);
+  });
+
+  it("generates deterministic multi-sig proposal, GitLab issue, network policy, and telemetry", function () {
+    const result = spawnSync(process.execPath, [tsxBinary, "--no-cache", scriptPath, "--simulate"], {
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0);
+    const report = JSON.parse(result.stdout);
+
+    assert.equal(report.schemaVersion, 1);
+
+    // 1. Multi-sig proposal
+    assert.ok(report.multisigProposal && typeof report.multisigProposal === "object");
+    assert.equal(report.multisigProposal.data, "0x8456cb59"); // pause() selector
+    assert.equal(report.multisigProposal.simulationMode, true);
+    assert.equal(report.multisigProposal.proposalDigest.length, 64);
+
+    // 2. GitLab issue
+    assert.ok(report.gitLabIssue && typeof report.gitLabIssue === "object");
+    assert.match(report.gitLabIssue.title, /Incident Alert \[SEV-1\]/);
+    assert.ok(report.gitLabIssue.labels.includes("incident::severity-1"));
+    assert.ok(report.gitLabIssue.labels.includes("zone::mitigation"));
+    assert.match(report.gitLabIssue.description, /Automated Incident Notification/);
+
+    // 3. Network policy
+    assert.ok(report.networkPolicy && typeof report.networkPolicy === "object");
+    assert.equal(report.networkPolicy.kind, "NetworkPolicy");
+    assert.match(report.networkPolicy.policyYaml, /kind: NetworkPolicy/);
+    assert.match(report.networkPolicy.policyYaml, /role: evm-rpc-gateway/);
+
+    // 4. Non-sensitive telemetry
+    assert.ok(report.telemetry && typeof report.telemetry === "object");
+    assert.equal(report.telemetry.status, "MITIGATION_PROPOSED");
+    assert.equal(report.telemetry.networkPolicyEnforced, true);
+  });
+});

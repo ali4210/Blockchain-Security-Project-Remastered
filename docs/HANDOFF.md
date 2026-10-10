@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P09-001 — Initialize Phase 9 automated incident response & circuit breakers |
-| Current thread | Phase 8 complete and signed off: Observability Network & RASP Shield (P08-001 through P08-008) verified. Full test suite passing across all layers (287 total tests: 42 observability, 29 deployment, 39 consensus, 42 agent swarm, 14 LLM client, 18 storage, 20 MCP middleware, strict manifest ingestion, and 83 Hardhat regression tests). Transitioning to Phase 9: Automated Incident Response & Circuit Breakers. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
+| Current task | P09-002 — Implement config/opa/agent_policy.rego least-privilege rules |
+| Current thread | P09-001 verified: Implemented `scripts/incident-orchestrator.mts` handling test-safe Gnosis Safe multisig pause proposals, GitLab incident issue generation, Kubernetes NetworkPolicy YAML simulation for RPC ingress isolation, and non-sensitive telemetry emission. Hardhat suite passing at 85/85 tests, strict manifest ingestion valid, and 289 total workspace tests passing. Transitioning to P09-002. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-001 — Implement scripts/incident-orchestrator.mts:** Complete and verified.
+  - Files: `scripts/incident-orchestrator.mts`, `test/hardhat/placeholder.test.js`
+  - Validation: `./node_modules/.bin/tsx --no-cache scripts/incident-orchestrator.mts --simulate`; `./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js` -> 85 tests passed in 2s; strict manifest ingestion valid.
+  - Results: Delivered active incident orchestration module providing Gnosis Safe `pause()` proposal synthesis, automated GitLab incident notification Markdown with SEV-1 triage labels, Kubernetes/Calico NetworkPolicy isolation manifests, and sanitized public telemetry summaries.
 
 - **P08-008 — Phase 8 handoff and readiness review:** Complete and verified.
   - Files: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`
@@ -831,18 +836,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P09-001 — Initialize Phase 9 automated incident response & circuit breakers.
-- **Current phase:** Phase 9 — Automated incident response and circuit breakers.
-- **Scope:** Establish Phase 9 architecture, ingest Phase 8 fast-path mitigation signals (`FastPathMitigationPayload`), and implement the circuit breaker tripping coordinator for automated smart contract pausing and emergency asset protection.
-- **Out of scope:** Multi-sig quorum dispute arbitration and post-mortem incident reporting (later Phase 9 tasks).
-- **Dependencies:** Phase 8 complete; `src/observability/fast_path_mitigation.py` and `audit/mitigation_signals.jsonl`.
-- **Security constraints:** Nonce replay rejection, time-bounded emergency halts, multi-signature unpause authority, and zero unauthorized state transitions.
+- **Active task:** P09-002 — Implement config/opa/agent_policy.rego least-privilege rules for agent and soc-operator roles.
+- **Current phase:** Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway.
+- **Scope:** Author Open Policy Agent (OPA) policy rules in `config/opa/agent_policy.rego` defining strict least-privilege boundaries; permit autonomous agents read-only queries on telemetry, storage, and AST projections while denying write, live network isolation, and remediation modification actions; restrict remediation execution, evidence acquisition, and release actions strictly to the human `soc-operator` role.
+- **Out of scope:** MCP OPA guardrail interceptor middleware integration (P09-003) and encrypted quarantine release token verification (P09-004).
+- **Dependencies:** Phase 8 complete; P09-001 complete.
+- **Security constraints:** Deny by default (`default allow = false`), role-based boundary validation, no token or key exposure, strict input shape validation.
 
 ## Subsequent task queue
 
-1. `P09-002` — Smart contract circuit breaker pause harness & testnet integration.
-2. `P09-003` — Automated multi-sig notification and incident response consensus.
-3. `P09-004` — RPC gateway ingress isolation and blackholing.
+1. `P09-003` — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call.
+2. `P09-004` — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification.
+3. `P09-005` — Implement GitHub mirror trigger only after explicit valid human release; no automatic public mirror.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
