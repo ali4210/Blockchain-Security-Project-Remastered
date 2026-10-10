@@ -18,8 +18,13 @@ from pathlib import Path
 from src.mitigation.mirror_gate import MirrorReleaseGate
 from src.mitigation.quarantine_staging import SignedReleaseToken
 
-token_data = json.loads(Path('$TOKEN_FILE').read_text(encoding='utf-8'))
-token = SignedReleaseToken(**token_data)
+try:
+    token_raw = Path('$TOKEN_FILE').read_text(encoding='utf-8')
+    token_data = json.loads(token_raw)
+    token = SignedReleaseToken(**token_data)
+except Exception as parse_err:
+    print('[-] Denial: Malformed or unparseable release token JSON: ' + str(parse_err), file=sys.stderr)
+    sys.exit(1)
 
 gate = MirrorReleaseGate()
 try:

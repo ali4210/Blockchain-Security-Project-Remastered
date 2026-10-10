@@ -3633,3 +3633,32 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 15 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass.
+
+## P09-007 — Invalid release token mirror blocking validation
+
+**Status:** Verified
+
+**Purpose**
+
+Verify that the GitHub mirror release gate strictly fails closed against all invalid, unsigned, forged, expired, mismatched, and agent-authored release tokens.
+
+**Scope and limitations**
+
+- Integration tests in `test/mitigation/test_invalid_token_mirror_blocking.py`.
+
+- Gatekeeper wrapper in `scripts/mirror-release-gate.sh`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 23 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass.

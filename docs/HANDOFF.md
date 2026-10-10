@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
-| Current task | P09-007 — Test invalid/unsigned release token blocks public mirror |
-| Current thread | P09-006 verified: Implemented `test/mitigation/test_role_boundary_enforcement.py` asserting non-bypassable OPA denial across all 7 autonomous agent swarm roles (A through G) for remediation writes, live isolation, and release signing, while confirming full allowance for human `soc-operator`. 15 mitigation tests passed, 32 MCP tests passed, 85 Hardhat tests passed, strict manifest ingestion valid, and 316 total workspace tests passing. Transitioning to P09-007. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P09-008 — Prove no direct outbound mirroring path exists |
+| Current thread | P09-007 verified: Implemented `test/mitigation/test_invalid_token_mirror_blocking.py` proving public mirror sync strictly fails closed on missing tokens, corrupt JSON, unsigned payloads, forged HMAC signatures, expired tokens, commit SHA mismatches, and agent authors. Patched `scripts/mirror-release-gate.sh` JSON decode handling. 23 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 324 total workspace tests passing. Transitioning to P09-008. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,16 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-007 — Test invalid/unsigned release token blocks public mirror:** Complete and verified.
+  - Files: `test/mitigation/test_invalid_token_mirror_blocking.py`, `scripts/mirror-release-gate.sh`
+  - Validation: `python3 -m unittest discover -s test/mitigation/ -p "test_*.py"` -> 23 tests passed in 0.102s; full multi-layer regression battery passing with 324 total tests.
+  - Results: Validated fail-closed public mirror barrier across all invalid token conditions (missing file, malformed JSON, unsigned, forged HMAC-SHA256 signature, expired timestamp, commit digest mismatch, wrong target destination, and agent author principals); patched `scripts/mirror-release-gate.sh` to safely trap JSON decoding errors.
+
+- **P09-007 — Test invalid/unsigned release token blocks public mirror:** Complete and verified.
+  - Files: `test/mitigation/test_invalid_token_mirror_blocking.py`, `scripts/mirror-release-gate.sh`
+  - Validation: `python3 -m unittest discover -s test/mitigation/ -p "test_*.py"` -> 23 tests passed in 0.102s; full multi-layer regression battery passing with 324 total tests.
+  - Results: Validated fail-closed public mirror barrier across all invalid token conditions (missing file, malformed JSON, unsigned, forged HMAC-SHA256 signature, expired timestamp, commit digest mismatch, wrong target destination, and agent author principals); patched `scripts/mirror-release-gate.sh` to safely trap JSON decoding errors.
 
 - **P09-006 — Test agent denial for remediation write/live isolation and operator allowance:** Complete and verified.
   - Files: `test/mitigation/test_role_boundary_enforcement.py`
