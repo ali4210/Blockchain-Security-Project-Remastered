@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P08-008 — Phase 8 handoff and readiness review |
-| Current thread | P08-007 verified: Implemented `src/observability/fast_path_mitigation.py` providing `FastPathMitigationPayload` and `MitigationSignalEmitter` to emit low-latency, cryptographically signed mitigation payloads to Phase 9 automated circuit-breaker systems with nonce replay protection, confidence gating, and persistent logging in `audit/mitigation_signals.jsonl`. 42 observability tests passed, 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP middleware tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. Transitioning to P08-008. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P09-001 — Initialize Phase 9 automated incident response & circuit breakers |
+| Current thread | Phase 8 complete and signed off: Observability Network & RASP Shield (P08-001 through P08-008) verified. Full test suite passing across all layers (287 total tests: 42 observability, 29 deployment, 39 consensus, 42 agent swarm, 14 LLM client, 18 storage, 20 MCP middleware, strict manifest ingestion, and 83 Hardhat regression tests). Transitioning to Phase 9: Automated Incident Response & Circuit Breakers. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P08-008 — Phase 8 handoff and readiness review:** Complete and verified.
+  - Files: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`
+  - Validation: 287 total workspace tests passing across Python unit tests, tsx manifest ingestion, and Hardhat regression suites.
+  - Results: Finalized Phase 8 readiness review. Confirmed end-to-end pipeline integrity from RASP signal detection to shadow-fork verification, threat hunter routing, continuous telemetry emission, and fast-path mitigation payload dispatch. Phase 8 signed off; transitioned to Phase 9.
 
 - **P08-007 — Emit fast-path mitigation signal payload to Phase 9:** Complete and verified.
   - Files: `src/observability/fast_path_mitigation.py`, `test/observability/test_fast_path_mitigation.py`
@@ -826,16 +831,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P08-008 — Phase 8 handoff and readiness review.
-- **Current phase:** Phase 8 — Observability network and RASP shield.
-- **Scope:** Complete the comprehensive Phase 8 readiness review, audit all Phase 8 deliverables (P08-001 through P08-007), verify test battery coverage across observability clients, RASP shield, shadow-fork verifiers, threat routers, continuous telemetry, and fast-path emitters, reconcile Phase 8 checklist entries, and prepare handoff specifications for Phase 9 (Automated Incident Response & Circuit Breakers).
-- **Out of scope:** Phase 9 implementation tasks (P09-001+).
-- **Dependencies:** All Phase 8 tasks (P08-001 through P08-007) complete and verified.
-- **Security constraints:** Verify zero open security regressions, complete documentation audit, and clean git repository state.
+- **Active task:** P09-001 — Initialize Phase 9 automated incident response & circuit breakers.
+- **Current phase:** Phase 9 — Automated incident response and circuit breakers.
+- **Scope:** Establish Phase 9 architecture, ingest Phase 8 fast-path mitigation signals (`FastPathMitigationPayload`), and implement the circuit breaker tripping coordinator for automated smart contract pausing and emergency asset protection.
+- **Out of scope:** Multi-sig quorum dispute arbitration and post-mortem incident reporting (later Phase 9 tasks).
+- **Dependencies:** Phase 8 complete; `src/observability/fast_path_mitigation.py` and `audit/mitigation_signals.jsonl`.
+- **Security constraints:** Nonce replay rejection, time-bounded emergency halts, multi-signature unpause authority, and zero unauthorized state transitions.
 
 ## Subsequent task queue
 
-1. `P09-001` — Phase 9 kickoff and circuit-breaker architecture.
+1. `P09-002` — Smart contract circuit breaker pause harness & testnet integration.
+2. `P09-003` — Automated multi-sig notification and incident response consensus.
+3. `P09-004` — RPC gateway ingress isolation and blackholing.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
