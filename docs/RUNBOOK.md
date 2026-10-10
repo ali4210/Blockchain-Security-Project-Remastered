@@ -3519,3 +3519,32 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_opa_*.py"
 - 6 OPA unit tests pass in <0.01s.
 - Manifest ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass.
+
+## P09-003 — MCP OPA policy evaluation guardrail execution
+
+**Status:** Verified
+
+**Purpose**
+
+Intercept and evaluate all agent and operator MCP tool calls against OPA least-privilege Rego policy rules, enforcing fail-closed PermissionError rejections on unauthorized agent actions.
+
+**Scope and limitations**
+
+- Middleware in `src/mcp_middleware/opa_guardrail.py`.
+
+- Unit tests in `test/mcp_middleware/test_opa_guardrail.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_opa_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 12 OPA unit tests pass (6 policy + 6 guardrail).
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass.

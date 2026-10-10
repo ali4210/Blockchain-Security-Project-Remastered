@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
-| Current task | P09-003 — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call |
-| Current thread | P09-002 verified: Implemented `config/opa/agent_policy.rego` establishing strict deny-by-default least-privilege boundaries in OPA Rego. Agents restricted to read-only toolsets, while mutation, isolation, and signing are reserved exclusively for `soc-operator`. 6 OPA tests passed in `test/mcp_middleware/test_opa_agent_policy.py`, 85 Hardhat tests passed, strict manifest ingestion valid, and 295 total workspace tests passing. Transitioning to P09-003. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P09-004 — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification |
+| Current thread | P09-003 verified: Implemented `src/mcp_middleware/opa_guardrail.py` intercepting all MCP agent tool dispatches and evaluating contextual permissions against `config/opa/agent_policy.rego`. Enforced fail-closed PermissionError rejections for unauthorized agent mutations/isolations, verified soc-operator execution, and validated 6 unit tests in `test/mcp_middleware/test_opa_guardrail.py` (32 total MCP tests, 85 Hardhat tests, strict manifest ingestion valid, 301 total workspace tests). Transitioning to P09-004. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-003 — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call:** Complete and verified.
+  - Files: `src/mcp_middleware/opa_guardrail.py`, `test/mcp_middleware/test_opa_guardrail.py`
+  - Validation: `python3 -m unittest discover -s test/mcp_middleware/ -p "test_opa_*.py"` -> 12 tests passed in 0.003s; full multi-layer regression battery passing with 301 total tests.
+  - Results: Implemented `McpOpaGuardrail` middleware intercepting all MCP tool calls, evaluating `principal`, `action`, and `tool` against `config/opa/agent_policy.rego`, permitting read-only inspection tools for agent roles, failing closed with `PermissionError` on unauthorized mutation/isolation invocations, and allowing human `soc-operator` executions.
 
 - **P09-002 — Implement config/opa/agent_policy.rego least-privilege rules:** Complete and verified.
   - Files: `config/opa/agent_policy.rego`, `test/mcp_middleware/test_opa_agent_policy.py`
@@ -841,18 +846,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P09-003 — Implement MCP OPA guardrail; enforce policy evaluation for every agent tool call.
+- **Active task:** P09-004 — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification.
 - **Current phase:** Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway.
-- **Scope:** Integrate the OPA policy engine (`config/opa/agent_policy.rego`) into the MCP middleware dispatcher (`src/mcp_middleware/opa_guardrail.py`), ensuring that every agent tool call is intercepted and evaluated against the Rego least-privilege policy before tool dispatch, raising `PermissionError` on unauthorized tool invocations.
-- **Out of scope:** Encrypted GitLab Quarantine staging workflow and signed-human-release-token verification (P09-004).
-- **Dependencies:** P09-001 and P09-002 complete; `config/opa/agent_policy.rego`.
-- **Security constraints:** Fail-closed on missing/malformed input context, zero tool execution on policy denial, preserve read-only boundaries for autonomous agent swarms.
+- **Scope:** Implement the quarantine staging workflow module (`src/mitigation/quarantine_staging.py`) ensuring remediation patches and outbound artifacts are staged strictly in an encrypted quarantine state (`quarantine/staging/`); enforce cryptographic verification of signed human release tokens (`minisign` / HMAC) authored exclusively by `soc-operator` before decrypting or staging for mirror publication.
+- **Out of scope:** GitHub mirror trigger integration (P09-005) and automated agent denial tests (P09-006).
+- **Dependencies:** P09-001 through P09-003 complete; `src/mcp_middleware/opa_guardrail.py`; operator signing key from Phase 0 (P00-015).
+- **Security constraints:** Zero unencrypted staging leaks, fail-closed token validation, rejection of unsigned/invalid tokens, no plaintext secret persistence.
 
 ## Subsequent task queue
 
-1. `P09-004` — Implement encrypted GitLab Quarantine staging workflow and signed-human-release-token verification.
-2. `P09-005` — Implement GitHub mirror trigger only after explicit valid human release; no automatic public mirror.
-3. `P09-006` — Test agent denial for remediation write/live isolation and operator allowance for authorized action.
+1. `P09-005` — Implement GitHub mirror trigger only after explicit valid human release; no automatic public mirror.
+2. `P09-006` — Test agent denial for remediation write/live isolation and operator allowance for authorized action.
+3. `P09-007` — Test invalid/unsigned release token blocks public mirror.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
