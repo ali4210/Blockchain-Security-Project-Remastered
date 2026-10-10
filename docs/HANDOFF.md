@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway |
-| Current task | P09-008 — Prove no direct outbound mirroring path exists |
-| Current thread | P09-007 verified: Implemented `test/mitigation/test_invalid_token_mirror_blocking.py` proving public mirror sync strictly fails closed on missing tokens, corrupt JSON, unsigned payloads, forged HMAC signatures, expired tokens, commit SHA mismatches, and agent authors. Patched `scripts/mirror-release-gate.sh` JSON decode handling. 23 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 324 total workspace tests passing. Transitioning to P09-008. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P09-GATE — Phase 9 completion gate verification |
+| Current thread | P09-008 verified: Implemented `scripts/audit-egress-barriers.sh` and `test/mitigation/test_outbound_mirror_isolation.py` proving zero automated outbound mirroring paths or hooks exist in CI or Git. 26 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 327 total workspace tests passing. Transitioning to P09-GATE. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P09-008 — Prove no direct outbound mirroring path exists:** Complete and verified.
+  - Files: `scripts/audit-egress-barriers.sh`, `test/mitigation/test_outbound_mirror_isolation.py`
+  - Validation: `./scripts/audit-egress-barriers.sh` -> AUDIT PASSED; `python3 -m unittest discover -s test/mitigation/ -p "test_*.py"` -> 26 tests passed in 0.108s; full multi-layer regression battery passing with 327 total tests.
+  - Results: Delivered audit script and integration tests verifying zero automated push jobs in `.gitlab-ci.yml`, zero active background git hooks, and confirming `scripts/mirror-release-gate.sh` is the sole authorized public mirroring entrypoint.
 
 - **P09-007 — Test invalid/unsigned release token blocks public mirror:** Complete and verified.
   - Files: `test/mitigation/test_invalid_token_mirror_blocking.py`, `scripts/mirror-release-gate.sh`
@@ -871,17 +876,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P09-007 — Test invalid/unsigned release token blocks public mirror.
+- **Active task:** P09-GATE — Phase 9 completion gate verification.
 - **Current phase:** Phase 9 — Zone 4: Mitigation, proposal layer, and egress gateway.
-- **Scope:** Author dedicated integration test suite (`test/mitigation/test_invalid_token_mirror_blocking.py`) asserting that public mirroring (`scripts/mirror-release-gate.sh` / `MirrorReleaseGate`) strictly fails closed on: 1) missing token file, 2) corrupt/invalid JSON, 3) unsigned tokens, 4) invalid HMAC signatures, 5) expired tokens, and 6) mismatched commit SHA hashes.
-- **Out of scope:** Proving absence of direct outbound mirror path (P09-008) and Phase 9 completion gate sign-off (P09-GATE).
-- **Dependencies:** P09-001 through P09-006 complete; `src/mitigation/mirror_gate.py` and `scripts/mirror-release-gate.sh`.
-- **Security constraints:** Zero public egress on invalid tokens, strict non-zero exit codes, fail-closed barrier.
+- **Scope:** Finalize Phase 9 completion gate review; verify that all Phase 9 deliverables (P09-001 through P09-008) are complete, documented, tested, and green across the entire multi-layer test battery; update phase status in checklist to complete and prepare handoff to Phase 10.
+- **Dependencies:** P09-001 through P09-008 complete.
+- **Security constraints:** 100% test battery green, strict manifest ingestion valid, zero regressions.
 
 ## Subsequent task queue
 
-1. `P09-008` — Prove no direct outbound mirroring path exists.
-2. `P09-GATE` — Phase 9 completion gate verification.
+1. `Phase 10` — Capstone synthesis and system delivery.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

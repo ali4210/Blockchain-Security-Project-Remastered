@@ -3662,3 +3662,34 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 23 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass.
+
+## P09-008 — Outbound mirror isolation audit execution
+
+**Status:** Verified
+
+**Purpose**
+
+Audit CI/CD pipeline, Git hooks, and entrypoints to prove that zero automated or direct outbound mirroring paths exist without human release token gating.
+
+**Scope and limitations**
+
+- Audit script in `scripts/audit-egress-barriers.sh`.
+
+- Integration tests in `test/mitigation/test_outbound_mirror_isolation.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+./scripts/audit-egress-barriers.sh
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Audit script outputs AUDIT PASSED with exit code 0.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass.
