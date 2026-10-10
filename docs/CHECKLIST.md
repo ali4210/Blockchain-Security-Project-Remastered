@@ -76,7 +76,7 @@ resolve to the same full SHA.
 | Field | Current value |
 |---|---|
 | Current phase | Phase 5 — Zone 4: Autonomous Swarm Core |
-| Current task | P08-002 — Implement real Prometheus and ELK telemetry query functions |
+| Current task | P08-003 — Implement RASP shield: read-only RPC traces, GraphSense integration/adapter, and optional Forta/Rekt signals |
 | Current thread | P03-008 approved technical scope complete and verified: actual non-root Lynis audit, all 50 finding records retained, partial AU-12/SI-7 relationships, 105 local tests including 18 governance regressions, valid strict ingestion, and accepted seven-file/secret-safety review. Evidence `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` completed user-reported green GitLab CI, GitHub publication, and fetched three-way synchronization. Documentation closeout reconciled. No CMMC certification, full NIST compliance, host remediation, or production authorization. Advancing to P03-009; Phase 3 incomplete. Preserve untracked `docs/.backup/`. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence; user-reported green GitLab CI, successful GitHub publication, and fetched synchronization verified |
@@ -1082,7 +1082,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P08-001 | Deploy Prometheus plus ELK, or document Grafana/Loki lightweight replacement. | ✅ | Complete and verified 2026-10-10: Configured dual observability architecture in `docs/OBSERVABILITY_STACK.md` and scrape targets in `config/telemetry/prometheus.blockchain-soc.yml`; implemented `src/observability/telemetry_stack.py` supporting both full enterprise ELK profile (`:9090`, `:9200`, `:5601`) and lightweight Grafana/Loki replacement profile (`:9090`, `:3100`, `:3000`); verified live running Docker host services (Prometheus 200, Elasticsearch 401, Kibana 200, Grafana 200); 10 observability unit tests passed, 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
-| P08-002 | Implement real Prometheus and ELK telemetry query functions. | ⬜ | — |
+| P08-002 | Implement real Prometheus and ELK telemetry query functions. | ✅ | Complete and verified 2026-10-10: Implemented `src/observability/telemetry_client.py` containing `PrometheusQueryClient` (instant queries `/api/v1/query`, range queries `/api/v1/query_range`, scalar gauge extraction), `ElasticsearchQueryClient` (DSL search queries `/_search`, document indexing `/_doc`, security event filtering by finding ID and category, basic auth header injection), and `SOCTelemetryClient` (unified metrics snapshot compilation and security event correlation); verified live queries against host Prometheus (:9090); 19 observability unit tests passed, 29 deployment tests passed, 39 consensus tests passed, 42 agent tests passed, 14 LLM client tests passed, 18 storage tests passed, 20 MCP tests passed, strict manifest ingestion valid, and 83 Hardhat regression tests passed. |
 | P08-003 | Implement RASP shield: read-only RPC traces, GraphSense integration/adapter, and optional Forta/Rekt signals. | ⬜ | — |
 | P08-004 | Wire Agent E shadow-fork transaction verification and persistent network logs. | ⬜ | — |
 | P08-005 | Route validated RASP findings to Agent B. | ⬜ | — |
