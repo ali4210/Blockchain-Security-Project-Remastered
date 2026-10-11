@@ -1133,7 +1133,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P10A-001 | Implement streaming SHA-256 and SHA-512, manifest Merkle root, signing, and verification. | ⬜ | — |
+| P10A-001 | Implement streaming SHA-256 and SHA-512, manifest Merkle root, signing, and verification. | ✅ | Complete and verified 2026-10-11: Implemented `src/forensics/hasher.py` and `src/forensics/merkle_manifest.py` providing `StreamingEvidenceHasher` (64 KB chunked dual SHA-256/SHA-512 stream hashing) and `ForensicManifestManager` (RFC 6962 compliant Merkle root computation with 0x00 leaf / 0x01 internal node domain separation, HMAC-SHA256 signing by `soc-operator`, and tamper detection); 5 unit tests passing in `test/forensics/test_integrity_hasher.py`, 26 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 332 total workspace tests passing. |
 | P10A-002 | Implement `forensics.db`, evidence/custody tables, append-only triggers, entry hash chain, and chain verification. | ⬜ | — |
 | P10A-003 | Implement write-once evidence vault: `seal()`, `verify()`, and re-hashing `open_working_copy()`. | ⬜ | — |
 | P10A-004 | Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection. | ⬜ | — |

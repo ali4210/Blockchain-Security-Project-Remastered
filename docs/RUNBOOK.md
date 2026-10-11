@@ -3723,3 +3723,36 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - All mitigation and MCP unit tests pass (58 tests total).
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (327 total workspace tests passing).
+
+## P10A-001 — DFIR streaming hasher and Merkle manifest validation
+
+**Status:** Verified
+
+**Purpose**
+
+Provide constant-memory dual SHA-256 and SHA-512 streaming hash calculations and RFC 6962 compliant Merkle manifest signing and verification for forensic evidence artifacts.
+
+**Scope and limitations**
+
+- Streaming hasher in `src/forensics/hasher.py`.
+
+- Merkle manifest manager in `src/forensics/merkle_manifest.py`.
+
+- Unit tests in `test/forensics/test_integrity_hasher.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 5 forensics unit tests pass in <0.01s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (332 total workspace tests passing).
