@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-003 — Implement PoW/PoS concentration tracker with warning/critical thresholds |
-| Current thread | P11-002 verified: Implemented `src/consensus/reorg_monitor.py` establishing chain reorganization monitoring, common ancestor tracking, and finality depth anomaly classification. 49 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 387 total workspace tests passing. Transitioning to P11-003. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P11-004 — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate |
+| Current thread | P11-003 verified: Implemented `src/consensus/concentration_tracker.py` establishing Nakamoto coefficient, HHI, and sliding-window stake/hashpower concentration monitoring with warning and critical thresholds. 55 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 393 total workspace tests passing. Transitioning to P11-004. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-003 — Implement PoW/PoS concentration tracker with warning/critical thresholds:** Complete and verified.
+  - Files: `src/consensus/concentration_tracker.py`, `test/consensus/test_concentration_tracker.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 55 tests passed in 0.562s; full multi-layer regression battery passing with 393 total tests.
+  - Results: Delivered `ConsensusConcentrationTracker` calculating Nakamoto coefficient, Herfindahl-Hirschman Index (HHI), single-entity dominance share, and cumulative top-3 cartel shares, enforcing BFT liveness warning (>33% or top-3 >51%) and 51% majority attack critical (>50%) alert thresholds across sliding windows.
 
 - **P11-002 — Implement reorganization monitor using chain finality-depth configuration:** Complete and verified.
   - Files: `src/consensus/reorg_monitor.py`, `test/consensus/test_reorg_monitor.py`
@@ -950,18 +955,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-003 — Implement PoW/PoS concentration tracker with warning/critical thresholds.
+- **Active task:** P11-004 — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Implement validator stake and miner hashpower concentration tracker (`src/consensus/concentration_tracker.py`) calculating Nakamoto coefficient, Herfindahl-Hirschman Index (HHI), and entity concentration share across sliding block and epoch windows; enforce warning (e.g. single entity > 33% / cumulative top-3 > 51%) and critical (single entity > 50%) thresholds; emit structured concentration alerts.
-- **Out of scope:** Selfish-mining detector (P11-004) and eclipse detector (P11-005).
-- **Dependencies:** P11-001 and P11-002 complete; `src/consensus/p2p_listener.py`, `src/consensus/reorg_monitor.py`.
-- **Security constraints:** Deterministic floating-point arithmetic for indices; sliding window bounds; alert generation for threshold breaches.
+- **Scope:** Implement selfish mining detector (`src/consensus/selfish_mining_detector.py`) tracking block production sequences, orphan rates, lead-block release patterns, and miner private branch retention; compute statistical z-score and Poisson anomaly tests comparing observed orphan rates against baseline expectations; emit selfish-mining alerts with perpetrator identification.
+- **Out of scope:** Eclipse detector (P11-005) and consensus MCP tools (P11-006).
+- **Dependencies:** P11-001, P11-002, and P11-003 complete; `src/consensus/reorg_monitor.py`, `src/consensus/concentration_tracker.py`.
+- **Security constraints:** Robust statistical bounds; zero false positives during normal transient network latency spikes; fail-closed anomaly alerts on private branch dumps.
 
 ## Subsequent task queue
 
-1. `P11-004` — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate.
-2. `P11-005` — Implement eclipse detector using peer diversity and clustering signals.
-3. `P11-006` — Register consensus-monitor MCP functions.
+1. `P11-005` — Implement eclipse detector using peer diversity and clustering signals.
+2. `P11-006` — Register consensus-monitor MCP functions.
+3. `P11-007` — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
