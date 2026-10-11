@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-004 — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate |
-| Current thread | P11-003 verified: Implemented `src/consensus/concentration_tracker.py` establishing Nakamoto coefficient, HHI, and sliding-window stake/hashpower concentration monitoring with warning and critical thresholds. 55 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 393 total workspace tests passing. Transitioning to P11-004. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P11-005 — Implement eclipse detector using peer diversity and clustering signals |
+| Current thread | P11-004 verified: Implemented `src/consensus/selfish_mining_detector.py` establishing statistical z-score orphan rate analysis, minimum-window gating, and private branch dump detection. 60 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 398 total workspace tests passing. Transitioning to P11-005. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-004 — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate:** Complete and verified.
+  - Files: `src/consensus/selfish_mining_detector.py`, `test/consensus/test_selfish_mining_detector.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 60 tests passed in 0.569s; full multi-layer regression battery passing with 398 total tests.
+  - Results: Delivered `SelfishMiningDetector` evaluating orphan rates against binomial distribution baselines via z-score tests, enforcing minimum-window suppression, detecting strategic lead block withholding and private release dumps, and classifying threats into SUSPECTED and CRITICAL_ATTACK.
 
 - **P11-003 — Implement PoW/PoS concentration tracker with warning/critical thresholds:** Complete and verified.
   - Files: `src/consensus/concentration_tracker.py`, `test/consensus/test_concentration_tracker.py`
@@ -955,18 +960,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-004 — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate.
+- **Active task:** P11-005 — Implement eclipse detector using peer diversity and clustering signals.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Implement selfish mining detector (`src/consensus/selfish_mining_detector.py`) tracking block production sequences, orphan rates, lead-block release patterns, and miner private branch retention; compute statistical z-score and Poisson anomaly tests comparing observed orphan rates against baseline expectations; emit selfish-mining alerts with perpetrator identification.
-- **Out of scope:** Eclipse detector (P11-005) and consensus MCP tools (P11-006).
-- **Dependencies:** P11-001, P11-002, and P11-003 complete; `src/consensus/reorg_monitor.py`, `src/consensus/concentration_tracker.py`.
-- **Security constraints:** Robust statistical bounds; zero false positives during normal transient network latency spikes; fail-closed anomaly alerts on private branch dumps.
+- **Scope:** Implement P2P eclipse attack detector (`src/consensus/eclipse_detector.py`) evaluating peer diversity signals, ASN concentration ratios, IP /24 and /48 subnet clustering, connection churn rates, and unsolicited peer flood patterns; trigger eclipse warnings and critical alerts when peer table concentration indicates adversarial peer monopolization.
+- **Out of scope:** Consensus MCP tool registration (P11-006) and graph enrichment (P11-007).
+- **Dependencies:** P11-001 complete; `src/consensus/p2p_listener.py`.
+- **Security constraints:** Multi-homed diversity metrics; zero false alarms on single-datacenter testnets with explicit allowlists; fail-closed anomaly alerts on IP/ASN monopolization.
 
 ## Subsequent task queue
 
-1. `P11-005` — Implement eclipse detector using peer diversity and clustering signals.
-2. `P11-006` — Register consensus-monitor MCP functions.
-3. `P11-007` — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings.
+1. `P11-006` — Register consensus-monitor MCP functions.
+2. `P11-007` — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings.
+3. `P11-008` — Route actionable consensus findings through AVS before Phase 9 mitigation.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
