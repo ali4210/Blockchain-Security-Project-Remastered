@@ -4066,3 +4066,36 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (377 total workspace tests passing).
+
+## P10C-GATE — Phase 10 completion gate verification
+
+**Status:** Verified
+
+**Purpose**
+
+Formal completion gate verification sealing Phase 10 (Zone 5: Digital Forensics & Evidence Integrity).
+
+**Scope and limitations**
+
+- Entire forensics pipeline in `src/forensics/` and middleware in `src/mcp_middleware/agent_g_guardrail.py`.
+
+- Test suites in `test/forensics/`, `test/mitigation/`, `test/mcp_middleware/`, and `test/hardhat/`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 50 forensics unit tests pass in 0.030s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (377 total workspace tests passing).
