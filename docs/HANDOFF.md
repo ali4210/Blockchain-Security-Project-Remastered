@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-003 — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration |
-| Current thread | P12-002 verified: Implemented `src/wallet/shamir_engine.py` delivering Galois prime-field secret splitting, Lagrange interpolation reconstruction, share checksum verification, and in-memory buffer zeroing. 7 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 444 total workspace tests passing. Transitioning to P12-003. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-004 — Implement HSM signing interface with no raw-key-export path |
+| Current thread | P12-003 verified: Implemented `src/wallet/hsm_emulator.py` delivering PKCS#11 slot isolation, PIN-locked authentication, non-exportable KeyHandle management, and deterministic ECDSA secp256k1 signing for Gnosis Safe integration. 12 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 449 total workspace tests passing. Transitioning to P12-004. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-003 — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration:** Complete and verified.
+  - Files: `src/wallet/hsm_emulator.py`, `test/wallet/test_hsm_emulator.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 12 tests passed in 0.212s; full multi-layer regression battery passing with 449 total tests.
+  - Results: Delivered `HsmEmulator` implementing PKCS#11 slot management, user/SO PIN authentication, 3-strike brute-force lockout, non-exportable `KeyHandle` abstraction, and deterministic RFC 6979 ECDSA secp256k1 signing over 32-byte transaction digests with canonical low-s BIP-146 compliance; verified complete absence of raw private key export interfaces.
 
 - **P12-002 — Implement/wrap audited Shamir share creation/reconstruction integration:** Complete and verified.
   - Files: `src/wallet/shamir_engine.py`, `test/wallet/test_shamir_engine.py`
@@ -1015,18 +1020,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-003 — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration.
+- **Active task:** P12-004 — Implement HSM signing interface with no raw-key-export path.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Provision and integrate a test-safe Hardware Security Module (HSM) emulator / mock PKCS#11 interface (`src/wallet/hsm_emulator.py`) for Gnosis Safe multisig signers: implement isolated key generation within the module boundary, token authentication with PIN/credentials, key slot isolation, and cryptographic signing without exposing private keys.
-- **Out of scope:** Non-exportable signing interface validation (P12-004) and MPC cluster (P12-005).
-- **Dependencies:** P12-001 and P12-002 complete; `src/wallet/shamir_engine.py`.
-- **Security constraints:** Non-exportable private key invariant; strictly isolated enclave memory; audit logging on all signing requests.
+- **Scope:** Implement `src/wallet/hsm_signer_interface.py` and unit tests in `test/wallet/test_hsm_signer_interface.py`: formalize the Gnosis Safe multi-sig signer adapter wrapping `HsmEmulator`; enforce rigorous verification that no caller can serialize, dump, inspect, or export raw private keys; provide typed Gnosis Safe transaction signing helpers and signature aggregation wrappers.
+- **Out of scope:** MPC relayer cluster setup (P12-005).
+- **Dependencies:** P12-001 through P12-003 complete; `src/wallet/hsm_emulator.py`.
+- **Security constraints:** Zero raw-key-export invariant; strictly typed transaction digest binding; fail-closed authentication.
 
 ## Subsequent task queue
 
-1. `P12-004` — Implement HSM signing interface with no raw-key-export path.
-2. `P12-005` — Provision MPC/stand-in across at least two replicas for relayer key operations.
-3. `P12-006` — Implement joint-signature relayer interface and prove no replica retains complete key material.
+1. `P12-005` — Provision MPC/stand-in across at least two replicas for relayer key operations.
+2. `P12-006` — Implement joint-signature relayer interface and prove no replica retains complete key material.
+3. `P12-007` — Implement mandatory Anvil pre-sign simulation for relayer transactions.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
