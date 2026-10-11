@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 10 Complete (Sealed) -> Transitioning to Phase 11 |
-| Current task | PHASE-11 — Phase 11 initiation and planning |
-| Current thread | Phase 10 (Zone 5: Digital forensics and evidence integrity) formally completed and sealed at P10C-GATE. All subphases verified: 10a (Integrity foundation), 10b (Policy & safety), 10c (Acquisition pipeline). Full test battery green: 50 forensics tests, 26 mitigation tests, 26 MCP tests, 85 Hardhat tests, strict manifest ingestion valid, and 377 total workspace tests passing. Ready for Phase 11 initiation. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
+| Current task | P11-002 — Implement reorganization monitor using chain finality-depth configuration |
+| Current thread | P11-001 verified: Implemented `src/consensus/p2p_listener.py` establishing P2P network telemetry, mempool propagation delay calculation, peer topology diversity analysis, and block arrival delta capture. 44 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 382 total workspace tests passing. Transitioning to P11-002. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-001 — Implement P2P/indexer listener for propagation timing, peer topology, and mempool activity:** Complete and verified.
+  - Files: `src/consensus/p2p_listener.py`, `test/consensus/test_p2p_listener.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 44 tests passed in 0.563s; full multi-layer regression battery passing with 382 total tests.
+  - Results: Delivered `ConsensusNetworkListener` providing structured mempool transaction ingestion with propagation delay computation, peer topology tracking with IPv4 `/24` and IPv6 `/48` subnet grouping, ASN concentration metrics, and block propagation arrival delta monitoring.
 
 - **P10C-GATE — Phase 10 completion gate verification:** Complete and verified.
   - Files: Entire `src/forensics/` and `test/forensics/` pipeline.
@@ -940,16 +945,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** PHASE-11 — Phase 11 initiation, scoping, and task breakdown.
-- **Current phase:** Phase 11 Initiation.
-- **Scope:** Review architectural requirements for Phase 11, establish checklist rows, and define the first execution sprint.
-- **Out of scope:** Direct code changes before scoping review.
-- **Dependencies:** Phase 10 fully sealed and passing all regressions (377 total tests passing).
-- **Security constraints:** Adhere to immutable custody boundaries and zero-trust agent constraints established across Zones 1 through 5.
+- **Active task:** P11-002 — Implement reorganization monitor using chain finality-depth configuration.
+- **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
+- **Scope:** Implement chain reorganization monitor (`src/consensus/reorg_monitor.py`) tracking block headers, parent pointer lineages, fork depths, and reorg events; configure network-specific finality depth thresholds (e.g. 12-block proof-of-work, 32-slot proof-of-stake epoch boundaries); detect shallow micro-forks versus critical deep reorg anomalies; emit structured reorg alerts with common ancestor identification and orphaned block lists.
+- **Out of scope:** PoW/PoS concentration tracker (P11-003) and selfish mining detector (P11-004).
+- **Dependencies:** P11-001 complete; `src/consensus/p2p_listener.py`.
+- **Security constraints:** Deterministic parent link traversal; fail-closed handling on non-contiguous block lineages; zero false negatives on deep reorgs.
 
 ## Subsequent task queue
 
-1. `P11-001` — Phase 11 initial sprint execution.
+1. `P11-003` — Implement PoW/PoS concentration tracker with warning/critical thresholds.
+2. `P11-004` — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate.
+3. `P11-005` — Implement eclipse detector using peer diversity and clustering signals.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
