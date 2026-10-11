@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-007 — Implement mandatory Anvil pre-sign simulation for relayer transactions |
-| Current thread | P12-006 verified: Implemented `src/wallet/mpc_joint_signer.py` delivering 2-party distributed ECDSA signing over additive shares, canonical 65-byte packed signature output, and mathematical proof of non-retention across replicas. 23 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 460 total workspace tests passing. Transitioning to P12-007. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-008 — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules |
+| Current thread | P12-007 verified: Implemented `src/wallet/presign_simulator.py` delivering mandatory pre-sign simulation gating, revert detection, unauthorized recipient blocking, and balance drain caps. 28 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 465 total workspace tests passing. Transitioning to P12-008. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-007 — Implement mandatory Anvil pre-sign simulation for relayer transactions:** Complete and verified.
+  - Files: `src/wallet/presign_simulator.py`, `test/wallet/test_presign_simulator.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 28 tests passed in 1.168s; full multi-layer regression battery passing with 465 total tests.
+  - Results: Delivered `PresignSimulator` establishing mandatory pre-sign transaction simulation gating before authorizing HSM or MPC signing; enforced fail-closed validation over execution reverts, unauthorized recipient addresses, maximum balance drainage caps, and gas limits; generated deterministic `SimulationReceipt` cryptographic bindings.
 
 - **P12-006 — Implement joint-signature relayer interface and prove no replica retains complete key material:** Complete and verified.
   - Files: `src/wallet/mpc_joint_signer.py`, `test/wallet/test_mpc_joint_signer.py`
@@ -1035,18 +1040,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-007 — Implement mandatory Anvil pre-sign simulation for relayer transactions.
+- **Active task:** P12-008 — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement `src/wallet/presign_simulator.py` and unit tests in `test/wallet/test_presign_simulator.py`: integrate mandatory local Anvil execution sandbox simulation before any relayer transaction signature dispatch; enforce checks for unexpected balance drainage, unauthorized recipient changes, execution reverts, and abnormal gas consumption.
-- **Out of scope:** Wallet audit MCP tool registration (P12-008).
-- **Dependencies:** P12-001 through P12-006 complete; `src/wallet/mpc_joint_signer.py`.
-- **Security constraints:** Fail-closed simulation gating; zero signature generation if simulation reverts or breaches recipient balance barriers.
+- **Scope:** Implement `src/wallet/wallet_audit_mcp.py` and unit tests in `test/wallet/test_wallet_audit_mcp.py`: register wallet-audit MCP tool exposing static analysis rules tailored for multisig/wallet contracts (signature replay, ecrecover zero-address return, arbitrary target execution, missing nonce tracking, and delegatecall hijacking); validate schema and rate limits.
+- **Out of scope:** Vulnerable wallet demo contract (P12-009) and agent integration (P12-010).
+- **Dependencies:** P12-001 through P12-007 complete; `src/wallet/presign_simulator.py`.
+- **Security constraints:** Read-only schema-validated tool contract; strict rate-limiting; structured finding serialization.
 
 ## Subsequent task queue
 
-1. `P12-008` — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules.
-2. `P12-009` — Add deliberately vulnerable demo wallet contract.
-3. `P12-010` — Update Agents A, D, and E for wallet audit, authorized PoC synthesis, and pre-sign simulation.
+1. `P12-009` — Add deliberately vulnerable demo wallet contract.
+2. `P12-010` — Update Agents A, D, and E for wallet audit, authorized PoC synthesis, and pre-sign simulation.
+3. `P12-011` — Implement wallet OPA policy for agent and operator actions.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
