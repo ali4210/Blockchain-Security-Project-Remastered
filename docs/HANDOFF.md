@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-002 — Implement/wrap audited Shamir share creation/reconstruction integration |
-| Current thread | Phase 12 initiated. P12-001 verified: Authored `docs/SHAMIR_KEY_PROCEDURE.md` establishing 3-of-5 Shamir secret sharing parameters, custodian custody matrix, ephemeral in-memory reconstruction, and zero-storage security invariants. 437 total workspace tests passing. Transitioning to P12-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-003 — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration |
+| Current thread | P12-002 verified: Implemented `src/wallet/shamir_engine.py` delivering Galois prime-field secret splitting, Lagrange interpolation reconstruction, share checksum verification, and in-memory buffer zeroing. 7 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 444 total workspace tests passing. Transitioning to P12-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-002 — Implement/wrap audited Shamir share creation/reconstruction integration:** Complete and verified.
+  - Files: `src/wallet/shamir_engine.py`, `test/wallet/test_shamir_engine.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 7 tests passed in 0.003s; full multi-layer regression battery passing with 444 total tests.
+  - Results: Delivered `ShamirSecretSharing` supporting splitting and Lagrange reconstruction of 256-bit secrets across arbitrary thresholds (k-of-n) over prime field p = 2^256 - 189; enforced SHA-256 share integrity checksums, duplicate index rejection, parameter mismatch barriers, sub-threshold failure guarantees, and in-memory buffer zeroing via `zero_buffer`.
 
 - **P12-001 — Establish evidence-signing key protection through Shamir N-of-M procedure; document reconstruction procedure without storing shares:** Complete and verified.
   - Files: `docs/SHAMIR_KEY_PROCEDURE.md`
@@ -1010,18 +1015,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-002 — Implement/wrap audited Shamir share creation/reconstruction integration.
+- **Active task:** P12-003 — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement `src/wallet/shamir_engine.py` and unit tests in `test/wallet/test_shamir_engine.py`: implement audited Shamir secret sharing splitting and reconstruction supporting arbitrary-length secrets (256-bit private keys, seeds) over a Galois prime field; enforce $k$-of-$n$ threshold validation, share integrity checks, sub-threshold failure guarantees, and in-memory zeroing of plaintext secret buffers.
-- **Out of scope:** HSM provisioning (P12-003) and MPC relayer setup (P12-005).
-- **Dependencies:** P12-001 complete; `docs/SHAMIR_KEY_PROCEDURE.md`.
-- **Security constraints:** Zero disk persistence; cryptographic zero-fill upon completion; constant-time / safe interpolation; strict sub-threshold rejection.
+- **Scope:** Provision and integrate a test-safe Hardware Security Module (HSM) emulator / mock PKCS#11 interface (`src/wallet/hsm_emulator.py`) for Gnosis Safe multisig signers: implement isolated key generation within the module boundary, token authentication with PIN/credentials, key slot isolation, and cryptographic signing without exposing private keys.
+- **Out of scope:** Non-exportable signing interface validation (P12-004) and MPC cluster (P12-005).
+- **Dependencies:** P12-001 and P12-002 complete; `src/wallet/shamir_engine.py`.
+- **Security constraints:** Non-exportable private key invariant; strictly isolated enclave memory; audit logging on all signing requests.
 
 ## Subsequent task queue
 
-1. `P12-003` — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration.
-2. `P12-004` — Implement HSM signing interface with no raw-key-export path.
-3. `P12-005` — Provision MPC/stand-in across at least two replicas for relayer key operations.
+1. `P12-004` — Implement HSM signing interface with no raw-key-export path.
+2. `P12-005` — Provision MPC/stand-in across at least two replicas for relayer key operations.
+3. `P12-006` — Implement joint-signature relayer interface and prove no replica retains complete key material.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

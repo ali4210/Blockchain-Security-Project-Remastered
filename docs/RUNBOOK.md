@@ -4518,3 +4518,39 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
 ./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+## P12-002 — Shamir secret sharing engine validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate threshold secret splitting and Lagrange interpolation reconstruction over a safe 256-bit Galois prime field.
+
+**Scope and limitations**
+
+- Mathematical engine in `src/wallet/shamir_engine.py`.
+
+- Unit tests in `test/wallet/test_shamir_engine.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 7 wallet unit tests pass in 0.003s.
+- 99 consensus unit tests pass in 0.569s.
+- 50 forensics unit tests pass in 0.027s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (444 total workspace tests passing).
