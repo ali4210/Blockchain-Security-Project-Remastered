@@ -4451,3 +4451,36 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (434 total workspace tests passing).
+
+## P11-011 — Consensus attack drill scenario validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate end-to-end consensus attack drills for concentration cartels, selfish mining, and hallucinated alert rejection.
+
+**Scope and limitations**
+
+- Drill scenario test suite in `test/consensus/test_drill_scenarios.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 99 consensus unit tests pass in 0.565s.
+- 50 forensics unit tests pass in 0.030s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (437 total workspace tests passing).
