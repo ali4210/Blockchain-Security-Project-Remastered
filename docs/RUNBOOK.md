@@ -4779,3 +4779,42 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (471 total workspace tests passing).
+
+## P12-009 — Vulnerable wallet demo contract fixture validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate deliberately vulnerable wallet fixture detection across RULE-WLT-001 through 005 and manifest isolation.
+
+**Scope and limitations**
+
+- Fixture contract in `test/wallet/fixtures/VulnerableWallet.sol`.
+
+- Comment stripping parser in `src/wallet/wallet_audit_mcp.py`.
+
+- Unit tests in `test/wallet/test_vulnerable_wallet_fixture.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 35 wallet unit tests pass in 1.252s.
+- 99 consensus unit tests pass in 0.586s.
+- 50 forensics unit tests pass in 0.030s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- 85 Hardhat regression tests pass (472 total workspace tests passing).

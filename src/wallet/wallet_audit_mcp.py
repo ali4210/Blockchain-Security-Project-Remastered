@@ -51,17 +51,23 @@ class TokenBucketRateLimiter:
         return False
 
 
+def _strip_solidity_comments(source: str) -> str:
+    """Removes single-line and multi-line comments so comments do not alter AST/regex checks."""
+    no_block = re.sub(r"/\*[\s\S]*?\*/", "", source)
+    return re.sub(r"//.*", "", no_block)
+
+
 class WalletAuditRuleEngine:
     """Evaluates wallet source code against specialized static analysis rules."""
 
     @classmethod
-    def scan_source(cls, source_code: str) -> List[WalletAuditFinding]:
+    def scan_source(cls, raw_source_code: str) -> List[WalletAuditFinding]:
         findings: List[WalletAuditFinding] = []
+        code = _strip_solidity_comments(raw_source_code)
 
         # RULE-WLT-001: Signature Replay / Missing Nonce Tracking
-        # Triggers if signature recovery exists (ecrecover or ECDSA.recover) but no nonce tracking is present
-        has_sig_recovery = bool(re.search(r"\b(ecrecover|ECDSA\.recover)\b", source_code))
-        has_nonce_tracking = bool(re.search(r"\b(nonces?(\[|\+\+|\+=)|nonce\s*\+\+|nonce\s*=\s*nonce\s*\+\s*1)\b", source_code, re.IGNORECASE))
+        has_sig_recovery = bool(re.search(r"\b(ecrecover|ECDSA\.recover)\b", code))
+        has_nonce_tracking = bool(re.search(r"\b(nonces?(\[|\+\+|\+=)|nonce\s*\+\+|nonce\s*=\s*nonce\s*\+\s*1)\b", code, re.IGNORECASE))
         if has_sig_recovery and not has_nonce_tracking:
             findings.append(
                 WalletAuditFinding(
@@ -75,9 +81,8 @@ class WalletAuditRuleEngine:
             )
 
         # RULE-WLT-002: Unvalidated Zero-Address ecrecover Return
-        # Raw ecrecover used without checking != address(0)
-        has_raw_ecrecover = bool(re.search(r"\becrecover\s*\(", source_code))
-        has_zero_check = bool(re.search(r"!=\s*address\(0\)|address\(0\)\s*!=", source_code))
+        has_raw_ecrecover = bool(re.search(r"\becrecover\s*\(", code))
+        has_zero_check = bool(re.search(r"!=\s*address\(0\)|address\(0\)\s*!=", code))
         if has_raw_ecrecover and not has_zero_check:
             findings.append(
                 WalletAuditFinding(
@@ -91,8 +96,7 @@ class WalletAuditRuleEngine:
             )
 
         # RULE-WLT-003: Arbitrary Delegatecall Hijacking
-        # Triggered when delegatecall is executed
-        delegate_match = re.search(r"\.delegatecall\s*\(", source_code)
+        delegate_match = re.search(r"\.delegatecall\s*\(", code)
         if delegate_match:
             findings.append(
                 WalletAuditFinding(
@@ -106,8 +110,8 @@ class WalletAuditRuleEngine:
             )
 
         # RULE-WLT-004: Missing Reentrancy Protection in Multi-Send
-        multi_match = re.search(r"function\s+(multiSend|executeBatch)\b", source_code)
-        if multi_match and "nonReentrant" not in source_code:
+        multi_match = re.search(r"function\s+(multiSend|executeBatch)\b", code)
+        if multi_match and "nonReentrant" not in code:
             findings.append(
                 WalletAuditFinding(
                     rule_id="RULE-WLT-004",
@@ -120,8 +124,7 @@ class WalletAuditRuleEngine:
             )
 
         # RULE-WLT-005: Raw ecrecover Malleability (Low-s omission)
-        # Only flags if raw ecrecover is used (OpenZeppelin ECDSA.recover is safe)
-        if has_raw_ecrecover and not bool(re.search(r"s\s*<=\s*0x7FFFFFFF|s\s*<=\s*_N", source_code)):
+        if has_raw_ecrecover and not bool(re.search(r"s\s*<=\s*0x7FFFFFFF|s\s*<=\s*_N", code)):
             findings.append(
                 WalletAuditFinding(
                     rule_id="RULE-WLT-005",
