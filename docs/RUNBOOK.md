@@ -3971,3 +3971,34 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (365 total workspace tests passing).
+
+## P10C-001 — Volatility-ordered evidence collector validation
+
+**Status:** Verified
+
+**Purpose**
+
+Enforce RFC 3227 Order of Volatility evidence acquisition, operator-only authority, and automatic write-once vault sealing.
+
+**Scope and limitations**
+
+- Collector module in `src/forensics/collector.py`.
+
+- Unit tests in `test/forensics/test_evidence_collector.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 41 forensics unit tests pass in 0.018s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (368 total workspace tests passing).

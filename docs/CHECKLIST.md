@@ -1151,7 +1151,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P10C-001 | Implement authorized memory, network, disk, log, and pipeline-state acquisition in RFC 3227 order. | ⬜ | — |
+| P10C-001 | Implement volatility-ordered evidence collector (memory, network, disk, logs). | ✅ | Complete and verified 2026-10-11: Implemented `src/forensics/collector.py` providing `VolatilityEvidenceCollector` executing RFC 3227 Order of Volatility sequencing (MEMORY -> NETWORK -> DISK -> LOGS), soc-operator authority enforcement, automatic write-once vault sealing, and append-only custody chain linking; 41 forensics tests passing in `test/forensics/test_evidence_collector.py` and regression suites, 26 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 368 total workspace tests passing. |
 | P10C-002 | Add container/Kubernetes collectors. | ⬜ | — |
 | P10C-003 | Add pipeline-state collector: CI logs/artifacts, WAL, AST, PoC, CVL, AVS attestations. | ⬜ | — |
 | P10C-004 | Add authorized on-chain collection: transactions, receipts, traces, state differences, pinned block range. | ⬜ | — |
