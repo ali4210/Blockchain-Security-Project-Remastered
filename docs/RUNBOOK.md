@@ -4861,3 +4861,44 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass in 0.105s.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (476 total workspace tests passing).
+
+## P12-011 — Wallet OPA policy and evaluation engine validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate wallet OPA Rego policy rules, role-based boundary enforcement, and token evaluation.
+
+**Scope and limitations**
+
+- OPA Rego policy in `policies/wallet_policy.rego`.
+
+- Evaluation wrapper in `src/wallet/wallet_policy.py`.
+
+- Unit tests in `test/wallet/test_wallet_policy.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 48 wallet unit tests pass in 1.258s.
+- 42 agent unit tests pass.
+- 99 consensus unit tests pass in 0.569s.
+- 50 forensics unit tests pass in 0.040s.
+- 26 mitigation unit tests pass in 0.149s.
+- 26 MCP middleware unit tests pass in 0.105s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (484 total workspace tests passing).

@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-011 — Implement wallet OPA policy for agent and operator actions |
-| Current thread | P12-010 verified: Updated Agents A, D, and E for Zone 7 wallet audit, authorized PoC synthesis, and mandatory pre-sign simulation gating with backward-compatible LangGraph aliases. 40 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 476 total workspace tests passing. Transitioning to P12-011. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-012 — Test agent denial for Shamir reconstruction and HSM signing |
+| Current thread | P12-011 verified: Implemented `policies/wallet_policy.rego` and `src/wallet/wallet_policy.py` delivering Zone 7 OPA access control, autonomous agent key operation denial, and bearer token evaluation. 48 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 484 total workspace tests passing. Transitioning to P12-012. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-011 — Implement wallet OPA policy for agent and operator actions:** Complete and verified.
+  - Files: `policies/wallet_policy.rego`, `src/wallet/wallet_policy.py`, `test/wallet/test_wallet_policy.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 48 tests passed in 1.258s; full multi-layer regression battery passing with 484 total tests.
+  - Results: Delivered Open Policy Agent Rego policy (`wallet.authz`) and Python evaluation engine `WalletPolicyEvaluator`; verified that autonomous agents are restricted to read/audit/simulate actions and strictly blocked from key export, Shamir reconstruction, and HSM signing; enforced token validity and expiration for human operator actions with fail-closed defaults.
 
 - **P12-010 — Update Agents A, D, and E for wallet audit, authorized PoC synthesis, and pre-sign simulation:** Complete and verified.
   - Files: `src/agents/agent_a_auditor.py`, `src/agents/agent_d_red_teamer.py`, `src/agents/agent_e_incident_commander.py`, `test/wallet/test_wallet_agent_integrations.py`
@@ -1055,18 +1060,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-011 — Implement wallet OPA policy for agent and operator actions.
+- **Active task:** P12-012 — Test agent denial for Shamir reconstruction and HSM signing.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement Open Policy Agent (OPA) Rego policy in `policies/wallet_policy.rego` and Python evaluation wrapper in `src/wallet/wallet_policy.py`: enforce strict RBAC boundaries where agents are permitted read/audit/simulate operations but strictly denied raw key exports, Shamir share reconstruction, and unverified relayer broadcasts; operators allowed with valid MFA/time-bounded tokens.
-- **Out of scope:** Negative regression denial testing suite (P12-012) and key compromise drill (P12-013).
-- **Dependencies:** P12-001 through P12-010 complete; `src/wallet/hsm_signer_interface.py`, `src/wallet/shamir_engine.py`.
-- **Security constraints:** Zero autonomous key reconstruction; universal deny for non-operator mutation.
+- **Scope:** Implement exhaustive negative security tests verifying that autonomous agents (Agents A-G) are strictly denied from triggering Shamir share reconstruction and HSM signing across both direct engine APIs and policy middleware gates; assert zero secret leakage and deterministic denial logging.
+- **Out of scope:** Key compromise drill (P12-013) and final runbook validation (P12-014).
+- **Dependencies:** P12-001 through P12-011 complete; `src/wallet/wallet_policy.py`, `src/wallet/shamir_engine.py`, `src/wallet/hsm_signer_interface.py`.
+- **Security constraints:** Assert universal fail-closed behavior on all agent signing and share reconstruction invocations.
 
 ## Subsequent task queue
 
-1. `P12-012` — Test agent denial for Shamir reconstruction and HSM signing.
-2. `P12-013` — Drill: relayer key compromise attempt with simulation alert.
-3. `P12-014` — Multi-day runbook validation and final Phase 12 sign-off.
+1. `P12-013` — Drill: relayer key compromise attempt with simulation alert.
+2. `P12-014` — Multi-day runbook validation and final Phase 12 sign-off.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
