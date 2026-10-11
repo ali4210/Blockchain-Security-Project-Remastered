@@ -4591,3 +4591,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (449 total workspace tests passing).
+
+## P12-004 — HSM signing interface validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate hardened HSM signing interface with zero raw-key-export path, Gnosis Safe transaction hashing, and sorted signature aggregation.
+
+**Scope and limitations**
+
+- Signer adapter in `src/wallet/hsm_signer_interface.py`.
+
+- Unit tests in `test/wallet/test_hsm_signer_interface.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 17 wallet unit tests pass in 0.755s.
+- 99 consensus unit tests pass in 0.577s.
+- 50 forensics unit tests pass in 0.030s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (454 total workspace tests passing).
