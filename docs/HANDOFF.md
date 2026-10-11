@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10c: Acquisition pipeline) |
-| Current task | P10C-003 — Implement incident report packager: evidence summaries + timeline + chain verification |
-| Current thread | P10C-002 verified: Implemented `test/forensics/test_volatility_sequence.py` and enhanced `src/forensics/collector.py` with Order of Volatility validation, asserting sequence integrity, inversion rejections, monotonic timestamps, and read-only custody chaining. 46 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 373 total workspace tests passing. Transitioning to P10C-003. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P10C-GATE — Phase 10 completion gate verification |
+| Current thread | P10C-003 verified: Implemented `src/forensics/report_packager.py` and enhanced `src/forensics/hasher.py` compiling forensic evidence bundles, RFC 6962 Merkle tree roots, chronological custody timelines, and HMAC-SHA256 human-authoritative signing by `soc-operator`. 50 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 377 total workspace tests passing. Transitioning to P10C-GATE. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P10C-003 — Implement incident report packager: evidence summaries + timeline + chain verification:** Complete and verified.
+  - Files: `src/forensics/hasher.py`, `src/forensics/report_packager.py`, `test/forensics/test_report_packager.py`
+  - Validation: `python3 -m unittest discover -s test/forensics/ -p "test_*.py"` -> 50 tests passed in 0.028s; full multi-layer regression battery passing with 377 total tests.
+  - Results: Delivered `IncidentReportPackager` compiling Order of Volatility summaries, dual streaming SHA-256/SHA-512 digests, RFC 6962 Merkle tree root calculation, chronological chain of custody timelines, and tamper-evident HMAC-SHA256 signing by `soc-operator` with full verification methods.
 
 - **P10C-002 — Test volatile-first collection sequence:** Complete and verified.
   - Files: `src/forensics/collector.py`, `test/forensics/test_volatility_sequence.py`
@@ -930,16 +935,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P10C-003 — Implement incident report packager: evidence summaries + timeline + chain verification.
+- **Active task:** P10C-GATE — Phase 10 completion gate verification.
 - **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10c: Acquisition pipeline).
-- **Scope:** Implement the forensic incident report packager (`src/forensics/report_packager.py`) generating a comprehensive, tamper-evident post-incident report bundling: 1) incident metadata and severity, 2) Order of Volatility evidence collection summaries, 3) chronological chain of custody timeline, 4) Merkle root and dual streaming hash verification proofs, and 5) HMAC-SHA256 human-authoritative cryptographic signing by `soc-operator`.
-- **Out of scope:** Phase 10 completion gate (P10C-GATE).
-- **Dependencies:** P10C-001 and P10C-002 complete; `src/forensics/collector.py`, `src/forensics/evidence_db.py`, `src/forensics/vault.py`.
-- **Security constraints:** Deterministic report JSON rendering; zero missing chain verifications; HMAC-SHA256 authoritative signing by soc-operator.
+- **Scope:** Execute end-to-end verification gate for Phase 10 across all 3 subphases (10a Integrity foundation, 10b Policy & safety, 10c Acquisition pipeline); run full workspace test battery (Forensics, Mitigation, MCP, Ingestion, Hardhat), verify all 10 checklist rows are complete and documented, and seal Phase 10.
+- **Out of scope:** Phase 11 initiation.
+- **Dependencies:** All Phase 10 tasks complete (P10A-001 through P10A-003, P10B-001 through P10B-004, P10C-001 through P10C-003).
+- **Security constraints:** Zero broken regressions; 100% test pass rate across all layers; clean git working tree.
 
 ## Subsequent task queue
 
-1. `P10C-GATE` — Phase 10 completion gate.
+1. `PHASE-11` — Phase 11 initiation and planning.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

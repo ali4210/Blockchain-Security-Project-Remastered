@@ -4033,3 +4033,36 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (373 total workspace tests passing).
+
+## P10C-003 — Forensic incident report packager validation
+
+**Status:** Verified
+
+**Purpose**
+
+Compile Order of Volatility evidence items, RFC 6962 Merkle tree roots, custody timelines, and HMAC-SHA256 human-authoritative signing by soc-operator.
+
+**Scope and limitations**
+
+- Packager module in `src/forensics/report_packager.py`.
+
+- Hasher module in `src/forensics/hasher.py`.
+
+- Unit tests in `test/forensics/test_report_packager.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 50 forensics unit tests pass in 0.028s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (377 total workspace tests passing).
