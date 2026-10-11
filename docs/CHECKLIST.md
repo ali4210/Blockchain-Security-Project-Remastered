@@ -1210,7 +1210,7 @@ resolve to the same full SHA.
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
 | P11-001 | Implement P2P/indexer listener for propagation timing, peer topology, and mempool activity. | ✅ | Complete and verified 2026-10-11: Implemented `src/consensus/p2p_listener.py` providing `ConsensusNetworkListener` for mempool transaction ingestion, propagation delay calculation, peer topology tracking with IPv4/IPv6 subnet aggregation, ASN distribution metrics, and block arrival delta capture; 44 consensus tests passing in `test/consensus/`, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 382 total workspace tests passing. |
-| P11-002 | Implement reorganization monitor using chain finality-depth configuration. | ⬜ | — |
+| P11-002 | Implement reorganization monitor using chain finality-depth configuration. | ✅ | Complete and verified 2026-10-11: Implemented `src/consensus/reorg_monitor.py` providing `ChainReorgMonitor` tracking canonical block lineages, common ancestor computation, and reorg depth severity classification (MICRO_FORK, SHALLOW_REORG, DEEP_REORG_ANOMALY, CRITICAL_FINALITY_VIOLATION); 49 consensus tests passing in `test/consensus/`, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 387 total workspace tests passing. |
 | P11-003 | Implement PoW/PoS concentration tracker with warning/critical thresholds. | ⬜ | — |
 | P11-004 | Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate. | ⬜ | — |
 | P11-005 | Implement eclipse detector using peer diversity and clustering signals. | ⬜ | — |

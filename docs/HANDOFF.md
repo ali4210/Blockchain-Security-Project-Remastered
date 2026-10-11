@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-002 — Implement reorganization monitor using chain finality-depth configuration |
-| Current thread | P11-001 verified: Implemented `src/consensus/p2p_listener.py` establishing P2P network telemetry, mempool propagation delay calculation, peer topology diversity analysis, and block arrival delta capture. 44 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 382 total workspace tests passing. Transitioning to P11-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P11-003 — Implement PoW/PoS concentration tracker with warning/critical thresholds |
+| Current thread | P11-002 verified: Implemented `src/consensus/reorg_monitor.py` establishing chain reorganization monitoring, common ancestor tracking, and finality depth anomaly classification. 49 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 387 total workspace tests passing. Transitioning to P11-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-002 — Implement reorganization monitor using chain finality-depth configuration:** Complete and verified.
+  - Files: `src/consensus/reorg_monitor.py`, `test/consensus/test_reorg_monitor.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 49 tests passed in 0.566s; full multi-layer regression battery passing with 387 total tests.
+  - Results: Delivered `ChainReorgMonitor` tracking canonical block lineages, evaluating reorganization depths against configurable finality depth, classifying reorg severity (MICRO_FORK, SHALLOW_REORG, DEEP_REORG_ANOMALY, CRITICAL_FINALITY_VIOLATION), identifying common ancestors, and capturing orphaned block collections.
 
 - **P11-001 — Implement P2P/indexer listener for propagation timing, peer topology, and mempool activity:** Complete and verified.
   - Files: `src/consensus/p2p_listener.py`, `test/consensus/test_p2p_listener.py`
@@ -945,18 +950,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-002 — Implement reorganization monitor using chain finality-depth configuration.
+- **Active task:** P11-003 — Implement PoW/PoS concentration tracker with warning/critical thresholds.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Implement chain reorganization monitor (`src/consensus/reorg_monitor.py`) tracking block headers, parent pointer lineages, fork depths, and reorg events; configure network-specific finality depth thresholds (e.g. 12-block proof-of-work, 32-slot proof-of-stake epoch boundaries); detect shallow micro-forks versus critical deep reorg anomalies; emit structured reorg alerts with common ancestor identification and orphaned block lists.
-- **Out of scope:** PoW/PoS concentration tracker (P11-003) and selfish mining detector (P11-004).
-- **Dependencies:** P11-001 complete; `src/consensus/p2p_listener.py`.
-- **Security constraints:** Deterministic parent link traversal; fail-closed handling on non-contiguous block lineages; zero false negatives on deep reorgs.
+- **Scope:** Implement validator stake and miner hashpower concentration tracker (`src/consensus/concentration_tracker.py`) calculating Nakamoto coefficient, Herfindahl-Hirschman Index (HHI), and entity concentration share across sliding block and epoch windows; enforce warning (e.g. single entity > 33% / cumulative top-3 > 51%) and critical (single entity > 50%) thresholds; emit structured concentration alerts.
+- **Out of scope:** Selfish-mining detector (P11-004) and eclipse detector (P11-005).
+- **Dependencies:** P11-001 and P11-002 complete; `src/consensus/p2p_listener.py`, `src/consensus/reorg_monitor.py`.
+- **Security constraints:** Deterministic floating-point arithmetic for indices; sliding window bounds; alert generation for threshold breaches.
 
 ## Subsequent task queue
 
-1. `P11-003` — Implement PoW/PoS concentration tracker with warning/critical thresholds.
-2. `P11-004` — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate.
-3. `P11-005` — Implement eclipse detector using peer diversity and clustering signals.
+1. `P11-004` — Implement selfish-mining anomaly detector using observed versus expected orphan/stale rate.
+2. `P11-005` — Implement eclipse detector using peer diversity and clustering signals.
+3. `P11-006` — Register consensus-monitor MCP functions.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
