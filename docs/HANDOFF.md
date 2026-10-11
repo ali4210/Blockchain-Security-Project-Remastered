@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-007 — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings |
-| Current thread | P11-006 verified: Implemented `src/consensus/consensus_mcp.py` exposing 6 read-only consensus monitoring MCP endpoints with strict input schema validation. 74 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 412 total workspace tests passing. Transitioning to P11-007. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P11-008 — Route actionable consensus findings through AVS before Phase 9 mitigation |
+| Current thread | P11-007 verified: Implemented `src/consensus/graph_enricher.py` translating Zone 6 consensus alerts into typed Zone 3 graph nodes, edges, and cryptographic finding digests with AVS requirement tagging. 78 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 416 total workspace tests passing. Transitioning to P11-008. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-007 — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings:** Complete and verified.
+  - Files: `src/consensus/graph_enricher.py`, `test/consensus/test_graph_enricher.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 78 tests passed in 0.567s; full multi-layer regression battery passing with 416 total tests.
+  - Results: Delivered `ConsensusGraphEnricher` transforming consensus alerts into typed Zone 3 graph nodes (`FINDING`, `CONSENSUS_ATTACK`, `CONSENSUS_PRODUCER`, `SUSPECTED_MINER`, `NETWORK_AUTONOMOUS_SYSTEM`), structured edges (`INDICATES`, `ATTRIBUTED_TO`, `DOMINATED_BY`, `ISOLATED_BY_NETWORK`), deterministic SHA-256 finding digests, and automatic `requires_avs: true` tagging for high/critical severities.
 
 - **P11-006 — Register consensus-monitor MCP functions:** Complete and verified.
   - Files: `src/consensus/consensus_mcp.py`, `test/consensus/test_consensus_mcp.py`
@@ -970,18 +975,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-007 — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings.
+- **Active task:** P11-008 — Route actionable consensus findings through AVS before Phase 9 mitigation.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Implement consensus finding tagger and graph enricher (`src/consensus/graph_enricher.py`) that normalizes consensus alerts (Reorg, Selfish Mining, Concentration, Eclipse) into typed Zone 3 graph nodes and edges (`FINDING`, `CONSENSUS_ATTACK`, `AFFECTED_NODE`, `SUSPECTED_MINER`); bind cryptographic digests and timestamps to graph entities.
-- **Out of scope:** AVS routing (P11-008) and consensus OPA policies (P11-009).
-- **Dependencies:** P11-001 through P11-006 complete; `src/consensus/reorg_monitor.py`, `src/consensus/concentration_tracker.py`, `src/consensus/selfish_mining_detector.py`, `src/consensus/eclipse_detector.py`.
-- **Security constraints:** Deterministic graph node IDs; immutable finding digests; zero unstructured attributes.
+- **Scope:** Implement consensus finding AVS router (`src/consensus/avs_router.py`) enforcing that all HIGH and CRITICAL consensus findings (`requires_avs: true`) must obtain an aggregate multi-node BLS quorum attestation before passing to Phase 9 mitigation or egress gatekeeper; verify rejection of unverified or sub-quorum findings; preserve dual-path verification continuity.
+- **Out of scope:** Consensus OPA policy evaluator (P11-009) and Agent B/E/G updates (P11-010).
+- **Dependencies:** P11-001 through P11-007 complete; `src/consensus/graph_enricher.py`, `src/consensus/avs_gate.py`.
+- **Security constraints:** Supermajority quorum verification (2/3 + 1); replay-resistant nonces; zero unauthenticated consensus mitigations.
 
 ## Subsequent task queue
 
-1. `P11-008` — Route actionable consensus findings through AVS before Phase 9 mitigation.
-2. `P11-009` — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override.
-3. `P11-010` — Update Agents B, E, and G to consume, trigger, rate-limit, and validate the tool correctly.
+1. `P11-009` — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override.
+2. `P11-010` — Update Agents B, E, and G to consume, trigger, rate-limit, and validate the tool correctly.
+3. `P11-011` — Drill concentration/selfish-mining scenario on an authorized local test environment.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
