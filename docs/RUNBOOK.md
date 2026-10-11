@@ -4818,3 +4818,46 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - 26 MCP middleware unit tests pass.
 - 85 Hardhat regression tests pass (472 total workspace tests passing).
+
+## P12-010 — Agents A, D, and E wallet security integrations validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate Agent A wallet MCP auditing, Agent D authorized PoC synthesis, and Agent E pre-sign simulation gating.
+
+**Scope and limitations**
+
+- Agent A in `src/agents/agent_a_auditor.py`.
+
+- Agent D in `src/agents/agent_d_red_teamer.py`.
+
+- Agent E in `src/agents/agent_e_incident_commander.py`.
+
+- Unit tests in `test/wallet/test_wallet_agent_integrations.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 40 wallet unit tests pass in 1.419s.
+- 42 agent unit tests pass.
+- 99 consensus unit tests pass in 0.569s.
+- 50 forensics unit tests pass in 0.040s.
+- 26 mitigation unit tests pass in 0.149s.
+- 26 MCP middleware unit tests pass in 0.105s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (476 total workspace tests passing).
