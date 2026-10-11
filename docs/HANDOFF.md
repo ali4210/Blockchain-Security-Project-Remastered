@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | Phase 11 Complete — All tasks P11-001 through P11-012 verified |
-| Current thread | Phase 11 (Zone 6: Consensus attack detection and prevention) fully complete. P11-012 verified: Authored `docs/ZONE_6_CONSENSUS.md` and updated `docs/RUNBOOK.md` with complete architecture, detector thresholds, and operator playbooks. 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 437 total workspace tests passing. Ready for final review. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-002 — Implement/wrap audited Shamir share creation/reconstruction integration |
+| Current thread | Phase 12 initiated. P12-001 verified: Authored `docs/SHAMIR_KEY_PROCEDURE.md` establishing 3-of-5 Shamir secret sharing parameters, custodian custody matrix, ephemeral in-memory reconstruction, and zero-storage security invariants. 437 total workspace tests passing. Transitioning to P12-002. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-001 — Establish evidence-signing key protection through Shamir N-of-M procedure; document reconstruction procedure without storing shares:** Complete and verified.
+  - Files: `docs/SHAMIR_KEY_PROCEDURE.md`
+  - Validation: Full multi-layer regression battery passing with 437 total tests.
+  - Results: Delivered comprehensive cryptographic procedure in `docs/SHAMIR_KEY_PROCEDURE.md` defining 3-of-5 Shamir secret sharing threshold parameters, Galois field Lagrange interpolation, custodian distribution roles, air-gapped terminal procedures, ephemeral volatile-RAM reconstruction, zero-disk-storage invariants, and immediate memory purge via cryptographic zero-fill.
 
 - **P11-012 — Document Zone 6 architecture, attack models, detector thresholds, and operational runbooks:** Complete and verified.
   - Files: `docs/ZONE_6_CONSENSUS.md`, `docs/RUNBOOK.md`
@@ -1005,15 +1010,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** Phase 11 Complete / Final Readiness Review.
-- **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Conduct final Phase 11 validation and readiness sign-off across all 12 tasks (P11-001 through P11-012). Ensure all consensus detectors, telemetry listeners, threat graph enrichers, AVS routers, OPA policies, agent client wrappers, and documentation are committed, synchronized, and passing tests across Local, GitLab, and GitHub remotes.
-- **Out of scope:** Next major development phase roadmap until user directive.
-- **Dependencies:** All tasks P11-001 through P11-012 complete; 437 total workspace tests passing; clean working tree.
+- **Active task:** P12-002 — Implement/wrap audited Shamir share creation/reconstruction integration.
+- **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
+- **Scope:** Implement `src/wallet/shamir_engine.py` and unit tests in `test/wallet/test_shamir_engine.py`: implement audited Shamir secret sharing splitting and reconstruction supporting arbitrary-length secrets (256-bit private keys, seeds) over a Galois prime field; enforce $k$-of-$n$ threshold validation, share integrity checks, sub-threshold failure guarantees, and in-memory zeroing of plaintext secret buffers.
+- **Out of scope:** HSM provisioning (P12-003) and MPC relayer setup (P12-005).
+- **Dependencies:** P12-001 complete; `docs/SHAMIR_KEY_PROCEDURE.md`.
+- **Security constraints:** Zero disk persistence; cryptographic zero-fill upon completion; constant-time / safe interpolation; strict sub-threshold rejection.
 
 ## Subsequent task queue
 
-1. `Phase 11 Closeout` — Final readiness sign-off and retrospective.
+1. `P12-003` — Provision HSM or documented emulator for test-safe Gnosis Safe signer integration.
+2. `P12-004` — Implement HSM signing interface with no raw-key-export path.
+3. `P12-005` — Provision MPC/stand-in across at least two replicas for relayer key operations.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

@@ -1240,7 +1240,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P12-001 | Establish evidence-signing key protection through Shamir N-of-M procedure; document reconstruction procedure without storing shares. | ⬜ | — |
+| P12-001 | Establish evidence-signing key protection through Shamir N-of-M procedure; document reconstruction procedure without storing shares. | ✅ | Complete and verified 2026-10-11: Authored `docs/SHAMIR_KEY_PROCEDURE.md` formalizing 3-of-5 threshold parameters, Galois field arithmetic, custodian distribution matrix, ephemeral in-memory reconstruction, zero-disk-storage invariants, and memory-purge guarantees; 437 workspace tests passing with zero regressions. |
 | P12-002 | Implement/wrap audited Shamir share creation/reconstruction integration. | ⬜ | — |
 | P12-003 | Provision HSM or documented emulator for test-safe Gnosis Safe signer integration. | ⬜ | — |
 | P12-004 | Implement HSM signing interface with no raw-key-export path. | ⬜ | — |
