@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-009 — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override |
-| Current thread | P11-008 verified: Implemented `src/consensus/avs_router.py` establishing mandatory supermajority BLS QuorumCertificate routing for HIGH/CRITICAL consensus findings before Phase 9 mitigation handoff. 83 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 421 total workspace tests passing. Transitioning to P11-009. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P11-010 — Update Agents B, E, and G to consume, trigger, rate-limit, and validate the tool correctly |
+| Current thread | P11-009 verified: Implemented `policy/consensus_boundary.rego` and `src/consensus/consensus_policy.py` establishing OPA role boundary enforcement (agents read/correlate only; human operators mitigate/override). 90 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 428 total workspace tests passing. Transitioning to P11-010. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-009 — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override:** Complete and verified.
+  - Files: `policy/consensus_boundary.rego`, `src/consensus/consensus_policy.py`, `test/consensus/test_consensus_policy.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 90 tests passed in 0.566s; full multi-layer regression battery passing with 428 total tests.
+  - Results: Delivered `ConsensusPolicyEvaluator` and `policy/consensus_boundary.rego` establishing zero-trust access boundaries; autonomous agents are restricted strictly to read and correlation actions across consensus monitors; mitigations, peer evictions, validator slashes, and gate overrides are restricted to human SOC operators with valid credentials; compliance officers are restricted to read-only audit inspection; deny-by-default enforced.
 
 - **P11-008 — Route actionable consensus findings through AVS before Phase 9 mitigation:** Complete and verified.
   - Files: `src/consensus/avs_router.py`, `test/consensus/test_avs_router.py`
@@ -980,18 +985,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-009 — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override.
+- **Active task:** P11-010 — Update Agents B, E, and G to consume, trigger, rate-limit, and validate the tool correctly.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Implement Open Policy Agent (OPA) consensus policy module (`policy/consensus_boundary.rego` or Python evaluator `src/consensus/consensus_policy.py`) enforcing zero-trust role boundaries: autonomous agents (Agents B, E, G) are permitted read, observe, and correlate actions across Zone 6 consensus monitors, but strictly denied executing mitigation, peer eviction, validator slashes, or manual override actions; reserve mitigation and overrides exclusively to authenticated human SOC operators with valid Ed25519 tokens.
-- **Out of scope:** Agent updates (P11-010) and drill execution (P11-011).
-- **Dependencies:** P11-001 through P11-008 complete; `policy/agent_gate.rego`, `src/mitigation/role_boundary.py`.
-- **Security constraints:** Deny-by-default; zero agent bypass paths; immutable audit logging on evaluation decisions.
+- **Scope:** Integrate consensus monitoring MCP tools and policy checks into Agent B (Static Analysis & Threat Detection), Agent E (Egress Barrier & Gatekeeper), and Agent G (Incident Response Orchestrator / Remediation): implement client dispatchers, per-agent call rate limiters, schema validation guards, and policy compliance verification ensuring no agent attempts direct mitigation without routing through the operator or AVS.
+- **Out of scope:** Live drill execution (P11-011) and final documentation (P11-012).
+- **Dependencies:** P11-001 through P11-009 complete; `src/consensus/consensus_mcp.py`, `src/consensus/consensus_policy.py`, `src/consensus/avs_router.py`.
+- **Security constraints:** Strict call token bucket rate limiting; input schema sanitization; fail-closed on policy denial.
 
 ## Subsequent task queue
 
-1. `P11-010` — Update Agents B, E, and G to consume, trigger, rate-limit, and validate the tool correctly.
-2. `P11-011` — Drill concentration/selfish-mining scenario on an authorized local test environment.
-3. `P11-012` — Document Zone 6 architecture and operational runbooks.
+1. `P11-011` — Drill concentration/selfish-mining scenario on an authorized local test environment.
+2. `P11-012` — Document Zone 6 architecture and operational runbooks.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

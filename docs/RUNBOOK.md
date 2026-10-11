@@ -4379,3 +4379,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (421 total workspace tests passing).
+
+## P11-009 — Consensus OPA policy evaluator validation
+
+**Status:** Verified
+
+**Purpose**
+
+Enforce zero-trust role boundaries for Zone 6 consensus monitors, restricting mitigations to human operators.
+
+**Scope and limitations**
+
+- Rego policy in `policy/consensus_boundary.rego`.
+
+- Evaluator module in `src/consensus/consensus_policy.py`.
+
+- Unit tests in `test/consensus/test_consensus_policy.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 90 consensus unit tests pass in 0.566s.
+- 50 forensics unit tests pass in 0.026s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (428 total workspace tests passing).
