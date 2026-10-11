@@ -1142,7 +1142,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P10B-001 | Implement forensic OPA policy: agents read derived artifacts only; `soc-operator` acquires; no one alters originals. | ⬜ | — |
+| P10B-001 | Implement forensic OPA policy: agents read derived artifacts only; `soc-operator` acquires; no one alters originals. | ✅ | Complete and verified 2026-10-11: Implemented `config/opa/forensic_policy.rego` and `src/forensics/policy_evaluator.py` under package `soc.forensics` with fail-closed default-deny (`default allow = false`); enforced universal immutability prohibiting mutation/deletion for all principals, restricted agents strictly to derived/working-copy inspection, and authorized acquisition/sealing exclusively to `soc-operator`; 24 forensics tests passing in `test/forensics/test_forensic_policy.py` and regression suites, 26 mitigation tests passing, 32 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 351 total workspace tests passing. |
 | P10B-002 | Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing. | ⬜ | — |
 | P10B-003 | Test prompt-injection text is sanitized before any agent receives it. | ⬜ | — |
 | P10B-004 | Make Agent G block writes to sealed evidence paths. | ⬜ | — |

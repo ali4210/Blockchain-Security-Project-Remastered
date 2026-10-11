@@ -3847,3 +3847,36 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (345 total workspace tests passing).
+
+## P10B-001 — Forensic OPA least-privilege policy validation
+
+**Status:** Verified
+
+**Purpose**
+
+Enforce Policy-as-Code rules ensuring original evidence remains immutable, autonomous agents only read derived artifacts, and evidence acquisition is restricted exclusively to soc-operator.
+
+**Scope and limitations**
+
+- OPA Rego policy in `config/opa/forensic_policy.rego`.
+
+- Policy evaluator in `src/forensics/policy_evaluator.py`.
+
+- Unit tests in `test/forensics/test_forensic_policy.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 24 forensics unit tests pass in 0.011s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (351 total workspace tests passing).
