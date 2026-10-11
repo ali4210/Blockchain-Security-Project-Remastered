@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-012 — Document Zone 6 architecture, attack models, detector thresholds, and operational runbooks |
-| Current thread | P11-011 verified: Implemented `test/consensus/test_drill_scenarios.py` verifying concentration cartel breach, selfish mining detection, OPA mitigation blocking, supermajority AVS quorum routing, and operator mitigation handoff. 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 437 total workspace tests passing. Transitioning to P11-012 (Final Phase 11 milestone). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | Phase 11 Complete — All tasks P11-001 through P11-012 verified |
+| Current thread | Phase 11 (Zone 6: Consensus attack detection and prevention) fully complete. P11-012 verified: Authored `docs/ZONE_6_CONSENSUS.md` and updated `docs/RUNBOOK.md` with complete architecture, detector thresholds, and operator playbooks. 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 437 total workspace tests passing. Ready for final review. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,16 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-012 — Document Zone 6 architecture, attack models, detector thresholds, and operational runbooks:** Complete and verified.
+  - Files: `docs/ZONE_6_CONSENSUS.md`, `docs/RUNBOOK.md`
+  - Validation: Full multi-layer regression battery passing with 437 total tests (99 consensus tests in `test/consensus/`).
+  - Results: Delivered comprehensive architectural specifications in `docs/ZONE_6_CONSENSUS.md` covering threat models (reorgs, concentration cartels, selfish mining, P2P eclipse), mathematical detector thresholds, MCP tool contracts, BFT supermajority quorum rules, OPA role boundaries, and agent client token bucket rate limits; updated `docs/RUNBOOK.md` with operational incident response playbooks A, B, and C for human SOC operators. Phase 11 milestone achieved.
+
+- **P11-012 — Document Zone 6 architecture, attack models, detector thresholds, and operational runbooks:** Complete and verified.
+  - Files: `docs/ZONE_6_CONSENSUS.md`, `docs/RUNBOOK.md`
+  - Validation: Full multi-layer regression battery passing with 437 total tests (99 consensus tests in `test/consensus/`).
+  - Results: Delivered comprehensive architectural specifications in `docs/ZONE_6_CONSENSUS.md` covering threat models (reorgs, concentration cartels, selfish mining, P2P eclipse), mathematical detector thresholds, MCP tool contracts, BFT supermajority quorum rules, OPA role boundaries, and agent client token bucket rate limits; updated `docs/RUNBOOK.md` with operational incident response playbooks A, B, and C for human SOC operators. Phase 11 milestone achieved.
 
 - **P11-011 — Drill concentration/selfish-mining scenario on an authorized local test environment:** Complete and verified.
   - Files: `test/consensus/test_drill_scenarios.py`
@@ -995,16 +1005,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-012 — Document Zone 6 architecture, attack models, detector thresholds, and operational runbooks.
+- **Active task:** Phase 11 Complete / Final Readiness Review.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Author comprehensive Zone 6 architectural and operational documentation in `docs/ZONE_6_CONSENSUS.md` and update `docs/RUNBOOK.md`: formalize threat models (Reorgs, Concentration cartels, Selfish mining, P2P eclipse), mathematical detector thresholds and formulas, MCP tool contracts, AVS supermajority quorum validation rules, OPA role boundaries, agent client integration specifications, and incident response playbooks for human SOC operators.
-- **Out of scope:** Phase 12 roadmap or post-consensus tasks.
-- **Dependencies:** P11-001 through P11-011 complete; all Zone 6 modules, tests, policies, and drill scenarios.
-- **Security constraints:** Technical accuracy, exact mathematical threshold alignment, and adherence to zero-trust documentation standards.
+- **Scope:** Conduct final Phase 11 validation and readiness sign-off across all 12 tasks (P11-001 through P11-012). Ensure all consensus detectors, telemetry listeners, threat graph enrichers, AVS routers, OPA policies, agent client wrappers, and documentation are committed, synchronized, and passing tests across Local, GitLab, and GitHub remotes.
+- **Out of scope:** Next major development phase roadmap until user directive.
+- **Dependencies:** All tasks P11-001 through P11-012 complete; 437 total workspace tests passing; clean working tree.
 
 ## Subsequent task queue
 
-1. `Phase 11 Closeout` — Final phase review and readiness sign-off.
+1. `Phase 11 Closeout` — Final readiness sign-off and retrospective.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

@@ -4484,3 +4484,37 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (437 total workspace tests passing).
+
+## P11-012 — Zone 6 Consensus Incident Response Runbooks
+**Status:** Operational
+**Purpose**
+Establish standard operating procedures for human SOC operators responding to consensus-layer alerts.
+
+### Playbook A: Deep Chain Reorganization (D >= 3)
+1. **Triage & Detection**: Observe reorg event in `get_reorg_history(min_severity="WARNING")`.
+2. **Agent Correlation**: Agent B checks mempool telemetry to identify transactions replaced during reorg.
+3. **AVS Quorum Verification**: Ensure validator cluster has signed a valid QuorumCertificate bound to finding digest.
+4. **Mitigation Decision**: If D >= 12, human operator halts outbound mirror gates via `mirror_gatekeeper` and pauses smart contract bridges.
+5. **Evidence Packaging**: Execute report packager to seal reorg headers and block hashes into forensic evidence vault.
+
+### Playbook B: Hashpower / Stake Concentration Breach (>51%)
+1. **Triage & Detection**: Agent E flags `CRITICAL` alert via `query_network_stability()`.
+2. **Threat Graph Inspection**: Verify entity nodes in Zone 3 graph (`c6-concentration-...`).
+3. **Quorum Certification**: Route finding through `ConsensusAvsRouter` to establish multi-validator proof.
+4. **Operator Action**: SOC lead issues multi-sig advisory warning or activates circuit breaker on high-value vaults.
+
+### Playbook C: Rogue Miner Selfish Mining Detection
+1. **Triage & Detection**: Agent G queries `query_incident_consensus_context()` with suspected pool ID.
+2. **Statistical Validation**: Confirm orphan rate z-score >= 3.0 and private branch dump counter >= 1.
+3. **AVS Routing**: Verify supermajority quorum (>66.7%) agreeing on miner attribution edge.
+4. **Remediation**: Operator triggers peer ban or flags block validation delays for pool endpoint.
+
+### Full Verification Battery
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
