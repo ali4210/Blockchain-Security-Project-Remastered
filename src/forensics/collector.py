@@ -1,11 +1,11 @@
 """
-Task P10C-001: Volatility-Ordered Evidence Collector.
+Task P10C-001 / P10C-002: Volatility-Ordered Evidence Collector.
 Implements RFC 3227 compliant evidence acquisition sequencing:
 1. Volatile Memory & Process State
 2. Network State & Active Sockets
 3. Disk & Filesystem Artifacts
 4. Static System Logs & Audit Trails
-Enforces soc-operator authority and automatically seals artifacts in vault.
+Enforces soc-operator authority, strict order of volatility, and automatic vault sealing.
 """
 
 from dataclasses import dataclass
@@ -28,6 +28,7 @@ VOLATILITY_ORDER = [
 @dataclass(frozen=True)
 class AcquiredStageResult:
     stage: str
+    order_sequence: int
     evidence_id: str
     file_path: str
     byte_size: int
@@ -47,10 +48,19 @@ class VolatilityEvidenceCollector:
     ):
         self.vault = vault_manager or EvidenceVaultManager(vault_root=vault_root, db_path=db_path)
 
+    def validate_acquisition_order(self, custom_stages: List[str]) -> bool:
+        """Verifies that requested stages strictly follow the RFC 3227 Order of Volatility."""
+        if custom_stages != VOLATILITY_ORDER:
+            raise ValueError(
+                f"Order of Volatility violation: expected {VOLATILITY_ORDER}, but got {custom_stages}"
+            )
+        return True
+
     def collect_evidence_bundle(
         self,
         incident_id: str,
         operator_principal: str = "soc-operator",
+        stages: Optional[List[str]] = None,
         simulated_data: Optional[Dict[str, Any]] = None,
     ) -> List[AcquiredStageResult]:
         """Executes full RFC 3227 collection sequence strictly in order of volatility."""
@@ -59,13 +69,17 @@ class VolatilityEvidenceCollector:
                 f"Unauthorized principal '{operator_principal}'. Acquisition requires human 'soc-operator' authority."
             )
 
+        stages_to_run = stages or VOLATILITY_ORDER
+        # Validate order
+        self.validate_acquisition_order(stages_to_run)
+
         data_source = simulated_data or {}
         acquired_stages: List[AcquiredStageResult] = []
 
         with tempfile.TemporaryDirectory() as staging_dir:
             staging_path = Path(staging_dir)
 
-            for idx, stage in enumerate(VOLATILITY_ORDER, start=1):
+            for idx, stage in enumerate(stages_to_run, start=1):
                 timestamp = datetime.now(timezone.utc).isoformat()
                 evidence_id = f"ev-{incident_id}-{stage.lower()}"
 
@@ -102,6 +116,7 @@ class VolatilityEvidenceCollector:
                 acquired_stages.append(
                     AcquiredStageResult(
                         stage=stage,
+                        order_sequence=idx,
                         evidence_id=evidence_id,
                         file_path=sealed_record["file_path"],
                         byte_size=sealed_record["byte_size"],

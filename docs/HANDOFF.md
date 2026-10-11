@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10c: Acquisition pipeline) |
-| Current task | P10C-002 — Test volatile-first collection sequence |
-| Current thread | P10C-001 verified: Implemented `src/forensics/collector.py` establishing RFC 3227 Order of Volatility evidence acquisition (Memory -> Network -> Disk -> Logs), operator-only authority, and automatic write-once vault sealing. 41 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 368 total workspace tests passing. Transitioning to P10C-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P10C-003 — Implement incident report packager: evidence summaries + timeline + chain verification |
+| Current thread | P10C-002 verified: Implemented `test/forensics/test_volatility_sequence.py` and enhanced `src/forensics/collector.py` with Order of Volatility validation, asserting sequence integrity, inversion rejections, monotonic timestamps, and read-only custody chaining. 46 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 373 total workspace tests passing. Transitioning to P10C-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P10C-002 — Test volatile-first collection sequence:** Complete and verified.
+  - Files: `src/forensics/collector.py`, `test/forensics/test_volatility_sequence.py`
+  - Validation: `python3 -m unittest discover -s test/forensics/ -p "test_*.py"` -> 46 tests passed in 0.023s; full multi-layer regression battery passing with 373 total tests.
+  - Results: Delivered adversarial tests validating strict RFC 3227 acquisition sequence (MEMORY -> NETWORK -> DISK -> LOGS), sequence inversion and skipped stage rejections (`ValueError`), timestamp monotonicity across stages, and unbroken custody chaining.
 
 - **P10C-001 — Implement volatility-ordered evidence collector (memory, network, disk, logs):** Complete and verified.
   - Files: `src/forensics/collector.py`, `test/forensics/test_evidence_collector.py`
@@ -925,17 +930,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P10C-002 — Test volatile-first collection sequence.
+- **Active task:** P10C-003 — Implement incident report packager: evidence summaries + timeline + chain verification.
 - **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10c: Acquisition pipeline).
-- **Scope:** Implement adversarial and boundary testing suite (`test/forensics/test_volatility_sequence.py`) verifying that the acquisition engine strictly enforces the volatile-first sequence order, detects and rejects sequence inversions (e.g. attempting disk capture before memory/network), validates atomic collection rollbacks on partial acquisition failures, and confirms timestamp monotonicity across custody chain records.
-- **Out of scope:** Incident report packaging (P10C-003) and Phase 10 gate verification (P10C-GATE).
-- **Dependencies:** P10C-001 complete; `src/forensics/collector.py`, `src/forensics/vault.py`.
-- **Security constraints:** Strict Order of Volatility compliance; fail-closed on sequence corruption or missing volatility tiers.
+- **Scope:** Implement the forensic incident report packager (`src/forensics/report_packager.py`) generating a comprehensive, tamper-evident post-incident report bundling: 1) incident metadata and severity, 2) Order of Volatility evidence collection summaries, 3) chronological chain of custody timeline, 4) Merkle root and dual streaming hash verification proofs, and 5) HMAC-SHA256 human-authoritative cryptographic signing by `soc-operator`.
+- **Out of scope:** Phase 10 completion gate (P10C-GATE).
+- **Dependencies:** P10C-001 and P10C-002 complete; `src/forensics/collector.py`, `src/forensics/evidence_db.py`, `src/forensics/vault.py`.
+- **Security constraints:** Deterministic report JSON rendering; zero missing chain verifications; HMAC-SHA256 authoritative signing by soc-operator.
 
 ## Subsequent task queue
 
-1. `P10C-003` — Implement incident report packager: evidence summaries + timeline + chain verification.
-2. `P10C-GATE` — Phase 10 completion gate.
+1. `P10C-GATE` — Phase 10 completion gate.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
