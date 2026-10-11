@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-006 — Implement joint-signature relayer interface and prove no replica retains complete key material |
-| Current thread | P12-005 verified: Implemented `src/wallet/mpc_relayer_cluster.py` delivering 2-party additive key partitioning over secp256k1, mutual HMAC handshake authentication, joint public key point addition, and mathematical proof of key material isolation. 20 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 457 total workspace tests passing. Transitioning to P12-006. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-007 — Implement mandatory Anvil pre-sign simulation for relayer transactions |
+| Current thread | P12-006 verified: Implemented `src/wallet/mpc_joint_signer.py` delivering 2-party distributed ECDSA signing over additive shares, canonical 65-byte packed signature output, and mathematical proof of non-retention across replicas. 23 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 460 total workspace tests passing. Transitioning to P12-007. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-006 — Implement joint-signature relayer interface and prove no replica retains complete key material:** Complete and verified.
+  - Files: `src/wallet/mpc_joint_signer.py`, `test/wallet/test_mpc_joint_signer.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 23 tests passed in 1.242s; full multi-layer regression battery passing with 460 total tests.
+  - Results: Delivered `MpcJointSigner` coordinating 2-party distributed ECDSA secp256k1 signing using ephemeral nonce exchange and additive partial signature shares (s_1, s_2); produced canonical low-s 65-byte packed signatures (r || s || v) verified against cluster public key Q; verified mathematical proof that neither replica nor orchestrator ever holds or reconstructs master private key material.
 
 - **P12-005 — Provision MPC/stand-in across at least two replicas for relayer key operations:** Complete and verified.
   - Files: `src/wallet/mpc_relayer_cluster.py`, `test/wallet/test_mpc_relayer_cluster.py`
@@ -1030,18 +1035,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-006 — Implement joint-signature relayer interface and prove no replica retains complete key material.
+- **Active task:** P12-007 — Implement mandatory Anvil pre-sign simulation for relayer transactions.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement `src/wallet/mpc_joint_signer.py` and unit tests in `test/wallet/test_mpc_joint_signer.py`: implement 2-party distributed ECDSA/Schnorr joint signature protocol where replicas exchange partial signature shares (s_1, s_2) without revealing private shares; prove mathematically and via unit tests that neither replica ever reconstructs or retains full private key material.
-- **Out of scope:** Anvil pre-sign simulation (P12-007).
-- **Dependencies:** P12-001 through P12-005 complete; `src/wallet/mpc_relayer_cluster.py`.
-- **Security constraints:** Zero key reconstruction invariant; partial signature validation; deterministic canonical encoding.
+- **Scope:** Implement `src/wallet/presign_simulator.py` and unit tests in `test/wallet/test_presign_simulator.py`: integrate mandatory local Anvil execution sandbox simulation before any relayer transaction signature dispatch; enforce checks for unexpected balance drainage, unauthorized recipient changes, execution reverts, and abnormal gas consumption.
+- **Out of scope:** Wallet audit MCP tool registration (P12-008).
+- **Dependencies:** P12-001 through P12-006 complete; `src/wallet/mpc_joint_signer.py`.
+- **Security constraints:** Fail-closed simulation gating; zero signature generation if simulation reverts or breaches recipient balance barriers.
 
 ## Subsequent task queue
 
-1. `P12-007` — Implement mandatory Anvil pre-sign simulation for relayer transactions.
-2. `P12-008` — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules.
-3. `P12-009` — Add deliberately vulnerable demo wallet contract.
+1. `P12-008` — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules.
+2. `P12-009` — Add deliberately vulnerable demo wallet contract.
+3. `P12-010` — Update Agents A, D, and E for wallet audit, authorized PoC synthesis, and pre-sign simulation.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
