@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-008 — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules |
-| Current thread | P12-007 verified: Implemented `src/wallet/presign_simulator.py` delivering mandatory pre-sign simulation gating, revert detection, unauthorized recipient blocking, and balance drain caps. 28 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 465 total workspace tests passing. Transitioning to P12-008. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-009 — Add deliberately vulnerable demo wallet contract |
+| Current thread | P12-008 verified: Implemented `src/wallet/wallet_audit_mcp.py` delivering MCP wallet-audit static analysis tool, signature replay detection, zero-address check verification, delegatecall detection, package init markers, and token-bucket rate limiting. 34 wallet tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 471 total workspace tests passing. Transitioning to P12-009. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-008 — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules:** Complete and verified.
+  - Files: `src/wallet/wallet_audit_mcp.py`, `test/wallet/test_wallet_audit_mcp.py`, `test/__init__.py`, `test/wallet/__init__.py`
+  - Validation: `python3 -m unittest test.wallet.test_wallet_audit_mcp` -> 6 tests passed in 0.001s; `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 34 tests passed in 1.192s; full multi-layer regression battery passing with 471 total tests.
+  - Results: Delivered `WalletAuditMcpRegistry` exposing `audit_wallet_contract` MCP tool with static rule checking for signature replay without nonces (RULE-WLT-001), zero-address ecrecover bypass (RULE-WLT-002), arbitrary delegatecall hijacking (RULE-WLT-003), multi-send reentrancy (RULE-WLT-004), and signature malleability (RULE-WLT-005); validated schema compliance, package marker resolution, rate limiting, and quarantine gating.
 
 - **P12-007 — Implement mandatory Anvil pre-sign simulation for relayer transactions:** Complete and verified.
   - Files: `src/wallet/presign_simulator.py`, `test/wallet/test_presign_simulator.py`
@@ -1040,18 +1045,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-008 — Register wallet-audit MCP tool with wallet-specific Slither/Mythril/Certora rules.
+- **Active task:** P12-009 — Add deliberately vulnerable demo wallet contract.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement `src/wallet/wallet_audit_mcp.py` and unit tests in `test/wallet/test_wallet_audit_mcp.py`: register wallet-audit MCP tool exposing static analysis rules tailored for multisig/wallet contracts (signature replay, ecrecover zero-address return, arbitrary target execution, missing nonce tracking, and delegatecall hijacking); validate schema and rate limits.
-- **Out of scope:** Vulnerable wallet demo contract (P12-009) and agent integration (P12-010).
-- **Dependencies:** P12-001 through P12-007 complete; `src/wallet/presign_simulator.py`.
-- **Security constraints:** Read-only schema-validated tool contract; strict rate-limiting; structured finding serialization.
+- **Scope:** Add `contracts/solidity/VulnerableWallet.sol` as a dedicated audit fixture contract containing deliberate, documented wallet flaws: signature replay via omitted nonce tracking, unvalidated `ecrecover` returning zero address, and arbitrary target delegatecall execution; update manifest asset maps and compilation boundaries.
+- **Out of scope:** Agent updates (P12-010) and OPA policies (P12-011).
+- **Dependencies:** P12-001 through P12-008 complete; `src/wallet/wallet_audit_mcp.py`.
+- **Security constraints:** Fixture must be explicitly labeled `VulnerableWallet`; strictly isolated to test/demo compilation; zero production usage.
 
 ## Subsequent task queue
 
-1. `P12-009` — Add deliberately vulnerable demo wallet contract.
-2. `P12-010` — Update Agents A, D, and E for wallet audit, authorized PoC synthesis, and pre-sign simulation.
-3. `P12-011` — Implement wallet OPA policy for agent and operator actions.
+1. `P12-010` — Update Agents A, D, and E for wallet audit, authorized PoC synthesis, and pre-sign simulation.
+2. `P12-011` — Implement wallet OPA policy for agent and operator actions.
+3. `P12-012` — Test agent denial for Shamir reconstruction and HSM signing.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
