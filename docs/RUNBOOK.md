@@ -3911,3 +3911,32 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (356 total workspace tests passing).
+
+## P10B-003 — Adversarial prompt injection sanitization validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate that prompt-injection attacks, instruction overrides, and jailbreak payloads in forensic evidence artifacts are completely masked before agent consumption.
+
+**Scope and limitations**
+
+- Adversarial test suite in `test/forensics/test_prompt_injection_sanitization.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 32 forensics unit tests pass in 0.014s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (359 total workspace tests passing).

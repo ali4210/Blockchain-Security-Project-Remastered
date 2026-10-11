@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity |
-| Current task | P10B-003 — Test prompt-injection text is sanitized before any agent receives it |
-| Current thread | P10B-002 verified: Implemented `src/forensics/sanitizer.py` establishing deterministic evidence sanitization, prompt-injection pattern masking (`<MASKED_PAYLOAD>`), bounded size/depth caps, and DATA_ONLY_NO_EXECUTION framing. 29 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 356 total workspace tests passing. Transitioning to P10B-003. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P10B-004 — Make Agent G block writes to sealed evidence paths |
+| Current thread | P10B-003 verified: Implemented `test/forensics/test_prompt_injection_sanitization.py` validating that prompt-injection payloads across contract comments, calldata traces, and end-to-end sealed vault pipelines are neutralized before reaching agent context. 32 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 359 total workspace tests passing. Transitioning to P10B-004. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P10B-003 — Test prompt-injection text is sanitized before any agent receives it:** Complete and verified.
+  - Files: `test/forensics/test_prompt_injection_sanitization.py`
+  - Validation: `python3 -m unittest discover -s test/forensics/ -p "test_*.py"` -> 32 tests passed in 0.014s; full multi-layer regression battery passing with 359 total tests.
+  - Results: Delivered adversarial prompt-injection test battery validating complete masking of instruction overrides, contract comments, calldata jailbreaks, and end-to-end sealed vault working copy dispatches into DATA_ONLY_NO_EXECUTION framing without prompt leakage.
 
 - **P10B-002 — Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing:** Complete and verified.
   - Files: `src/forensics/sanitizer.py`, `test/forensics/test_evidence_sanitizer.py`
@@ -910,17 +915,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P10B-003 — Test prompt-injection text is sanitized before any agent receives it.
+- **Active task:** P10B-004 — Make Agent G block writes to sealed evidence paths.
 - **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10b: Policy and safety).
-- **Scope:** Implement adversarial prompt-injection test battery (`test/forensics/test_prompt_injection_sanitization.py`) validating end-to-end evidence pipelines against complex multi-vector jailbreak payloads (direct override strings, base64-encoded instructions, smart contract function comments, and transaction data fields); verify zero raw injection strings escape to agent-accessible working copies.
-- **Out of scope:** Agent G write-blocking guardrails (P10B-004) and Phase 10c acquisition modules.
-- **Dependencies:** P10B-001 and P10B-002 complete; `src/forensics/sanitizer.py`, `src/forensics/vault.py`.
-- **Security constraints:** Zero prompt leakage into agent context; complete token replacement with verifiable SHA-256 digests.
+- **Scope:** Enhance Agent G filesystem and mitigation guardrail middleware (`src/mcp_middleware/forensic_guardrail.py` or within Agent G tool executor) to strictly intercept and block any write, append, or mutation attempt targeting sealed evidence paths (`vault/sealed/`, `forensics.db`, or paths flagged in the evidence registry); ensure Agent G raises an immutable path violation before any tool execution occurs.
+- **Out of scope:** Phase 10c acquisition modules (P10C-001).
+- **Dependencies:** P10B-001 through P10B-003 complete; `src/forensics/vault.py`, `src/forensics/policy_evaluator.py`.
+- **Security constraints:** Zero file mutations permitted by Agent G on sealed evidence; fail-closed permission aborts.
 
 ## Subsequent task queue
 
-1. `P10B-004` — Make Agent G block writes to sealed evidence paths.
-2. `P10C-001` — Implement volatility-ordered evidence collector (memory, network, disk, logs).
+1. `P10C-001` — Implement volatility-ordered evidence collector (memory, network, disk, logs).
+2. `P10C-002` — Test volatile-first collection sequence.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
