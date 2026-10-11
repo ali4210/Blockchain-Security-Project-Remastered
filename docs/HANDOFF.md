@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity |
-| Current task | P10A-004 — Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection |
-| Current thread | P10A-003 verified: Implemented `src/forensics/vault.py` establishing write-once forensic evidence vault with read-only permissions, disk verification against `forensics.db`, and re-hashed working copy dispatches. 13 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 340 total workspace tests passing. Transitioning to P10A-004. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P10B-001 — Implement forensic OPA policy: agents read derived artifacts only; soc-operator acquires; no one alters originals |
+| Current thread | Phase 10a (Integrity core) completed and sealed (P10A-001 through P10A-004). Delivered streaming dual hasher, RFC 6962 Merkle manifests, append-only SQLite evidence database with SQL triggers and hash chaining, write-once evidence vault, and comprehensive tamper-detection regression suite. 18 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 345 total workspace tests passing. Transitioning to Phase 10b (Task P10B-001: Forensic OPA policy). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P10A-004 — Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection:** Complete and verified.
+  - Files: `test/forensics/test_integrity_tamper_regressions.py`
+  - Validation: `python3 -m unittest discover -s test/forensics/ -p "test_*.py"` -> 18 tests passed in 0.010s; full multi-layer regression battery passing with 345 total tests.
+  - Results: Delivered adversarial tamper-detection regression battery validating fail-closed integrity checks on modified sealed disk files, broken chain-of-custody hash chains, sequence gaps, and verified SQLite trigger rejections (`sqlite3.IntegrityError`) blocking all UPDATE and DELETE mutations. Phase 10a complete.
 
 - **P10A-003 — Implement write-once evidence vault: seal(), verify(), and re-hashing open_working_copy():** Complete and verified.
   - Files: `src/forensics/vault.py`, `test/forensics/test_evidence_vault.py`
@@ -895,17 +900,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P10A-004 — Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection.
-- **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity.
-- **Scope:** Implement comprehensive negative testing and tamper-detection regression suite (`test/forensics/test_integrity_tamper_regressions.py`) systematically validating: 1) sealed artifact file modification detection via `verify()`, 2) manual database modification/tampering in `chain_of_custody` detecting broken hash links and altered fields via `verify_chain_integrity()`, and 3) strict SQL trigger aborts preventing UPDATE and DELETE mutations on both tables.
-- **Out of scope:** Phase 10b forensic OPA policies and evidence sanitizers.
-- **Dependencies:** P10A-001 through P10A-003 complete; `src/forensics/vault.py`, `src/forensics/evidence_db.py`.
-- **Security constraints:** Zero false negatives on tamper detection, strict fail-closed exceptions.
+- **Active task:** P10B-001 — Implement forensic OPA policy: agents read derived artifacts only; `soc-operator` acquires; no one alters originals.
+- **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10b: Policy and safety).
+- **Scope:** Extend OPA Policy-as-Code rules (`config/opa/forensic_policy.rego`) establishing strict forensic role permissions: autonomous agents (Agents A through G) are restricted strictly to derived/sanitized working copy inspection; only human `soc-operator` can execute evidence acquisition or sealed vault registration; zero roles (including operator) can mutate or delete original sealed evidence; integrate with MCP middleware.
+- **Out of scope:** Deterministic evidence sanitizer implementation (P10B-002) and prompt injection sanitization tests (P10B-003).
+- **Dependencies:** Phase 10a complete; `config/opa/agent_policy.rego`, `src/mcp_middleware/opa_guardrail.py`.
+- **Security constraints:** Strict deny-by-default, fail-closed policy enforcement.
 
 ## Subsequent task queue
 
-1. `P10B-001` — Implement forensic OPA policy: agents read derived artifacts only; `soc-operator` acquires; no one alters originals.
-2. `P10B-002` — Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing.
+1. `P10B-002` — Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing.
+2. `P10B-003` — Test prompt-injection text is sanitized before any agent receives it.
+3. `P10B-004` — Make Agent G block writes to sealed evidence paths.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
