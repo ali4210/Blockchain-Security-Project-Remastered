@@ -3880,3 +3880,34 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (351 total workspace tests passing).
+
+## P10B-002 — Deterministic evidence sanitizer validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate deterministic evidence sanitization, prompt-injection pattern masking, size/depth caps, and data-only framing before agent consumption.
+
+**Scope and limitations**
+
+- Sanitizer module in `src/forensics/sanitizer.py`.
+
+- Unit tests in `test/forensics/test_evidence_sanitizer.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 29 forensics unit tests pass in 0.011s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (356 total workspace tests passing).

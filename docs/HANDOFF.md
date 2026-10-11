@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity |
-| Current task | P10B-002 — Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing |
-| Current thread | P10B-001 verified: Implemented `config/opa/forensic_policy.rego` and `src/forensics/policy_evaluator.py` establishing Policy-as-Code least privilege for DFIR. Enforced universal prohibition on altering originals, restricted agents to derived copies, and authorized evidence acquisition/sealing exclusively to `soc-operator`. 24 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 351 total workspace tests passing. Transitioning to P10B-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P10B-003 — Test prompt-injection text is sanitized before any agent receives it |
+| Current thread | P10B-002 verified: Implemented `src/forensics/sanitizer.py` establishing deterministic evidence sanitization, prompt-injection pattern masking (`<MASKED_PAYLOAD>`), bounded size/depth caps, and DATA_ONLY_NO_EXECUTION framing. 29 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 356 total workspace tests passing. Transitioning to P10B-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P10B-002 — Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing:** Complete and verified.
+  - Files: `src/forensics/sanitizer.py`, `test/forensics/test_evidence_sanitizer.py`
+  - Validation: `python3 -m unittest discover -s test/forensics/ -p "test_*.py"` -> 29 tests passed in 0.011s; full multi-layer regression battery passing with 356 total tests.
+  - Results: Delivered `EvidenceSanitizer` providing deterministic string masking (`<MASKED_PAYLOAD len=X sha256=Y>`), prompt-injection keyword filtering, strict 512 KB size bounds, 8-level recursion limits, and DATA_ONLY_NO_EXECUTION structured schema framing.
 
 - **P10B-001 — Implement forensic OPA policy: agents read derived artifacts only; soc-operator acquires; no one alters originals:** Complete and verified.
   - Files: `config/opa/forensic_policy.rego`, `src/forensics/policy_evaluator.py`, `test/forensics/test_forensic_policy.py`
@@ -905,17 +910,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P10B-002 — Implement deterministic evidence sanitizer: structured parsing, free-text hash/length masking, size caps, data-only framing.
+- **Active task:** P10B-003 — Test prompt-injection text is sanitized before any agent receives it.
 - **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity (Phase 10b: Policy and safety).
-- **Scope:** Implement deterministic evidence sanitizer module (`src/forensics/sanitizer.py`) that preprocesses raw forensic artifacts prior to agent consumption; performs structured JSON/log parsing, applies bounded size caps (truncation guards), masks free-text/prompt-injection strings into deterministic SHA-256 digests and length metadata (`<REDACTED len=X sha256=Y>`), and frames artifacts strictly into data-only schema representations to neutralize jailbreaks.
-- **Out of scope:** Direct prompt-injection fixture tests (P10B-003) and Agent G write-blocking guardrails (P10B-004).
-- **Dependencies:** P10B-001 complete; `src/forensics/vault.py`.
-- **Security constraints:** Zero unmasked prompt-injection strings delivered to LLM/agent contexts; strict size caps; deterministic transformation output.
+- **Scope:** Implement adversarial prompt-injection test battery (`test/forensics/test_prompt_injection_sanitization.py`) validating end-to-end evidence pipelines against complex multi-vector jailbreak payloads (direct override strings, base64-encoded instructions, smart contract function comments, and transaction data fields); verify zero raw injection strings escape to agent-accessible working copies.
+- **Out of scope:** Agent G write-blocking guardrails (P10B-004) and Phase 10c acquisition modules.
+- **Dependencies:** P10B-001 and P10B-002 complete; `src/forensics/sanitizer.py`, `src/forensics/vault.py`.
+- **Security constraints:** Zero prompt leakage into agent context; complete token replacement with verifiable SHA-256 digests.
 
 ## Subsequent task queue
 
-1. `P10B-003` — Test prompt-injection text is sanitized before any agent receives it.
-2. `P10B-004` — Make Agent G block writes to sealed evidence paths.
+1. `P10B-004` — Make Agent G block writes to sealed evidence paths.
+2. `P10C-001` — Implement volatility-ordered evidence collector (memory, network, disk, logs).
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
