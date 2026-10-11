@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P11-006 — Register consensus-monitor MCP functions |
-| Current thread | P11-005 verified: Implemented `src/consensus/eclipse_detector.py` establishing peer table topological diversity analysis, ASN concentration detection, subnet clustering alerts, and testnet allowlists. 66 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 404 total workspace tests passing. Transitioning to P11-006. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P11-007 — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings |
+| Current thread | P11-006 verified: Implemented `src/consensus/consensus_mcp.py` exposing 6 read-only consensus monitoring MCP endpoints with strict input schema validation. 74 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 412 total workspace tests passing. Transitioning to P11-007. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P11-006 — Register consensus-monitor MCP functions:** Complete and verified.
+  - Files: `src/consensus/consensus_mcp.py`, `test/consensus/test_consensus_mcp.py`
+  - Validation: `python3 -m unittest discover -s test/consensus/ -p "test_*.py"` -> 74 tests passed in 0.566s; full multi-layer regression battery passing with 412 total tests.
+  - Results: Delivered `ConsensusMcpRegistry` exposing 6 read-only analytical MCP tools (`get_mempool_telemetry`, `get_topology_summary`, `get_reorg_history`, `get_concentration_metrics`, `evaluate_selfish_mining`, `evaluate_eclipse_status`) with strict input schemas and structured result envelopes.
 
 - **P11-005 — Implement eclipse detector using peer diversity and clustering signals:** Complete and verified.
   - Files: `src/consensus/eclipse_detector.py`, `test/consensus/test_eclipse_detector.py`
@@ -965,18 +970,18 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P11-006 — Register consensus-monitor MCP functions.
+- **Active task:** P11-007 — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings.
 - **Current phase:** Phase 11 — Zone 6: Consensus attack detection and prevention.
-- **Scope:** Register consensus observability and detection tools in the MCP server schema (`src/mcp/server.py` or `src/consensus/consensus_mcp.py`): exposing read-only inspection tools for P2P network telemetry (`get_mempool_telemetry`, `get_topology_summary`), chain reorg monitor status (`get_reorg_history`), concentration metrics (`get_concentration_metrics`), selfish-mining evaluation (`evaluate_selfish_mining`), and eclipse alerts (`evaluate_eclipse_status`); enforce strict JSON schemas and tool boundary validations.
-- **Out of scope:** Zone 3 graph finding tagging (P11-007) and AVS routing (P11-008).
-- **Dependencies:** P11-001 through P11-005 complete; `src/consensus/p2p_listener.py`, `src/consensus/reorg_monitor.py`, `src/consensus/concentration_tracker.py`, `src/consensus/selfish_mining_detector.py`, `src/consensus/eclipse_detector.py`.
-- **Security constraints:** Read-only analytical exposure for agents; zero direct execution or mitigation capabilities in monitor tools; schema validation on all inputs.
+- **Scope:** Implement consensus finding tagger and graph enricher (`src/consensus/graph_enricher.py`) that normalizes consensus alerts (Reorg, Selfish Mining, Concentration, Eclipse) into typed Zone 3 graph nodes and edges (`FINDING`, `CONSENSUS_ATTACK`, `AFFECTED_NODE`, `SUSPECTED_MINER`); bind cryptographic digests and timestamps to graph entities.
+- **Out of scope:** AVS routing (P11-008) and consensus OPA policies (P11-009).
+- **Dependencies:** P11-001 through P11-006 complete; `src/consensus/reorg_monitor.py`, `src/consensus/concentration_tracker.py`, `src/consensus/selfish_mining_detector.py`, `src/consensus/eclipse_detector.py`.
+- **Security constraints:** Deterministic graph node IDs; immutable finding digests; zero unstructured attributes.
 
 ## Subsequent task queue
 
-1. `P11-007` — Enrich/tag Zone 6 findings in Zone 3 graph as consensus-layer findings.
-2. `P11-008` — Route actionable consensus findings through AVS before Phase 9 mitigation.
-3. `P11-009` — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override.
+1. `P11-008` — Route actionable consensus findings through AVS before Phase 9 mitigation.
+2. `P11-009` — Implement consensus OPA policy: agents read/correlate; only operator may mitigate/override.
+3. `P11-010` — Update Agents B, E, and G to consume, trigger, rate-limit, and validate the tool correctly.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
