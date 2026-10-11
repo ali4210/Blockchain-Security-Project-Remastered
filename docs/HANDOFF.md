@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 10 — Zone 5: Digital forensics and evidence integrity |
-| Current task | P10A-002 — Implement forensics.db, evidence/custody tables, append-only triggers, entry hash chain, and chain verification |
-| Current thread | P10A-001 verified: Implemented `src/forensics/hasher.py` and `src/forensics/merkle_manifest.py` establishing dual streaming hashing (SHA-256/SHA-512) and RFC 6962 Merkle tree manifest signing/verification under `soc-operator` HMAC authority. 5 forensics tests passed, 26 mitigation tests passed, 85 Hardhat tests passed, strict manifest ingestion valid, and 332 total workspace tests passing. Transitioning to P10A-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P10A-003 — Implement write-once evidence vault: seal(), verify(), and re-hashing open_working_copy() |
+| Current thread | P10A-002 verified: Implemented `src/forensics/evidence_db.py` establishing SQLite evidence repository with SQL append-only BEFORE UPDATE/DELETE triggers, SHA-256 custody entry hash chaining, and cryptographic chain integrity verification. 9 forensics tests passing, 26 mitigation tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 336 total workspace tests passing. Transitioning to P10A-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P10A-002 — Implement forensics.db, evidence/custody tables, append-only triggers, entry hash chain, and chain verification:** Complete and verified.
+  - Files: `src/forensics/evidence_db.py`, `test/forensics/test_evidence_db.py`
+  - Validation: `python3 -m unittest discover -s test/forensics/ -p "test_*.py"` -> 9 tests passed in 0.003s; full multi-layer regression battery passing with 336 total tests.
+  - Results: Delivered `EvidenceDatabaseManager` supporting SQLite storage with `evidence` and `chain_of_custody` tables, SQL triggers rejecting UPDATE/DELETE mutations via `RAISE(ABORT)`, deterministic SHA-256 custody entry hash chaining, and unbroken chain integrity verification.
 
 - **P10A-001 — Implement streaming SHA-256 and SHA-512, manifest Merkle root, signing, and verification:** Complete and verified.
   - Files: `src/forensics/hasher.py`, `src/forensics/merkle_manifest.py`, `test/forensics/test_integrity_hasher.py`
@@ -885,17 +890,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P10A-002 — Implement `forensics.db`, evidence/custody tables, append-only triggers, entry hash chain, and chain verification.
+- **Active task:** P10A-003 — Implement write-once evidence vault: `seal()`, `verify()`, and re-hashing `open_working_copy()`.
 - **Current phase:** Phase 10 — Zone 5: Digital forensics and evidence integrity.
-- **Scope:** Implement SQLite database manager (`src/forensics/evidence_db.py`) managing `evidence` and `chain_of_custody` tables; install SQL BEFORE UPDATE and BEFORE DELETE triggers enforcing immutable append-only storage; compute SHA-256 entry hash chains linking successive custody events (previous_record_hash + current_record); provide cryptographic chain integrity verification.
-- **Out of scope:** Write-once evidence vault directory sealing (P10A-003) and tamper regression tests (P10A-004).
-- **Dependencies:** P10A-001 complete; `src/forensics/hasher.py`.
-- **Security constraints:** SQLite append-only trigger enforcement, deterministic record hashing, fail-closed chain verification on broken links.
+- **Scope:** Implement write-once evidence vault manager (`src/forensics/vault.py`) providing `seal(artifact_path, metadata)` to lock files with read-only filesystem attributes (0400/0440) and record in `forensics.db`; `verify(evidence_id)` to recompute streaming SHA-256/SHA-512 digests and assert equality against the sealed record; and `open_working_copy(evidence_id, destination_dir)` to generate a disposable copy for agents while validating cryptographic integrity before and after extraction.
+- **Out of scope:** Phase 10a negative testing and tamper regressions (P10A-004) and forensic OPA policies (Phase 10b).
+- **Dependencies:** P10A-001 and P10A-002 complete; `src/forensics/hasher.py`, `src/forensics/evidence_db.py`.
+- **Security constraints:** Original sealed artifacts remain immutable (read-only permissions); agents receive isolated working copies only; working copy generation verifies source digest prior to dispatch.
 
 ## Subsequent task queue
 
-1. `P10A-003` — Implement write-once evidence vault: `seal()`, `verify()`, and re-hashing `open_working_copy()`.
-2. `P10A-004` — Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection.
+1. `P10A-004` — Test sealed-file alteration detection, custody-row alteration detection, and UPDATE/DELETE rejection.
+2. `P10B-001` — Implement forensic OPA policy: agents read derived artifacts only; `soc-operator` acquires; no one alters originals.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

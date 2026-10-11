@@ -3756,3 +3756,34 @@ python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
 - 26 mitigation unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (332 total workspace tests passing).
+
+## P10A-002 — Forensics database and custody hash chain validation
+
+**Status:** Verified
+
+**Purpose**
+
+Manage immutable digital evidence and cryptographic chain of custody using SQLite append-only triggers and deterministic entry hash chaining.
+
+**Scope and limitations**
+
+- Database manager in `src/forensics/evidence_db.py`.
+
+- Integration tests in `test/forensics/test_evidence_db.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 9 forensics unit tests pass in <0.01s.
+- 26 mitigation unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (336 total workspace tests passing).
