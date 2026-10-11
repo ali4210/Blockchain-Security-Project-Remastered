@@ -4628,3 +4628,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (454 total workspace tests passing).
+
+## P12-005 — 2-party MPC relayer cluster provisioning validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate 2-party additive key partitioning over secp256k1, mutual HMAC handshakes, and proof of key material isolation.
+
+**Scope and limitations**
+
+- MPC cluster in `src/wallet/mpc_relayer_cluster.py`.
+
+- Unit tests in `test/wallet/test_mpc_relayer_cluster.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 20 wallet unit tests pass in 0.920s.
+- 99 consensus unit tests pass in 0.571s.
+- 50 forensics unit tests pass in 0.032s.
+- 26 mitigation unit tests pass.
+- 26 MCP middleware unit tests pass.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass (457 total workspace tests passing).
