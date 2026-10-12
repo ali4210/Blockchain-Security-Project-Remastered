@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P13-005 — Register compliance-screen MCP tool |
-| Current thread | P13-004 verified: Implemented draft SAR generator `src/compliance/sar_generator.py` and test `test/compliance/test_sar_generator.py` enforcing HITL review boundaries, SHA-256 draft integrity digests, and local staging isolation. 19 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 511 total workspace tests passing. Transitioning to P13-005. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P13-006 — Add compliance-tagged findings to Zone 3 graph |
+| Current thread | P13-005 verified: Implemented compliance MCP tool registry `src/compliance/compliance_mcp.py` and test `test/compliance/test_compliance_mcp.py` exposing screening, AML evaluation, draft SAR generation, and ZK attestation verification. 27 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 519 total workspace tests passing. Transitioning to P13-006. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P13-005 — Register compliance-screen MCP tool:** Complete and verified.
+  - Files: `src/compliance/compliance_mcp.py`, `test/compliance/test_compliance_mcp.py`
+  - Validation: `python3 -m unittest discover -s test/compliance/ -p "test_*.py"` -> 27 tests passed in 0.001s; full regression battery passing with 519 total tests.
+  - Results: Delivered Model Context Protocol registry exposing compliance screening, AML telemetry evaluation, draft SAR generation, and ZK attestation verification; verified strict input schema validation, request rate-limiting, and read/draft isolation without autonomous external filing paths.
 
 - **P13-004 — Implement draft SAR/report generator:** Complete and verified.
   - Files: `src/compliance/sar_generator.py`, `test/compliance/test_sar_generator.py`
@@ -1095,17 +1100,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P13-005 — Register compliance-screen MCP tool.
+- **Active task:** P13-006 — Add compliance-tagged findings to Zone 3 graph.
 - **Current phase:** Phase 13 — Zone 8: Compliance and regulatory automation.
-- **Scope:** Implement `src/compliance/compliance_mcp.py` exposing Model Context Protocol (MCP) endpoints for autonomous agent integration: `compliance_screen_address`, `compliance_evaluate_aml_telemetry`, and `compliance_generate_draft_sar`; enforce schema validation, rate-limiting, and error-handling; provide companion unit tests in `test/compliance/test_compliance_mcp.py`.
-- **Out of scope:** Zone 3 graph integration (P13-006) and OPA policy enforcement (P13-007).
-- **Dependencies:** P13-001 through P13-004 complete; `src/compliance/address_screener.py`, `src/compliance/aml_detector.py`, `src/compliance/sar_generator.py`.
-- **Security constraints:** Read and draft only; no tool endpoint may execute external HTTP filing or blockchain transactions.
+- **Scope:** Implement `src/compliance/graph_integrator.py` integrating compliance typologies (sanctions hits, structuring, rapid layering, mixer interactions) into the Zone 3 LangGraph state; enrich SwarmState with structured compliance metadata without disrupting core graph flow; provide companion unit tests in `test/compliance/test_graph_integrator.py`.
+- **Out of scope:** Compliance OPA policy implementation (P13-007) and agent role updates (P13-008).
+- **Dependencies:** P13-001 through P13-005 complete; `src/compliance/address_screener.py`, `src/compliance/aml_detector.py`, `src/agents/state.py`.
+- **Security constraints:** Non-intrusive metadata enrichment; graph flow must remain resilient to empty compliance findings.
 
 ## Subsequent task queue
 
-1. `P13-006` — Add compliance-tagged findings to Zone 3 graph.
-2. `P13-007` — Implement compliance OPA policy with `compliance-officer` approval/filing role.
+1. `P13-007` — Implement compliance OPA policy with `compliance-officer` approval/filing role.
+2. `P13-008` — Update Agents B, C, and G for screening, framework mapping/drafting, and approval blocking.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
