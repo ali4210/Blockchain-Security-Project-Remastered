@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-012 — Test agent denial for Shamir reconstruction and HSM signing |
-| Current thread | P12-011 verified: Implemented `policies/wallet_policy.rego` and `src/wallet/wallet_policy.py` delivering Zone 7 OPA access control, autonomous agent key operation denial, and bearer token evaluation. 48 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 484 total workspace tests passing. Transitioning to P12-012. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-013 — Drill: relayer key compromise attempt with simulation alert |
+| Current thread | P12-012 verified: Implemented negative security test suite `test/wallet/test_wallet_agent_denial.py` asserting strict agent denial across Shamir reconstruction, HSM signing, forged tokens, and zero key buffer leakage. 55 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 491 total workspace tests passing. Transitioning to P12-013. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-012 — Test agent denial for Shamir reconstruction and HSM signing:** Complete and verified.
+  - Files: `test/wallet/test_wallet_agent_denial.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 55 tests passed in 1.341s; full multi-layer regression battery passing with 491 total tests.
+  - Results: Implemented dedicated negative regression suite verifying that autonomous agents (Agent-A through Agent-G) are strictly denied from key reconstruction, HSM signing, and private key exports under all circumstances; verified that forged bearer tokens cannot escalate agent capabilities; verified that sub-threshold Shamir reconstruction and unauthenticated HSM requests fail closed with zero secret or memory leakage.
 
 - **P12-011 — Implement wallet OPA policy for agent and operator actions:** Complete and verified.
   - Files: `policies/wallet_policy.rego`, `src/wallet/wallet_policy.py`, `test/wallet/test_wallet_policy.py`
@@ -1060,17 +1065,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-012 — Test agent denial for Shamir reconstruction and HSM signing.
+- **Active task:** P12-013 — Drill: relayer key compromise attempt with simulation alert.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement exhaustive negative security tests verifying that autonomous agents (Agents A-G) are strictly denied from triggering Shamir share reconstruction and HSM signing across both direct engine APIs and policy middleware gates; assert zero secret leakage and deterministic denial logging.
-- **Out of scope:** Key compromise drill (P12-013) and final runbook validation (P12-014).
-- **Dependencies:** P12-001 through P12-011 complete; `src/wallet/wallet_policy.py`, `src/wallet/shamir_engine.py`, `src/wallet/hsm_signer_interface.py`.
-- **Security constraints:** Assert universal fail-closed behavior on all agent signing and share reconstruction invocations.
+- **Scope:** Implement and execute an end-to-end red-team drill simulating an adversarial attempt to compromise an MPC relayer key and dispatch an unauthorized transaction draining contract balance; verify that `PresignSimulator` intercepts and fails the pre-sign check, Agent E raises SEV-1 containment alerts, and automated quarantine prevents transaction broadcast.
+- **Out of scope:** Final runbook validation and phase sign-off (P12-014).
+- **Dependencies:** P12-001 through P12-012 complete; `src/wallet/mpc_relayer_cluster.py`, `src/wallet/presign_simulator.py`, `src/agents/agent_e_incident_commander.py`.
+- **Security constraints:** Realistic drill simulation executed strictly in local ephemeral environment; fail-closed isolation.
 
 ## Subsequent task queue
 
-1. `P12-013` — Drill: relayer key compromise attempt with simulation alert.
-2. `P12-014` — Multi-day runbook validation and final Phase 12 sign-off.
+1. `P12-014` — Multi-day runbook validation and final Phase 12 sign-off.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
