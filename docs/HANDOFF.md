@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P13-009 — Test agent denial for report approval and filing |
-| Current thread | P13-008 verified: Implemented and validated Agent B, C, and G compliance workflows in `test/compliance/test_compliance_agent_integrations.py` covering screening, SAR drafting, and guardrail approval/censorship interception. 44 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 536 total workspace tests passing. Transitioning to P13-009. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P13-010 — Drill screening of authorized public test-risk-address data |
+| Current thread | P13-009 verified: Implemented exhaustive agent denial test suite `test/compliance/test_compliance_agent_denial.py` confirming fail-closed rejection of autonomous filing/approval across all agents and universal transaction censorship denial. 49 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 541 total workspace tests passing. Transitioning to P13-010. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P13-009 — Test agent denial for report approval and filing:** Complete and verified.
+  - Files: `test/compliance/test_compliance_agent_denial.py`
+  - Validation: `python3 -m unittest discover -s test/compliance/ -p "test_*.py"` -> 49 tests passed in 0.003s; full regression battery passing with 541 total tests.
+  - Results: Delivered exhaustive negative security test battery verifying that all autonomous agents (A through G) presenting varied payloads or forged tokens are strictly denied for report approval, filing, and export; verified that on-chain transaction inclusion blocking is universally rejected across all human and agent principals.
 
 - **P13-008 — Update Agents B, C, and G for screening, drafting, and approval blocking:** Complete and verified.
   - Files: `test/compliance/test_compliance_agent_integrations.py`
@@ -1115,17 +1120,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P13-009 — Test agent denial for report approval and filing.
+- **Active task:** P13-010 — Drill screening of authorized public test-risk-address data and draft report generation.
 - **Current phase:** Phase 13 — Zone 8: Compliance and regulatory automation.
-- **Scope:** Implement exhaustive negative security tests in `test/compliance/test_compliance_agent_denial.py` verifying that all autonomous agents (`agent_a` through `agent_g`) presenting varied inputs, forged bearer tokens, or simulated escalation calldata are fail-closed denied for report approval, report filing, report export, and on-chain transaction inclusion blocking.
-- **Out of scope:** Red-team drills (P13-010, P13-011) and HITL confirmation (P13-012).
-- **Dependencies:** P13-001 through P13-008 complete; `src/compliance/compliance_policy.py`, `policies/compliance_policy.rego`.
-- **Security constraints:** Zero authorization leakage; fail-closed enforcement across all agent principals.
+- **Scope:** Implement `test/compliance/test_drill_screening_pipeline.py` simulating an end-to-end incident drill: ingest authorized public test-risk addresses (e.g., Tornado Router, Ronin Exploiter), execute continuous screening, detect multi-stage AML signals, trigger automated draft SAR generation, verify cryptographic draft digest integrity, and assert that report status remains pinned to `DRAFT_PENDING_REVIEW` without external filing leakage.
+- **Out of scope:** ZK attestation drill (P13-011) and human review sign-off confirmation (P13-012).
+- **Dependencies:** P13-001 through P13-009 complete; `src/compliance/address_screener.py`, `src/compliance/aml_detector.py`, `src/compliance/sar_generator.py`.
+- **Security constraints:** Synthetic telemetry drill; zero real external API calls; fail-closed staging.
 
 ## Subsequent task queue
 
-1. `P13-010` — Drill screening of authorized public test-risk-address data and draft report generation.
-2. `P13-011` — Drill ZK attestation verification without disclosing underlying transaction list.
+1. `P13-011` — Drill ZK attestation verification without disclosing underlying transaction list.
+2. `P13-012` — Document compliance and regulatory automation with human-in-the-loop review confirmation.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
