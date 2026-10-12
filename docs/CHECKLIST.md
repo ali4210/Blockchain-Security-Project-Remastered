@@ -1272,7 +1272,7 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P13-001 | Implement continuous address screening using local/approved sanctions snapshot and risk-address data. | ⬜ | — |
+| P13-001 | Implement continuous address screening using local/approved sanctions snapshot and risk-address data. | ✅ | Complete and verified 2026-10-12: Implemented `src/compliance/address_screener.py` and `test/compliance/test_address_screener.py` delivering local, deterministic screening against approved sanctions snapshot (OFAC SDN, exploit actors, high-risk exchanges) with canonical EVM normalization, risk tiering, and snapshot fingerprint hashing; 6 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 498 total workspace tests passing. |
 | P13-002 | Implement AML-pattern rules and documented graph-model approach for structuring, layering, and mixer signals. | ⬜ | — |
 | P13-003 | Implement documented simplified ZK attestation using an existing safe library/primitive. | ⬜ | — |
 | P13-004 | Implement draft SAR/report generator. | ⬜ | — |

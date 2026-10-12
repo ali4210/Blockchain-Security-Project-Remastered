@@ -11,9 +11,9 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 12 Complete (Zone 7: Wallet and Key Management Security) |
-| Current task | Phase 12 Complete — Transitioning to Phase 13 Planning |
-| Current thread | Phase 12 complete and signed off: All 14 tasks (P12-001 through P12-014) verified with 56 wallet tests, 42 agent tests, 99 consensus tests, 50 forensics tests, 26 mitigation tests, 26 MCP tests, 85 Hardhat tests, and 492 total passing workspace tests. Pre-sign simulation gating, MPC relayer cluster, Shamir secret sharing, HSM emulator, OPA wallet policies, and red-team drills fully operational. Transitioning to Phase 13 roadmap planning. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
+| Current task | P13-002 — Implement AML-pattern rules and graph-model approach |
+| Current thread | P13-001 verified: Implemented continuous address screening engine `src/compliance/address_screener.py` and test `test/compliance/test_address_screener.py` with local sanctions snapshot and deterministic normalization. 6 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 498 total workspace tests passing. Transitioning to P13-002. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P13-001 — Implement continuous address screening using local/approved sanctions snapshot:** Complete and verified.
+  - Files: `src/compliance/address_screener.py`, `test/compliance/test_address_screener.py`
+  - Validation: `python3 -m unittest discover -s test/compliance/ -p "test_*.py"` -> 6 tests passed in 0.001s; full regression battery passing with 498 total tests.
+  - Results: Delivered local, deterministic address screener with EIP-55 lowercase normalization, risk tiering (`CRITICAL_SANCTIONED`, `HIGH_RISK`, `MEDIUM_SUSPICIOUS`, `LOW_CLEAN`), and cryptographic snapshot fingerprinting; verified zero network leakage and deterministic verdicts for single and batch screenings.
 
 - **P12-014 — Multi-day runbook validation and final Phase 12 sign-off:** Complete and verified.
   - Files: `docs/CHECKLIST.md`, `docs/HANDOFF.md`, `docs/RUNBOOK.md`
@@ -1075,15 +1080,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** Phase 13 Architecture & Task Planning.
-- **Current phase:** Phase 12 complete; transitioning to Phase 13.
-- **Scope:** Formulate Phase 13 task breakdown, architecture roadmap, and milestone deliverables for the next security domain; verify that all Phase 12 capabilities remain strictly integrated.
-- **Dependencies:** All Phase 12 tasks (P12-001 through P12-014) complete and verified.
+- **Active task:** P13-002 — Implement AML-pattern rules and documented graph-model approach for structuring, layering, and mixer signals.
+- **Current phase:** Phase 13 — Zone 8: Compliance and regulatory automation.
+- **Scope:** Implement `src/compliance/aml_detector.py` providing deterministic transaction telemetry evaluation for anti-money laundering (AML) signals: structuring (smurfing below regulatory reporting thresholds), rapid layering hops across intermediate accounts, and mixer/privacy pool fan-out; provide companion unit tests in `test/compliance/test_aml_detector.py`.
+- **Out of scope:** ZK attestation (P13-003) and SAR generation (P13-004).
+- **Dependencies:** P13-001 complete; `src/compliance/address_screener.py`.
+- **Security constraints:** Read/draft analysis only; no autonomous on-chain transaction inclusion blocking.
 
 ## Subsequent task queue
 
-1. Define Phase 13 milestone objectives and task matrix in `docs/CHECKLIST.md`.
-2. Initialize Phase 13 foundational modules and verification harnesses.
+1. `P13-003` — Implement documented simplified ZK attestation using safe library/primitive.
+2. `P13-004` — Implement draft SAR/report generator.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

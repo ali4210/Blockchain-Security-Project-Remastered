@@ -5020,3 +5020,44 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass in 2s (492 total workspace tests passing).
 - Phase 12 (Zone 7: Wallet and Key Management Security) is officially signed off.
+
+## P13-001 — Compliance address screener validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate deterministic address screening against sanctions and high-risk registries.
+
+**Scope and limitations**
+
+- Screener engine in `src/compliance/address_screener.py`.
+
+- Unit test in `test/compliance/test_address_screener.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 6 compliance unit tests pass in 0.001s.
+- 56 wallet unit tests pass in 1.354s.
+- 42 agent unit tests pass in 188.475s.
+- 99 consensus unit tests pass in 0.579s.
+- 50 forensics unit tests pass in 0.025s.
+- 26 mitigation unit tests pass in 0.104s.
+- 26 MCP middleware unit tests pass in 0.106s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass in 2s (498 total workspace tests passing).
