@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P13-002 — Implement AML-pattern rules and graph-model approach |
-| Current thread | P13-001 verified: Implemented continuous address screening engine `src/compliance/address_screener.py` and test `test/compliance/test_address_screener.py` with local sanctions snapshot and deterministic normalization. 6 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 498 total workspace tests passing. Transitioning to P13-002. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P13-003 — Implement documented simplified ZK attestation |
+| Current thread | P13-002 verified: Implemented graph-model AML pattern detector `src/compliance/aml_detector.py` and test `test/compliance/test_aml_detector.py` covering structuring, peeling chains, and mixer interactions. 10 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 502 total workspace tests passing. Transitioning to P13-003. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P13-002 — Implement AML-pattern rules and graph-model approach:** Complete and verified.
+  - Files: `src/compliance/aml_detector.py`, `test/compliance/test_aml_detector.py`
+  - Validation: `python3 -m unittest discover -s test/compliance/ -p "test_*.py"` -> 10 tests passed in 0.000s; full regression battery passing with 502 total tests.
+  - Results: Delivered deterministic rule-based and graph-model AML detector evaluating structuring/smurfing, rapid sequential layering hops (peeling chains), and direct mixer contract interactions with zero false positives on standard clean transactions.
 
 - **P13-001 — Implement continuous address screening using local/approved sanctions snapshot:** Complete and verified.
   - Files: `src/compliance/address_screener.py`, `test/compliance/test_address_screener.py`
@@ -1080,17 +1085,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P13-002 — Implement AML-pattern rules and documented graph-model approach for structuring, layering, and mixer signals.
+- **Active task:** P13-003 — Implement documented simplified ZK attestation using an existing safe library/primitive.
 - **Current phase:** Phase 13 — Zone 8: Compliance and regulatory automation.
-- **Scope:** Implement `src/compliance/aml_detector.py` providing deterministic transaction telemetry evaluation for anti-money laundering (AML) signals: structuring (smurfing below regulatory reporting thresholds), rapid layering hops across intermediate accounts, and mixer/privacy pool fan-out; provide companion unit tests in `test/compliance/test_aml_detector.py`.
-- **Out of scope:** ZK attestation (P13-003) and SAR generation (P13-004).
-- **Dependencies:** P13-001 complete; `src/compliance/address_screener.py`.
-- **Security constraints:** Read/draft analysis only; no autonomous on-chain transaction inclusion blocking.
+- **Scope:** Implement `src/compliance/zk_attestation.py` providing a simplified zero-knowledge compliance attestation mechanism (using cryptographic commitments and range/membership proof primitives) allowing verification of compliance eligibility (e.g., source not in sanctions list, transfer within bounds) without disclosing underlying transaction lists or addresses; provide companion unit tests in `test/compliance/test_zk_attestation.py`.
+- **Out of scope:** Draft SAR generation (P13-004) and MCP registration (P13-005).
+- **Dependencies:** P13-001 and P13-002 complete; `src/compliance/address_screener.py`.
+- **Security constraints:** Zero disclosure of raw transaction details; deterministic cryptographic attestation.
 
 ## Subsequent task queue
 
-1. `P13-003` — Implement documented simplified ZK attestation using safe library/primitive.
-2. `P13-004` — Implement draft SAR/report generator.
+1. `P13-004` — Implement draft SAR/report generator.
+2. `P13-005` — Register compliance-screen MCP tool.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
