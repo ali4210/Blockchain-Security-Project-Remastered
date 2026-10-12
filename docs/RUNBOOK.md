@@ -5143,3 +5143,44 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass in 0.106s.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass in 2s (507 total workspace tests passing).
+
+## P13-004 — Draft SAR generator validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate deterministic generation of draft Suspicious Activity Reports with strict HITL gating.
+
+**Scope and limitations**
+
+- Report generator in `src/compliance/sar_generator.py`.
+
+- Unit test in `test/compliance/test_sar_generator.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 19 compliance unit tests pass in 0.001s.
+- 56 wallet unit tests pass in 1.354s.
+- 42 agent unit tests pass in 188.475s.
+- 99 consensus unit tests pass in 0.579s.
+- 50 forensics unit tests pass in 0.025s.
+- 26 mitigation unit tests pass in 0.104s.
+- 26 MCP middleware unit tests pass in 0.106s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass in 2s (511 total workspace tests passing).
