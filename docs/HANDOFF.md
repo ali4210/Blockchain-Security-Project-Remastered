@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 11 — Zone 6: Consensus attack detection and prevention |
-| Current task | P12-013 — Drill: relayer key compromise attempt with simulation alert |
-| Current thread | P12-012 verified: Implemented negative security test suite `test/wallet/test_wallet_agent_denial.py` asserting strict agent denial across Shamir reconstruction, HSM signing, forged tokens, and zero key buffer leakage. 55 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 491 total workspace tests passing. Transitioning to P12-013. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P12-014 — Multi-day runbook validation and final Phase 12 sign-off |
+| Current thread | P12-013 verified: Implemented and executed red-team drill harness `src/drills/drill_relayer_key_compromise.py` and test `test/wallet/test_drill_relayer_compromise.py` confirming pre-sign simulation interception, Agent E SEV-1 triage, and fail-closed quarantine. 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 492 total workspace tests passing. Transitioning to final task P12-014. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P12-013 — Drill: relayer key compromise attempt with simulation alert:** Complete and verified.
+  - Files: `src/drills/drill_relayer_key_compromise.py`, `test/wallet/test_drill_relayer_compromise.py`
+  - Validation: `python3 -m unittest discover -s test/wallet/ -p "test_*.py"` -> 56 tests passed in 1.370s; full multi-layer regression battery passing with 492 total tests.
+  - Results: Engineered and executed red-team drill simulating adversarial compromise of an MPC relayer signing key; proved that `PresignSimulator` blocks unauthorized recipient targets and balance-loss cap breaches with `SimulationError`; confirmed Agent E triages the incident at SEV-1, transitions status to `BLOCKED_SIMULATION_FAILURE`, and triggers quarantine playbooks without asset leakage.
 
 - **P12-012 — Test agent denial for Shamir reconstruction and HSM signing:** Complete and verified.
   - Files: `test/wallet/test_wallet_agent_denial.py`
@@ -1065,16 +1070,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P12-013 — Drill: relayer key compromise attempt with simulation alert.
+- **Active task:** P12-014 — Multi-day runbook validation and final Phase 12 sign-off.
 - **Current phase:** Phase 12 — Zone 7: Wallet and key management security.
-- **Scope:** Implement and execute an end-to-end red-team drill simulating an adversarial attempt to compromise an MPC relayer key and dispatch an unauthorized transaction draining contract balance; verify that `PresignSimulator` intercepts and fails the pre-sign check, Agent E raises SEV-1 containment alerts, and automated quarantine prevents transaction broadcast.
-- **Out of scope:** Final runbook validation and phase sign-off (P12-014).
-- **Dependencies:** P12-001 through P12-012 complete; `src/wallet/mpc_relayer_cluster.py`, `src/wallet/presign_simulator.py`, `src/agents/agent_e_incident_commander.py`.
-- **Security constraints:** Realistic drill simulation executed strictly in local ephemeral environment; fail-closed isolation.
+- **Scope:** Execute the complete, end-to-end multi-day verification runbook across all Phase 12 capabilities: HSM emulation, Shamir secret sharing, MPC relayer cluster, pre-sign simulation, wallet audit MCP, agent integrations, OPA policy enforcement, negative denial tests, and key compromise drills; record complete operational metrics and sign off Phase 12 in `docs/CHECKLIST.md`.
+- **Out of scope:** Phase 13 roadmap initiatives.
+- **Dependencies:** All tasks P12-001 through P12-013 complete and verified.
+- **Security constraints:** Zero key leakage; 100% pass rate across all workspace test suites.
 
 ## Subsequent task queue
 
-1. `P12-014` — Multi-day runbook validation and final Phase 12 sign-off.
+1. Phase 12 Final Sign-Off & Transition to Phase 13.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
