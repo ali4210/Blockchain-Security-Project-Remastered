@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P13-011 — Drill ZK attestation verification without disclosing raw details |
-| Current thread | P13-010 verified: Implemented end-to-end compliance screening drill `test/compliance/test_drill_screening_pipeline.py` verifying multi-hop AML detection, state enrichment, and draft SAR generation with SHA-256 digest pinning and zero external egress. 50 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 542 total workspace tests passing. Transitioning to P13-011. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P13-012 — Document compliance automation with HITL review confirmation |
+| Current thread | P13-011 verified: Implemented zero-knowledge compliance drill `test/compliance/test_drill_zk_attestation.py` validating privacy-preserving proof verification without disclosing raw sender addresses or volume amounts, and verifying fail-closed rejection of tampered challenges or over-cap volumes. 55 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 547 total workspace tests passing. Transitioning to P13-012. Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **P13-011 — Drill ZK attestation verification without disclosing underlying transaction list:** Complete and verified.
+  - Files: `test/compliance/test_drill_zk_attestation.py`
+  - Validation: `python3 -m unittest discover -s test/compliance/ -p "test_*.py"` -> 55 tests passed in 0.003s; full regression battery passing with 547 total tests.
+  - Results: Executed end-to-end zero-knowledge compliance attestation drill using cryptographic hash commitments and Fiat-Shamir heuristics; verified privacy-preserving validation without exposing raw addresses or balances, validated MCP tool integration, and confirmed fail-closed rejection of sanctioned actors, over-cap amounts, and tampered challenges.
 
 - **P13-010 — Drill screening of public test-risk-address data and draft SAR generation:** Complete and verified.
   - Files: `test/compliance/test_drill_screening_pipeline.py`
@@ -1125,16 +1130,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P13-011 — Drill ZK attestation verification without disclosing underlying transaction list.
+- **Active task:** P13-012 — Document compliance and regulatory automation with human-in-the-loop review confirmation.
 - **Current phase:** Phase 13 — Zone 8: Compliance and regulatory automation.
-- **Scope:** Implement `test/compliance/test_drill_zk_attestation.py` conducting an end-to-end zero-knowledge compliance attestation drill: generate cryptographic Pedersen commitments for sender addresses and transfer volumes, evaluate Fiat-Shamir non-interactive challenges, verify compliance proofs against an authorized sanctions Merkle root, assert that downstream verifiers can confirm compliance without accessing underlying transaction lists or plaintext addresses, and verify fail-closed rejection of tampered proofs or out-of-range balances.
-- **Out of scope:** Final Phase 13 human review documentation (P13-012).
-- **Dependencies:** P13-001 through P13-010 complete; `src/compliance/zk_attestation.py`, `src/compliance/compliance_mcp.py`.
-- **Security constraints:** Zero disclosure of raw transaction details; deterministic verification.
+- **Scope:** Author comprehensive architectural documentation and runbook procedures in `docs/COMPLIANCE_AUTOMATION.md` outlining the complete regulatory compliance lifecycle: sanctions screening snapshots, AML graph detection typologies, zero-knowledge compliance attestation schemes, deterministic draft SAR generation, MCP integration, OPA RBAC policy boundaries, and cryptographic human-in-the-loop (HITL) approval protocols confirming absolute prohibition of autonomous filing and transaction censorship.
+- **Out of scope:** Phase 14 planning and execution.
+- **Dependencies:** P13-001 through P13-011 complete; full test suite passing.
+- **Security constraints:** Clear formal articulation of fail-closed invariants and HITL gating.
 
 ## Subsequent task queue
 
-1. `P13-012` — Document compliance and regulatory automation with human-in-the-loop review confirmation.
+1. `Phase 14` — Final System Integration & Operational Readiness Drills.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

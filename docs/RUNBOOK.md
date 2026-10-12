@@ -5416,3 +5416,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass in 0.109s.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass in 2s (542 total workspace tests passing).
+
+## P13-011 — Zero-knowledge attestation drill validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate zero-knowledge compliance attestation verification without disclosing raw addresses or volumes.
+
+**Scope and limitations**
+
+- ZK drill test in `test/compliance/test_drill_zk_attestation.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 55 compliance unit tests pass in 0.003s.
+- 56 wallet unit tests pass in 1.390s.
+- 99 consensus unit tests pass in 0.567s.
+- 50 forensics unit tests pass in 0.032s.
+- 26 mitigation unit tests pass in 0.109s.
+- 26 MCP middleware unit tests pass in 0.105s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass in 2s (547 total workspace tests passing).
