@@ -4980,3 +4980,43 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass in 0.108s.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass (492 total workspace tests passing).
+
+## P12-014 — Phase 12 multi-day runbook validation and final sign-off
+
+**Status:** Verified & Signed Off
+
+**Purpose**
+
+Execute the final operational verification battery across all Zone 7 wallet and key management capabilities to formally close Phase 12.
+
+**Scope and limitations**
+
+- Complete Phase 12 subsystem coverage across tasks P12-001 through P12-014.
+
+- Verified commands across Python test runners, tsx manifest validator, and Hardhat runner.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/agents/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 56 wallet unit tests pass in 1.354s.
+- 42 agent unit tests pass in 188.475s.
+- 99 consensus unit tests pass in 0.579s.
+- 50 forensics unit tests pass in 0.025s.
+- 26 mitigation unit tests pass in 0.104s.
+- 26 MCP middleware unit tests pass in 0.106s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass in 2s (492 total workspace tests passing).
+- Phase 12 (Zone 7: Wallet and Key Management Security) is officially signed off.
