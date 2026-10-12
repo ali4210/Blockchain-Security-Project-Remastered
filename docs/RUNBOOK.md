@@ -5305,3 +5305,40 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass in 0.104s.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass in 2s (532 total workspace tests passing).
+
+## P13-008 — Agent B, C, and G compliance workflow validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate Agent B screening telemetry, Agent C draft SAR generation, and Agent G guardrail blocking.
+
+**Scope and limitations**
+
+- Integration tests in `test/compliance/test_compliance_agent_integrations.py`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- 44 compliance unit tests pass in 0.002s.
+- 56 wallet unit tests pass in 1.400s.
+- 99 consensus unit tests pass in 0.565s.
+- 50 forensics unit tests pass in 0.033s.
+- 26 mitigation unit tests pass in 0.106s.
+- 26 MCP middleware unit tests pass in 0.106s.
+- Ingestion verifier emits `status: "valid"` with intact asset map.
+- 85 Hardhat regression tests pass in 2s (536 total workspace tests passing).
