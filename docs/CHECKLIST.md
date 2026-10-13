@@ -1312,9 +1312,9 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P14B-001 | Implement `scripts/aggregate-status.mts` reading allowed summary fields from Zones 3–8 and benchmark suite. | ⬜ | — |
-| P14B-002 | Write versioned `status.json` matching the documented aggregation contract. | ⬜ | — |
-| P14B-003 | Add tests proving `status.json` excludes raw private keys, shares, sealed evidence, and unredacted SARs. | ⬜ | — |
+| P14B-001 | Implement `scripts/aggregate-status.mts` reading allowed summary fields from Zones 3–8 and benchmark suite. | ✅ | Complete and verified 2026-10-13: Implemented status aggregator collecting multi-zone summary metrics, incidents, consensus alerts, wallet audit posture, and benchmark results into standardized JSON. |
+| P14B-002 | Write versioned `status.json` matching the documented aggregation contract. | ✅ | Complete and verified 2026-10-13: Emits versioned `reports/status.json` matching `StatusJsonOutput` contract with schemaVersion 1, commit SHA pinning, and zone health breakdown. |
+| P14B-003 | Add tests proving `status.json` excludes raw private keys, shares, sealed evidence, and unredacted SARs. | ✅ | Complete and verified 2026-10-13: Built `test/aggregate-status.test.mjs` asserting strict redaction of 64-char EVM private keys, Shamir share payloads, prime modulus values, and unredacted SAR filing fields. |
 
 ## Phase 14c — Extend report generator
 

@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P14B-001 — Implement status aggregator `scripts/aggregate-status.mts` |
-| Current thread | Phase 14a verified: Implemented and validated standalone HTML report generator `scripts/generate-html-report.mts` and rendering regression suite `test/report-render.test.mjs`. P14A-001 and P14A-002 completed. Transitioning to Phase 14b status aggregator (`P14B-001`). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P14C-001 — Extend report generator with Zone 6 consensus panel |
+| Current thread | Phase 14b verified: Implemented `scripts/aggregate-status.mts` and exclusion test suite `test/aggregate-status.test.mjs` verifying versioned `status.json` aggregation with strict secret redaction (P14B-001 through P14B-003 complete). Transitioning to Phase 14c extended panels (`P14C-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 14b — Status aggregator (P14B-001, P14B-002, P14B-003):** Complete and verified.
+  - Files: `scripts/aggregate-status.mts`, `test/aggregate-status.test.mjs`
+  - Validation: `node --import tsx --test test/aggregate-status.test.mjs` passed cleanly (2 tests passed in 5.55ms); multi-layer regression battery passing.
+  - Results: Built `scripts/aggregate-status.mts` collecting allowed summary fields from across all security zones, generating versioned `reports/status.json`; validated strict fail-closed exclusion of raw private keys, Shamir shares, sealed disk blobs, and unredacted SARs.
 
 - **Phase 14a — Port existing report tool (P14A-001, P14A-002):** Complete and verified.
   - Files: `scripts/generate-html-report.mts`, `test/report-render.test.mjs`
@@ -1140,16 +1145,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P14B-001 — Implement `scripts/aggregate-status.mts` reading allowed summary fields from Zones 3–8 and benchmark suite.
+- **Active task:** P14C-001 through P14C-006 — Extend report generator with specialized zone panels, KPI cards, and safe templates.
 - **Current phase:** Phase 14 — Zone 9: Unified executive HTML report layer.
-- **Scope:** Implement status aggregator in `scripts/aggregate-status.mts` collecting verified status from manifest artifacts, test metrics, and forensic/compliance metadata; output versioned `reports/status.json` adhering to the aggregation contract; assert strict exclusion of raw secrets or sensitive data (P14B-002, P14B-003).
-- **Dependencies:** Phase 14a complete; `scripts/generate-html-report.mts`.
-- **Security constraints:** Zero raw private keys, shares, sealed evidence, or unredacted SAR leakage into `status.json`.
+- **Scope:** Extend `scripts/generate-html-report.mts` with specialized panels: Zone 6 Consensus attack timeline and AVS breakdown, Zone 7 Wallet audit / key scheme coverage panel, Zone 5 Forensic case timeline (redacted summaries only), Executive KPI cards, auto-generated Strengths/Flaws/Recommended actions safe templates, and 21-column Compliance Register verification against Zone 8 schema.
+- **Dependencies:** Phase 14a and 14b complete; `reports/status.json`.
+- **Security constraints:** Air-gapped zero CDN policy; strict HTML escaping on all inputs.
 
 ## Subsequent task queue
 
-1. `P14B-002` — Write versioned status.json matching documented aggregation contract.
-2. `P14B-003` — Add tests proving status.json excludes raw secrets.
+1. `Phase 14d` — Report generation cadence (`npm run report`, GitLab CI stage).
+2. `Phase 14e` — Safety, mirror exclusion, and Phase 14 release gate sign-off.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

@@ -5525,3 +5525,41 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Report render test passes in <80ms with intact escaping and zero-CDN compliance.
 - Full multi-zone unit test battery (547 tests) passes.
 - Hardhat regression battery (85 tests) passes in 2s.
+
+## Phase 14b — Status aggregator and secret redaction validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate status aggregation into versioned status.json and verify exclusion of raw secrets.
+
+**Scope and limitations**
+
+- Aggregator script `scripts/aggregate-status.mts`.
+
+- Exclusion regression suite `test/aggregate-status.test.mjs`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+node --import tsx scripts/aggregate-status.mts
+node --import tsx --test test/aggregate-status.test.mjs
+node --import tsx --test test/report-render.test.mjs
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- `status.json` generated matching `StatusJsonOutput` contract.
+- Exclusion test passes in <10ms confirming zero private keys, shares, or unredacted SARs.
+- Full multi-zone unit test battery (547 tests) passes.
+- Hardhat regression battery (85 tests) passes in 2s.
