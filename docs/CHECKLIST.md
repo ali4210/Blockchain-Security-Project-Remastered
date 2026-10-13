@@ -1340,10 +1340,10 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P14E-001 | Keep reports internal by default through `.gitignore` / mirror exclusion. | ⬜ | — |
-| P14E-002 | Test redaction using fixture forensic/compliance data. | ⬜ | — |
-| P14E-003 | Document external sharing only through Phase 9 HITL gateway. | ⬜ | — |
-| P14E-004 | Verify standalone browser rendering of panels, KPI cards, tables, and charts. | ⬜ | — |
+| P14E-001 | Keep reports internal by default through `.gitignore`/mirror exclusion. | ✅ | Complete and verified 2026-10-13: Confirmed reports/ in .gitignore and validated mirror exclusion keeping generated reports internal. |
+| P14E-002 | Test redaction using fixture forensic/compliance data. | ✅ | Complete and verified 2026-10-13: Built test/report-fixture-redaction.test.mjs proving raw EVM keys, Shamir shares, and PEM headers are sanitized prior to JSON/HTML generation. |
+| P14E-003 | Document external sharing only through Phase 9 HITL gateway. | ✅ | Complete and verified 2026-10-13: Documented HITL gateway protocol in docs/HITL_GATEWAY.md requiring HMAC-SHA256 human operator token authorization for external egress. |
+| P14E-004 | Verify standalone browser rendering of panels, KPI cards, tables, charts. | ✅ | Complete and verified 2026-10-13: Built test/report-standalone-browser.test.mjs verifying zero-CDN air-gapped standalone HTML rendering, inline SVGs, and print media rules. |
 
 ## P14-GATE — Phase 14 completion gate
 
