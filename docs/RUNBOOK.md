@@ -5773,3 +5773,49 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Hygiene test verifies zero raw secrets and valid fail-closed OPA Rego policies.
 - Multi-layer regression battery passes (579 total tests).
 - Hardhat regression battery passes 85/85 in 2s.
+
+## Phase 15c — Paper and scholarship material verification
+
+**Status:** Verified
+
+**Purpose**
+
+Validate IEEE/ACM paper draft, statement of purpose benchmark claims, and data-sovereignty invariants.
+
+**Scope and limitations**
+
+- Academic paper `docs/PAPER.md`.
+
+- Scholarship asset `docs/STATEMENT_OF_PURPOSE.md`.
+
+- Test suite `test/academic-artifacts.test.mjs`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+node --import tsx --test test/academic-artifacts.test.mjs
+node --import tsx --test test/public-repo-hygiene.test.mjs
+make deploy-soc-pipeline
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+node --import tsx --test test/report-fixture-redaction.test.mjs
+node --import tsx --test test/report-standalone-browser.test.mjs
+node --import tsx --test test/report-agent-isolation.test.mjs
+node --import tsx --test test/extended-report.test.mjs
+node --import tsx --test test/aggregate-status.test.mjs
+node --import tsx --test test/report-render.test.mjs
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Academic artifacts test suite confirms section completeness, benchmark numbers, and zero-secret invariants.
+- Multi-layer regression battery passes (582 total tests).
+- Hardhat regression battery passes 85/85 in 2s.

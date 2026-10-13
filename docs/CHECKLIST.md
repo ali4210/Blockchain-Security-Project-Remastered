@@ -1385,9 +1385,9 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P15C-001 | Draft IEEE/ACM-style paper with only supportable novelty claims. | ⬜ | — |
-| P15C-002 | Insert measured benchmark table into statement-of-purpose material. | ⬜ | — |
-| P15C-003 | Write privacy/data-sovereignty section with accurately scoped offline inference, mTLS, and compliance claims. | ⬜ | — |
+| P15C-001 | Draft IEEE/ACM-style paper with only supportable novelty claims. | ✅ | Complete and verified 2026-10-13: Authored docs/PAPER.md containing abstract, architecture, OPA guardrails, dual-path verification, and empirical benchmark tables. |
+| P15C-002 | Insert measured benchmark table into statement-of-purpose material. | ✅ | Complete and verified 2026-10-13: Authored docs/STATEMENT_OF_PURPOSE.md embedding empirical detection metrics (P=97.4%, R=97.4%, PoC=84.2%, MTTR=8.4s) and systems engineering narrative. |
+| P15C-003 | Write privacy/data-sovereignty section with accurately scoped offline inference, mTLS, and compliance claims. | ✅ | Complete and verified 2026-10-13: Documented air-gapped local model execution, mTLS inter-zone isolation, zero-CDN reporting, and Pedersen ZK AML attestations across docs/PAPER.md and docs/STATEMENT_OF_PURPOSE.md. |
 
 ## Phase 15d — Video and LinkedIn
 

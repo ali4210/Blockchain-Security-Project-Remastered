@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P15C-001 — Draft IEEE/ACM-style paper and statement of purpose material |
-| Current thread | Phase 15b verified: One-command recruiter demo (`make deploy-soc-pipeline`), public dashboard telemetry export (`scripts/export-public-dashboard.mts`), and public repository hygiene suite (`test/public-repo-hygiene.test.mjs`) verified across 579 tests. Transitioning to Phase 15c paper and scholarship drafting (`P15C-001`). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P15D-001 — Technical walkthrough guides, video outlines, and LinkedIn outreach assets |
+| Current thread | Phase 15c verified: IEEE/ACM security paper draft (`docs/PAPER.md`), statement of purpose asset (`docs/STATEMENT_OF_PURPOSE.md`), and academic test suite (`test/academic-artifacts.test.mjs`) verified across 582 tests. Transitioning to Phase 15d video walkthroughs and outreach (`P15D-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 15c — Paper and scholarship material (P15C-001 through P15C-003):** Complete and verified.
+  - Files: `docs/PAPER.md`, `docs/STATEMENT_OF_PURPOSE.md`, `test/academic-artifacts.test.mjs`
+  - Validation: `test/academic-artifacts.test.mjs` passed (3/3 in 1.48ms); full 582-test multi-layer regression battery passing.
+  - Results: Authored IEEE/ACM paper draft with strictly grounded novelty claims; created statement-of-purpose scholarship asset embedding measured empirical benchmarks (P=97.4%, R=97.4%, PoC=84.2%, MTTR=8.4s); documented air-gapped local LLM inference, mTLS transport boundaries, and Pedersen ZK AML attestations.
 
 - **Phase 15b — Dashboard / recruiter demo (P15B-001 through P15B-005):** Complete and verified.
   - Files: `scripts/deploy-soc-demo.py`, `scripts/export-public-dashboard.mts`, `test/public-repo-hygiene.test.mjs`, `Makefile`
@@ -1170,16 +1175,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P15C-001 through P15C-003 — Draft IEEE/ACM-style conference paper, compile benchmark results into statement-of-purpose material, and author privacy/data-sovereignty sections.
+- **Active task:** P15D-001 through P15D-004 — Author technical walkthrough scripts, slide decks, and LinkedIn disclosure summaries.
 - **Current phase:** Phase 15 — Benchmarks, dashboard, documentation, and outreach.
-- **Scope:** Produce publication-ready LaTeX/Markdown paper draft (`docs/PAPER.md`), integrate empirical benchmark tables, and document air-gapped local LLM inference and mTLS boundaries.
-- **Dependencies:** Phase 15a and 15b complete; `src/storage/benchmark_suite.py`, `reports/latest.html`, `test/public-repo-hygiene.test.mjs`.
-- **Security constraints:** Supportable claims only; zero fabrication of regional stats; all empirical numbers directly tied to Phase 15a benchmark outputs.
+- **Scope:** Produce structured recording scripts and slide outlines for 3–5 min technical walkthrough and 2–3 min forensic integrity walkthrough (`docs/WALKTHROUGH_SCRIPT.md`), author LinkedIn disclosure copy (`docs/OUTREACH_LINKEDIN.md`), and verify zero secret leakage in all outreach links.
+- **Dependencies:** Phase 15a, 15b, and 15c complete; `scripts/deploy-soc-demo.py`, `docs/PAPER.md`.
+- **Security constraints:** No unredacted keys, PII, or internal network topology in public scripts.
 
 ## Subsequent task queue
 
-1. `Phase 15d` — Technical walkthrough guide, slides, and outreach material.
-2. `P15-GATE` — Final project completion gate and full system sign-off.
+1. `P15-GATE` — Final project completion gate, coursework simulation audit, and release tagging.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
