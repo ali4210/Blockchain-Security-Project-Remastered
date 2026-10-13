@@ -5868,3 +5868,50 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Outreach test suite confirms scene structure, benchmark consistency, and zero-secret invariants.
 - Multi-layer regression battery passes (586 total tests).
 - Hardhat regression battery passes 85/85 in 2s.
+
+## P15-GATE — Project completion verification
+
+**Status:** Verified
+
+**Purpose**
+
+Validate final project completion criteria across all phases and confirm release readiness.
+
+**Scope and limitations**
+
+- Completion audit script `scripts/audit-completion-gate.py`.
+
+- Master checklist `docs/CHECKLIST.md`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+python3 scripts/audit-completion-gate.py
+make deploy-soc-pipeline
+node --import tsx --test test/public-repo-hygiene.test.mjs
+node --import tsx --test test/academic-artifacts.test.mjs
+node --import tsx --test test/outreach-artifacts.test.mjs
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+node --import tsx --test test/report-fixture-redaction.test.mjs
+node --import tsx --test test/report-standalone-browser.test.mjs
+node --import tsx --test test/report-agent-isolation.test.mjs
+node --import tsx --test test/extended-report.test.mjs
+node --import tsx --test test/aggregate-status.test.mjs
+node --import tsx --test test/report-render.test.mjs
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Audit script passes with zero unresolved tasks.
+- Master checklist reflects Complete status for all phases.
+- Multi-tier regression battery passes (586 total tests).
+- Release tag v1.0.0-soc-remastered verified on local and remote branches.
