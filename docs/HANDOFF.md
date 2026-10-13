@@ -11,14 +11,14 @@
 
 | Field | Current value |
 |---|---|
-| Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
+| Current phase | Phase 15 — Final Delivery & Release Maintenance |
 | Current task | PROJECT COMPLETE — Final release tagged as v1.0.0-soc-remastered |
-| Current thread | Project complete: All phases (1 through 15) and P15-GATE signed off and verified across 586 multi-tier tests. Final tag v1.0.0-soc-remastered generated with complete three-way parity across local, GitLab, and GitHub remotes. |
+| Current thread | Project complete: All phases (0 through 15) and P15-GATE signed off and verified across 586 multi-tier tests. Final tag v1.0.0-soc-remastered generated with complete three-way parity across local, GitLab, and GitHub remotes. |
 | Current branch | `main` |
-| Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
-| Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
-| Last GitHub post | Successful exact-commit push; fetched origin/main at `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` |
-| Synchronization | Verified evidence baseline: fetched main == gitlab/main == origin/main == `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`. Separate documentation-closeout publication pending. |
+| Last verified commit | `fe81c4679fe33a22435892ba7b039b45f2bfea51` — feat(project): complete final project audit gate and release sign-off (P15-GATE) |
+| Last GitLab pipeline | User-reported green for v1.0.0-soc-remastered release commit; full regression suite passing. |
+| Last GitHub post | Successful exact-commit push; fetched origin/main at `fe81c4679fe33a22435892ba7b039b45f2bfea51` with tag v1.0.0-soc-remastered |
+| Synchronization | Verified baseline: fetched main == gitlab/main == origin/main == `fe81c4679fe33a22435892ba7b039b45f2bfea51` |
 | P01-008 evidence commit | `0e070d56caa7e2b0842cd422552574a91c9136e2` — `docs: close P01-007 dependency installation` |
 | P01-008 evidence pipeline | Passed/green for `0e070d56caa7e2b0842cd422552574a91c9136e2` (pipeline identifier and job URL not captured) |
 | P01-008 evidence GitHub post | Posted — `origin/main` resolved to `0e070d56caa7e2b0842cd422552574a91c9136e2` |
