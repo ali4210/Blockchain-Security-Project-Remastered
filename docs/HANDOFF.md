@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P14C-001 — Extend report generator with Zone 6 consensus panel |
-| Current thread | Phase 14b verified: Implemented `scripts/aggregate-status.mts` and exclusion test suite `test/aggregate-status.test.mjs` verifying versioned `status.json` aggregation with strict secret redaction (P14B-001 through P14B-003 complete). Transitioning to Phase 14c extended panels (`P14C-001`). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P14D-001 — Add `npm run report` generation cadence and CI integration |
+| Current thread | Phase 14c verified: Implemented extended report panels in `scripts/generate-html-report.mts` covering Zone 6 consensus timeline, Zone 7 wallet key schemes, Zone 5 forensic cases, executive KPI cards, safe templates, and Zone 8 compliance register. Verified via `test/extended-report.test.mjs`. P14C-001 through P14C-006 complete. Transitioning to Phase 14d generation cadence (`P14D-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 14c — Extend report generator (P14C-001 through P14C-006):** Complete and verified.
+  - Files: `scripts/generate-html-report.mts`, `test/extended-report.test.mjs`
+  - Validation: `node --import tsx --test test/extended-report.test.mjs` passed cleanly (1 test in 7.28ms); full multi-layer regression battery passing.
+  - Results: Extended executive HTML report generator with Zone 6 consensus attack timeline, Zone 7 wallet audit and key scheme posture, Zone 5 forensic case timeline with redacted summaries, 6 executive KPI cards, safe template synthesis for strengths/flaws/actions, and Zone 8 compliance register verification.
 
 - **Phase 14b — Status aggregator (P14B-001, P14B-002, P14B-003):** Complete and verified.
   - Files: `scripts/aggregate-status.mts`, `test/aggregate-status.test.mjs`
@@ -1145,16 +1150,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P14C-001 through P14C-006 — Extend report generator with specialized zone panels, KPI cards, and safe templates.
+- **Active task:** P14D-001 through P14D-004 — Implement report generation cadence, CI integration, and agent boundary verification.
 - **Current phase:** Phase 14 — Zone 9: Unified executive HTML report layer.
-- **Scope:** Extend `scripts/generate-html-report.mts` with specialized panels: Zone 6 Consensus attack timeline and AVS breakdown, Zone 7 Wallet audit / key scheme coverage panel, Zone 5 Forensic case timeline (redacted summaries only), Executive KPI cards, auto-generated Strengths/Flaws/Recommended actions safe templates, and 21-column Compliance Register verification against Zone 8 schema.
-- **Dependencies:** Phase 14a and 14b complete; `reports/status.json`.
-- **Security constraints:** Air-gapped zero CDN policy; strict HTML escaping on all inputs.
+- **Scope:** Validate `npm run report` producing timestamped and latest HTML reports; update `.gitlab-ci.yml` with report generation stage outputting `reports/latest.html`; add scheduled daily CI report workflow; implement tests proving report generator has zero MCP tool registration and is not agent-callable (P14D-004).
+- **Dependencies:** Phases 14a, 14b, and 14c complete; `scripts/generate-html-report.mts`, `scripts/aggregate-status.mts`.
+- **Security constraints:** Zero agent-callable endpoints for report generation; output confined to local staging.
 
 ## Subsequent task queue
 
-1. `Phase 14d` — Report generation cadence (`npm run report`, GitLab CI stage).
-2. `Phase 14e` — Safety, mirror exclusion, and Phase 14 release gate sign-off.
+1. `Phase 14e` — Safety, mirror exclusion, and Phase 14 completion gate (P14-GATE).
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

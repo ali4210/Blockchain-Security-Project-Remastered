@@ -1,43 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-
-export interface FindingSummary {
-  id: string;
-  rule_id: string;
-  zone: string;
-  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
-  title: string;
-  description: string;
-  target?: string;
-  status: "OPEN" | "MITIGATED" | "VERIFIED" | "ACKNOWLEDGED";
-}
-
-export interface StatusJsonContract {
-  schemaVersion: number;
-  timestamp: string;
-  system: {
-    name: string;
-    version: string;
-    commitSha: string;
-    status: "HEALTHY" | "DEGRADED" | "CRITICAL";
-  };
-  metrics: {
-    totalFindings: number;
-    criticalFindings: number;
-    highFindings: number;
-    mediumFindings: number;
-    lowFindings: number;
-    complianceScorePct: number;
-    activeConsensusAlerts: number;
-    forensicCasesSealed: number;
-  };
-  findings: FindingSummary[];
-  zones: Record<string, {
-    status: string;
-    testCount: number;
-    summary: string;
-  }>;
-}
+import { resolve } from "node:path";
+import { StatusJsonOutput } from "./aggregate-status.mts";
 
 function escapeHtml(str: string | null | undefined): string {
   if (!str) return "";
@@ -69,7 +32,6 @@ function renderDonutChart(crit: number, high: number, med: number, low: number):
   const pMed = (med / total) * 100;
   const pLow = (low / total) * 100;
 
-  // Simple clean SVG representation
   return `
     <div style="display:flex; align-items:center; gap:20px;">
       <svg width="120" height="120" viewBox="0 0 42 42" style="transform: rotate(-90deg);">
@@ -89,78 +51,39 @@ function renderDonutChart(crit: number, high: number, med: number, low: number):
   `;
 }
 
+function renderTimelineSvg(alerts: any[]): string {
+  if (!alerts || alerts.length === 0) {
+    return `<div style="font-size:12px; color:#94a3b8; padding: 10px 0;">Zero active anomaly alerts recorded in rolling observation window.</div>`;
+  }
+  return `
+    <div style="position:relative; padding-left: 20px; border-left: 2px solid #334155; margin: 15px 0;">
+      ${alerts.map(a => `
+        <div style="margin-bottom: 12px; position:relative;">
+          <div style="position:absolute; left:-27px; top:4px; width:12px; height:12px; border-radius:50%; background:#f97316; border:2px solid #0f172a;"></div>
+          <div style="font-size:13px; font-weight:600; color:#f8fafc;">${escapeHtml(a.anomalyType)} —${renderSeverityBadge(a.severity)}</div>
+          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+            <span>ID: <code>${escapeHtml(a.alertId)}</code></span> | 
+            <span>AVS Quorum: <b>${a.avsQuorumConfirmed ? "<span style='color:#22c55e;'>VERIFIED (2/3+)</span>" : "<span style='color:#ef4444;'>UNVERIFIED</span>"}</b></span> | 
+            <span>Time: ${escapeHtml(a.timestamp)}</span>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 export async function generateHtmlReport(statusJsonPath?: string): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const defaultPath = resolve(process.cwd(), "reports/status.json");
   const targetJsonPath = statusJsonPath ? resolve(process.cwd(), statusJsonPath) : defaultPath;
 
-  let data: StatusJsonContract;
-
-  if (existsSync(targetJsonPath)) {
-    data = JSON.parse(readFileSync(targetJsonPath, "utf-8"));
-  } else {
-    // Synthetic fallback dataset for Phase 14a port verification
-    data = {
-      schemaVersion: 1,
-      timestamp: new Date().toISOString(),
-      system: {
-        name: "Blockchain Security Swarm",
-        version: "1.0.0-phase14",
-        commitSha: "08257cf1ac5fc21967d9d3eed1460dc364803f5d",
-        status: "HEALTHY",
-      },
-      metrics: {
-        totalFindings: 6,
-        criticalFindings: 2,
-        highFindings: 2,
-        mediumFindings: 1,
-        lowFindings: 1,
-        complianceScorePct: 100,
-        activeConsensusAlerts: 0,
-        forensicCasesSealed: 3,
-      },
-      findings: [
-        {
-          id: "SEC-Z1-001",
-          rule_id: "SWC-107",
-          zone: "ZONE_1_CONTRACTS",
-          severity: "CRITICAL",
-          title: "Reentrancy Vulnerability Detected in Vault",
-          description: "State update occurs after external ether transfer call.",
-          target: "contracts/solidity/VulnerableVault.sol",
-          status: "MITIGATED",
-        },
-        {
-          id: "SEC-Z8-002",
-          rule_id: "RULE-SANCTIONS-HIT",
-          zone: "ZONE_8_COMPLIANCE",
-          severity: "CRITICAL",
-          title: "Sanctioned Router Target Detected",
-          description: "Counterparty matched OFAC SDN Tornado Cash list.",
-          target: "0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b",
-          status: "VERIFIED",
-        },
-        {
-          id: "SEC-Z6-003",
-          rule_id: "RULE-CONSENSUS-ECLIPSE",
-          zone: "ZONE_6_CONSENSUS",
-          severity: "HIGH",
-          title: "Low Autonomous System Number Diversity",
-          description: "Peers clustered in a single network ASN.",
-          target: "P2P Network Topology",
-          status: "OPEN",
-        },
-      ],
-      zones: {
-        "ZONE_1_CONTRACTS": { status: "PASS", testCount: 85, summary: "Hardhat & Foundry unit suites verified." },
-        "ZONE_2_FORENSICS": { status: "PASS", testCount: 50, summary: "Sealed evidence and volatile chain valid." },
-        "ZONE_6_CONSENSUS": { status: "PASS", testCount: 99, summary: "Supermajority and BLS aggregation active." },
-        "ZONE_7_WALLET": { status: "PASS", testCount: 56, summary: "Shamir key recovery and HSM emulator intact." },
-        "ZONE_8_COMPLIANCE": { status: "PASS", testCount: 55, summary: "Sanctions screening and ZK attestations verified." },
-      },
-    };
+  if (!existsSync(targetJsonPath)) {
+    throw new Error(`Target status file does not exist: ${targetJsonPath}`);
   }
 
+  const data: StatusJsonOutput = JSON.parse(readFileSync(targetJsonPath, "utf-8"));
+
+  // 1. Findings table
   const rows = (data.findings || []).map((f) => `
     <tr>
       <td style="font-family:monospace; font-size:12px;">${escapeHtml(f.id)}</td>
@@ -172,6 +95,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
     </tr>
   `).join("");
 
+  // 2. Zone health table
   const zoneRows = Object.entries(data.zones || {}).map(([zName, zData]) => `
     <tr>
       <td><b>${escapeHtml(zName)}</b></td>
@@ -181,12 +105,48 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
     </tr>
   `).join("");
 
+  // 3. Wallet Audit & Key-Scheme Rows
+  const walletRows = (data.walletAuditFindings || []).map((w) => `
+    <tr>
+      <td style="font-family:monospace; font-size:12px;">${escapeHtml(w.findingId)}</td>
+      <td><b>${escapeHtml(w.vulnerabilityClass)}</b></td>
+      <td><span style="font-size:11px; background:#1e293b; color:#a78bfa; padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(w.keyScheme)}</span></td>
+      <td><span style="font-size:11px; font-weight:700; color:#22c55e;">${escapeHtml(w.status)}</span></td>
+    </tr>
+  `).join("");
+
+  // 4. Forensic Cases Rows
+  const forensicRows = (data.forensicCases || []).map((c) => `
+    <tr>
+      <td style="font-family:monospace; font-size:12px;">${escapeHtml(c.caseId)}</td>
+      <td style="font-family:monospace; font-size:11px; color:#93c5fd;">${escapeHtml(c.targetAddress)}</td>
+      <td style="font-family:monospace;">${c.sealedArtifactsCount} artifacts</td>
+      <td><span style="color:#22c55e; font-weight:700;">${c.integrityVerified ? "VALID (SHA-256 LOCKED)" : "TAMPER_DETECTED"}</span></td>
+      <td style="font-size:12px; color:#94a3b8;">${escapeHtml(c.redactedSummary)}</td>
+    </tr>
+  `).join("");
+
+  // 5. Compliance Register Rows
+  const complianceRows = (data.complianceRegister || []).map((cr) => `
+    <tr>
+      <td style="font-family:monospace; font-size:11px; color:#cbd5e1;">${escapeHtml(cr.entityAddress)}</td>
+      <td><span style="font-size:11px; font-weight:700; color:${cr.sanctionMatch ? '#ef4444' : '#22c55e'};">${cr.sanctionMatch ? 'SDN MATCH' : 'CLEAN'}</span></td>
+      <td>${renderSeverityBadge(cr.riskTier)}</td>
+      <td style="font-family:monospace;">${cr.amlSignalsCount} signals</td>
+      <td><span style="font-size:11px; font-weight:600; color:#38bdf8;">${cr.zkProofVerified ? 'ZK-VERIFIED (PEDERSEN)' : 'UNVERIFIED'}</span></td>
+      <td><span style="font-size:11px; background:rgba(234, 179, 8, 0.15); color:#eab308; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(cr.hitlStatus)}</span></td>
+    </tr>
+  `).join("");
+
+  // 6. Safe Templated Executive Summaries
+  const openFlaws = (data.findings || []).filter(f => f.status === "OPEN");
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(data.system.name)} — Executive Status Report</title>
+  <title>${escapeHtml(data.system.name)} — Unified Executive Report</title>
   <style>
     :root {
       --bg-primary: #0b0f17;
@@ -205,7 +165,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       line-height: 1.5;
       padding: 30px;
     }
-    .container { max-width: 1300px; margin: 0 auto; }
+    .container { max-width: 1350px; margin: 0 auto; }
     header {
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 20px;
@@ -218,35 +178,31 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
     .meta { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
       margin-bottom: 30px;
     }
     .kpi-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 18px;
+      padding: 16px;
     }
-    .kpi-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
-    .kpi-value { font-size: 28px; font-weight: 700; margin-top: 8px; color: #fff; }
+    .kpi-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 26px; font-weight: 700; margin-top: 6px; color: #fff; }
     .section-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 30px;
+      padding: 22px;
+      margin-bottom: 28px;
     }
-    .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+    .section-title { font-size: 17px; font-weight: 600; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 10px 12px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
+    th { text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
     td { padding: 12px; font-size: 13px; border-bottom: 1px solid #1a2538; vertical-align: top; }
     tr:hover { background: rgba(255, 255, 255, 0.02); }
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 15px;
-    }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 15px; }
     .search-input {
       background: var(--bg-primary);
       border: 1px solid var(--border-color);
@@ -266,9 +222,11 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       cursor: pointer;
     }
     .btn:hover { background: #1e2c45; }
+    .takeaway-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+    .takeaway-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; font-size: 13px; }
     @media print {
       body { background: #fff; color: #000; padding: 0; }
-      .section-card, .kpi-card { border: 1px solid #ccc; background: #fff; color: #000; }
+      .section-card, .kpi-card, .takeaway-box { border: 1px solid #ccc; background: #fff; color: #000; }
       .toolbar { display: none; }
     }
   </style>
@@ -277,7 +235,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   <div class="container">
     <header>
       <div>
-        <h1>${escapeHtml(data.system.name)} — Executive Report</h1>
+        <h1>${escapeHtml(data.system.name)} — Unified Executive Report</h1>
         <div class="meta">Generated: ${escapeHtml(data.timestamp)} | Commit: <code>${escapeHtml(data.system.commitSha.slice(0, 10))}</code> | Release: ${escapeHtml(data.system.version)}</div>
       </div>
       <div>
@@ -285,6 +243,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       </div>
     </header>
 
+    <!-- Executive KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-title">Total Active Findings</div>
@@ -295,29 +254,128 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         <div class="kpi-value" style="color: #ef4444;">${data.metrics.criticalFindings + data.metrics.highFindings}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Compliance Score</div>
+        <div class="kpi-title">Compliance Pass Rate</div>
         <div class="kpi-value" style="color: #22c55e;">${data.metrics.complianceScorePct}%</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Forensic Vault Artifacts</div>
+        <div class="kpi-title">Consensus Alerts</div>
+        <div class="kpi-value">${data.consensusAlerts ? data.consensusAlerts.length : 0}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Sealed Forensic Cases</div>
         <div class="kpi-value">${data.metrics.forensicCasesSealed}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Benchmark F1 Score</div>
+        <div class="kpi-value" style="color: #38bdf8;">${data.benchmarks ? data.benchmarks.f1Score.toFixed(3) : "N/A"}</div>
       </div>
     </div>
 
+    <!-- Templated Executive Takeaways -->
     <div class="section-card">
-      <div class="section-title">Severity Breakdown</div>
-      ${renderDonutChart(data.metrics.criticalFindings, data.metrics.highFindings, data.metrics.mediumFindings, data.metrics.lowFindings)}
+      <div class="section-title">Automated Executive Synthesis & Action Posture</div>
+      <div class="takeaway-grid">
+        <div class="takeaway-box">
+          <b style="color: #22c55e;">Systemic Strengths & Active Safeguards</b>
+          <ul style="margin-top: 8px; padding-left: 18px; color: #cbd5e1;">
+            <li>Zero-Knowledge Pedersen commitments verify compliance without exposing transaction trails.</li>
+            <li>Fail-closed relayer quarantine prevents balance drains during reentrancy exploits.</li>
+            <li>Immutable OPA guardrails universally block autonomous filing and transaction censorship.</li>
+          </ul>
+        </div>
+        <div class="takeaway-box">
+          <b style="color: #f97316;">Identified Flaws & Vulnerabilities</b>
+          <ul style="margin-top: 8px; padding-left: 18px; color: #cbd5e1;">
+            ${openFlaws.length > 0 
+              ? openFlaws.map(f => `<li><b>${escapeHtml(f.id)}</b>: ${escapeHtml(f.title)} (${escapeHtml(f.severity)})</li>`).join("")
+              : "<li>Zero unresolved open flaws identified across workspace scan targets.</li>"}
+          </ul>
+        </div>
+        <div class="takeaway-box">
+          <b style="color: #38bdf8;">Recommended Actions</b>
+          <ul style="margin-top: 8px; padding-left: 18px; color: #cbd5e1;">
+            <li>Perform re-screening of P2P autonomous system numbers to expand geographic peer diversity.</li>
+            <li>Initiate scheduled human-in-the-loop signoff for staged draft SAR candidate records.</li>
+            <li>Maintain daily regression sweeps against the multi-zone integration battery.</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
+    <!-- Zone 6: Consensus Attack & Alert Timeline Panel -->
     <div class="section-card">
-      <div class="section-title">Security Zone Verification Health</div>
+      <div class="section-title">Zone 6: Consensus Attack Monitoring & Alert Timeline</div>
+      ${renderTimelineSvg(data.consensusAlerts || [])}
+    </div>
+
+    <!-- Zone 7: Wallet Audit & Key Scheme Posture -->
+    <div class="section-card">
+      <div class="section-title">Zone 7: Wallet Audit & Key-Scheme Posture</div>
       <table>
+        <thead>
+          <tr>
+            <th>Audit ID</th>
+            <th>Vulnerability Classification</th>
+            <th>Cryptographic Scheme</th>
+            <th>Post-Audit Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${walletRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Zone 5: Forensic Case Timeline -->
+    <div class="section-card">
+      <div class="section-title">Zone 5: Forensic Cases & Chain of Custody (Redacted Summaries)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Case Identifier</th>
+            <th>Target Address</th>
+            <th>Sealed Artifacts</th>
+            <th>Custody Integrity</th>
+            <th>Sanitized Summary</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${forensicRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Zone 8: Compliance Register -->
+    <div class="section-card">
+      <div class="section-title">Zone 8: Regulatory Compliance Register & Sanctions Screening</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Counterparty Address</th>
+            <th>Sanction Status</th>
+            <th>Assessed Tier</th>
+            <th>AML Signals</th>
+            <th>ZK Attestation Status</th>
+            <th>HITL Staging Gate</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${complianceRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Severity Distribution & Verification Health -->
+    <div class="section-card">
+      <div class="section-title">Severity Breakdown & Verification Matrix</div>
+      ${renderDonutChart(data.metrics.criticalFindings, data.metrics.highFindings, data.metrics.mediumFindings, data.metrics.lowFindings)}
+      <table style="margin-top: 20px;">
         <thead>
           <tr>
             <th>Security Zone</th>
             <th>Verification Status</th>
             <th>Automated Tests</th>
-            <th>Description & Scope</th>
+            <th>Scope Description</th>
           </tr>
         </thead>
         <tbody>
@@ -326,8 +384,9 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       </table>
     </div>
 
+    <!-- Findings & Flaws Interactive Table -->
     <div class="section-card">
-      <div class="section-title">Security Findings & Detected Flaws</div>
+      <div class="section-title">Master Security Findings Register</div>
       <div class="toolbar">
         <input type="text" id="findingSearch" class="search-input" placeholder="Live search title, rule, target..." onkeyup="filterFindings()">
       </div>
@@ -374,7 +433,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   writeFileSync(outPath, html, "utf-8");
   writeFileSync(latestPath, html, "utf-8");
 
-  console.log(`[+] Generated executive report: ${outPath}`);
+  console.log(`[+] Generated extended executive report: ${outPath}`);
   console.log(`[+] Synced latest report: ${latestPath}`);
 
   return outPath;

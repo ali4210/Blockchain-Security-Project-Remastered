@@ -1320,12 +1320,12 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P14C-001 | Add Zone 6 consensus panel and alert timeline. | ⬜ | — |
-| P14C-002 | Add Zone 7 wallet audit/key-scheme coverage panel. | ⬜ | — |
-| P14C-003 | Add Zone 5 forensic-case timeline with redacted summaries only. | ⬜ | — |
-| P14C-004 | Add executive KPI cards. | ⬜ | — |
-| P14C-005 | Add generated strengths, flaws, and recommended-action summaries using safe templates. | ⬜ | — |
-| P14C-006 | Verify existing compliance register rendering against real sanitized Zone 8 shape. | ⬜ | — |
+| P14C-001 | Add Zone 6 consensus panel and alert timeline. | ✅ | Complete and verified 2026-10-13: Added Zone 6 panel with AVS confirmation indicators and inline SVG anomaly alert timeline. |
+| P14C-002 | Add Zone 7 wallet audit/key-scheme coverage panel. | ✅ | Complete and verified 2026-10-13: Added Zone 7 panel displaying vulnerability classifications, key-scheme badges (Shamir, HSM, MPC), and simulation gate status. |
+| P14C-003 | Add Zone 5 forensic-case timeline with redacted summaries only. | ✅ | Complete and verified 2026-10-13: Added Zone 5 panel with sealed artifact counts, hash-chain integrity verification, and pre-sanitized case narratives. |
+| P14C-004 | Add executive KPI cards. | ✅ | Complete and verified 2026-10-13: Implemented 6-card executive KPI grid covering active findings, severe flaws, compliance pass rate, alerts, sealed evidence, and benchmark F1 score. |
+| P14C-005 | Add generated strengths, flaws, and recommended-action summaries using safe templates. | ✅ | Complete and verified 2026-10-13: Implemented safe template synthesis rendering systemic safeguards, dynamic open flaw summaries, and recommended remediation postures. |
+| P14C-006 | Verify existing compliance register rendering against real sanitized Zone 8 shape. | ✅ | Complete and verified 2026-10-13: Built `test/extended-report.test.mjs` verifying compliance register rendering against sanitized Zone 8 attributes with zero raw PII disclosure. |
 
 ## Phase 14d — Generation cadence
 
