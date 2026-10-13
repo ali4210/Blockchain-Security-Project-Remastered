@@ -37,13 +37,37 @@ class TestBenchmarkSuite(unittest.TestCase):
         self.assertGreater(res["throughput_ops_per_sec"], 0)
         self.assertEqual(len(self.store.list_findings()), 10)
 
-    def test_run_benchmark(self):
+    def test_historical_fixtures_loading(self):
+        fixtures = self.suite.load_historical_fixtures()
+        self.assertGreaterEqual(len(fixtures), 50, "Must load 50+ historical exploit fixtures")
+
+    def test_empirical_evaluation_targets_met(self):
+        eval_res = self.suite.evaluate_historical_dataset()
+        self.assertGreaterEqual(eval_res["total_fixtures"], 50)
+        # P15A-004 targets: P > 92%, R > 88%, PoC > 80%, MTTR < 45s
+        self.assertGreater(eval_res["precision"], 0.92, "Precision must exceed 92%")
+        self.assertGreater(eval_res["recall"], 0.88, "Recall must exceed 88%")
+        self.assertGreater(eval_res["poc_pass_rate"], 0.80, "Autonomous PoC pass rate must exceed 80%")
+        self.assertLess(eval_res["mttr_seconds"], 45.0, "MTTR must be under 45 seconds")
+        self.assertIn("hardware_specs", eval_res)
+        self.assertIn("model_versions", eval_res)
+
+    def test_forensic_metrics_recorded(self):
+        # P15A-005 targets
+        f_res = self.suite.evaluate_forensic_metrics()
+        self.assertEqual(f_res["integrity_pass_rate"], 1.0, "Integrity verification pass rate must be 100%")
+        self.assertGreater(f_res["ioc_extraction_accuracy"], 0.90)
+        self.assertLess(f_res["time_to_timeline_ms"], 100.0)
+
+    def test_run_benchmark_full_pipeline(self):
         report = self.suite.run_benchmark()
         self.assertEqual(report["status"], "completed")
-        self.assertEqual(report["phase"], "phase-04-scaffold")
+        self.assertEqual(report["phase"], "phase-15a-empirical")
         self.assertEqual(report["target_contract"], "TestVault")
         self.assertIn("metrics", report)
-        self.assertGreater(report["metrics"]["precision"], 0.9)
+        self.assertGreater(report["metrics"]["precision"], 0.92)
+        self.assertIn("historical_evaluation", report)
+        self.assertIn("forensic_metrics", report)
 
     def test_module_level_run_benchmark(self):
         report = run_benchmark()

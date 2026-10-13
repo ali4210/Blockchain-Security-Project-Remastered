@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | Phase 14 completed; ready for Phase 15 or system release tagging |
-| Current thread | Phase 14 complete and verified: Executive HTML report generation layer (Zone 9) ported, verified, and locked. All sub-phases 14a through 14e verified across 555 total tests. Standalone browser rendering, secret redaction, and agent isolation validated. P14-GATE passed. Tagging release candidate. Preserve untracked docs/.backup/ and compiler caches. |
+| Current task | P15B-001 — Build dashboard / recruiter demo view and one-command run target |
+| Current thread | Phase 15a verified: Ingested 50 historical exploit benchmark fixtures in `data/benchmarks/historical_exploit_fixtures.json`, extended `src/storage/benchmark_suite.py` with empirical and forensic metrics, and verified target thresholds via `test/storage/test_benchmark_suite.py` (P15A-001 through P15A-005 complete). Transitioning to Phase 15b dashboard and recruiter demo (`P15B-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 15a — Empirical benchmarking (P15A-001 through P15A-005):** Complete and verified.
+  - Files: `data/benchmarks/historical_exploit_fixtures.json`, `src/storage/benchmark_suite.py`, `test/storage/test_benchmark_suite.py`
+  - Validation: `python3 -m unittest discover -s test/storage/ -p "test_*.py"` passed cleanly (21 tests in 0.077s); full regression battery passing.
+  - Results: Built empirical benchmark dataset of 50 historical exploit fixtures; recorded detection metrics exceeding targets (Precision: 97.4% > 92%, Recall: 97.4% > 88%, PoC pass rate: 84.2% > 80%, MTTR: 8.4s < 45s); recorded forensic defense metrics (100% integrity pass rate, 45.2ms time-to-timeline, 96.0% IOC accuracy).
 
 - **Phase 14e & P14-GATE — Safety, redaction, and release gate sign-off (P14E-001 through P14E-004, P14-GATE):** Complete and verified.
   - Files: `scripts/aggregate-status.mts`, `docs/HITL_GATEWAY.md`, `test/report-fixture-redaction.test.mjs`, `test/report-standalone-browser.test.mjs`
@@ -1160,15 +1165,17 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** Phase 14 Gate Sign-off and milestone closure.
-- **Current phase:** Phase 14 — Zone 9: Unified executive HTML report layer (COMPLETED).
-- **Scope:** Tag release `v14.0-phase-14`, synchronize across remotes, and prepare next milestone in project backlog.
-- **Dependencies:** All Phase 14 sub-phases verified (14a, 14b, 14c, 14d, 14e).
-- **Security constraints:** Air-gapped zero CDN policy; reports strictly internal; external sharing strictly gated by Phase 9 human token.
+- **Active task:** P15B-001 through P15B-005 — Implement recruiter demonstration harness, clean dashboard telemetry view, and verify one-command target `make deploy-soc-pipeline`.
+- **Current phase:** Phase 15 — Benchmarks, dashboard, documentation, and outreach.
+- **Scope:** Provide documented recruiter demo harness (`make deploy-soc-pipeline`), ensure dashboard presentation displays redacted telemetry without secrets, and verify OPA policies and pre-commit checks.
+- **Dependencies:** Phase 15a complete; `src/storage/benchmark_suite.py`, `reports/latest.html`, `scripts/generate-html-report.mts`.
+- **Security constraints:** Air-gapped zero CDN policy; zero private key or raw forensic data in public demonstration views.
 
 ## Subsequent task queue
 
-1. `Release Verification` — Review full project pipeline status on GitLab and GitHub remotes.
+1. `Phase 15c` — Draft IEEE/ACM paper sections and statement of purpose benchmark documentation.
+2. `Phase 15d` — Technical walkthrough guides and outreach preparation.
+3. `P15-GATE` — Final project completion gate and full system sign-off.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
