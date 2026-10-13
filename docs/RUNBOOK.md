@@ -5819,3 +5819,52 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Academic artifacts test suite confirms section completeness, benchmark numbers, and zero-secret invariants.
 - Multi-layer regression battery passes (582 total tests).
 - Hardhat regression battery passes 85/85 in 2s.
+
+## Phase 15d — Video and LinkedIn outreach verification
+
+**Status:** Verified
+
+**Purpose**
+
+Validate technical walkthrough scripts, forensic demonstration guides, and LinkedIn outreach assets.
+
+**Scope and limitations**
+
+- Technical walkthrough `docs/WALKTHROUGH_SCRIPT.md`.
+
+- Forensic walkthrough `docs/FORENSIC_WALKTHROUGH_SCRIPT.md`.
+
+- Outreach material `docs/OUTREACH_LINKEDIN.md`.
+
+- Test suite `test/outreach-artifacts.test.mjs`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+node --import tsx --test test/outreach-artifacts.test.mjs
+node --import tsx --test test/academic-artifacts.test.mjs
+node --import tsx --test test/public-repo-hygiene.test.mjs
+make deploy-soc-pipeline
+python3 -m unittest discover -s test/storage/ -p "test_*.py"
+node --import tsx --test test/report-fixture-redaction.test.mjs
+node --import tsx --test test/report-standalone-browser.test.mjs
+node --import tsx --test test/report-agent-isolation.test.mjs
+node --import tsx --test test/extended-report.test.mjs
+node --import tsx --test test/aggregate-status.test.mjs
+node --import tsx --test test/report-render.test.mjs
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Outreach test suite confirms scene structure, benchmark consistency, and zero-secret invariants.
+- Multi-layer regression battery passes (586 total tests).
+- Hardhat regression battery passes 85/85 in 2s.

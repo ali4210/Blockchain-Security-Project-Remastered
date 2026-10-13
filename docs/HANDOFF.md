@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P15D-001 — Technical walkthrough guides, video outlines, and LinkedIn outreach assets |
-| Current thread | Phase 15c verified: IEEE/ACM security paper draft (`docs/PAPER.md`), statement of purpose asset (`docs/STATEMENT_OF_PURPOSE.md`), and academic test suite (`test/academic-artifacts.test.mjs`) verified across 582 tests. Transitioning to Phase 15d video walkthroughs and outreach (`P15D-001`). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P15-GATE — Final project completion gate and full system sign-off |
+| Current thread | Phase 15d verified: Technical walkthrough script (`docs/WALKTHROUGH_SCRIPT.md`), forensic walkthrough script (`docs/FORENSIC_WALKTHROUGH_SCRIPT.md`), LinkedIn outreach assets (`docs/OUTREACH_LINKEDIN.md`), and test suite (`test/outreach-artifacts.test.mjs`) verified across 586 tests. Transitioning to final project completion gate (`P15-GATE`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 15d — Video and LinkedIn outreach (P15D-001 through P15D-004):** Complete and verified.
+  - Files: `docs/WALKTHROUGH_SCRIPT.md`, `docs/FORENSIC_WALKTHROUGH_SCRIPT.md`, `docs/OUTREACH_LINKEDIN.md`, `test/outreach-artifacts.test.mjs`
+  - Validation: `test/outreach-artifacts.test.mjs` passed (4/4 in 1.79ms); full 586-test multi-layer regression battery passing.
+  - Results: Produced complete scene scripts for 3–5 min technical walkthrough and 2–3 min forensic integrity walkthrough; authored public LinkedIn announcements embedding exact empirical metrics; verified zero-secret hygiene and correct GitHub link targets.
 
 - **Phase 15c — Paper and scholarship material (P15C-001 through P15C-003):** Complete and verified.
   - Files: `docs/PAPER.md`, `docs/STATEMENT_OF_PURPOSE.md`, `test/academic-artifacts.test.mjs`
@@ -1175,15 +1180,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P15D-001 through P15D-004 — Author technical walkthrough scripts, slide decks, and LinkedIn disclosure summaries.
+- **Active task:** P15-GATE — Execute final project completion audit, sign off all phase gates, and prepare release tag.
 - **Current phase:** Phase 15 — Benchmarks, dashboard, documentation, and outreach.
-- **Scope:** Produce structured recording scripts and slide outlines for 3–5 min technical walkthrough and 2–3 min forensic integrity walkthrough (`docs/WALKTHROUGH_SCRIPT.md`), author LinkedIn disclosure copy (`docs/OUTREACH_LINKEDIN.md`), and verify zero secret leakage in all outreach links.
-- **Dependencies:** Phase 15a, 15b, and 15c complete; `scripts/deploy-soc-demo.py`, `docs/PAPER.md`.
-- **Security constraints:** No unredacted keys, PII, or internal network topology in public scripts.
+- **Scope:** Audit all phase gates across checklist, confirm coursework simulation stubs are explicitly documented, verify 100% test battery pass rate, and finalize release commit metadata.
+- **Dependencies:** All phases 1 through 15 complete and verified.
+- **Security constraints:** Zero secrets in release tree; 100% fail-closed integrity.
 
 ## Subsequent task queue
 
-1. `P15-GATE` — Final project completion gate, coursework simulation audit, and release tagging.
+1. `RELEASE-TAG` — Tag official capstone release (e.g. `v1.0.0-soc-remastered`) and push to GitLab/GitHub remotes.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

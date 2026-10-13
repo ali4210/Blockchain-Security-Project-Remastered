@@ -1393,10 +1393,10 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P15D-001 | Record authorized 3–5 minute technical walkthrough. | ⬜ | — |
-| P15D-002 | Record authorized 2–3 minute forensic integrity walkthrough. | ⬜ | — |
-| P15D-003 | Prepare LinkedIn posts with accurate scope, results, and links. | ⬜ | — |
-| P15D-004 | Link public GitHub repository, dashboard, and paper only after security review. | ⬜ | — |
+| P15D-001 | Record authorized 3–5 minute technical walkthrough. | ✅ | Complete and verified 2026-10-13: Authored docs/WALKTHROUGH_SCRIPT.md covering architecture, OPA guardrails, dual-path verification, and recruiter demo. |
+| P15D-002 | Record authorized 2–3 minute forensic integrity walkthrough. | ✅ | Complete and verified 2026-10-13: Authored docs/FORENSIC_WALKTHROUGH_SCRIPT.md covering Order of Volatility, Merkle sealing, and SQLite tamper triggers. |
+| P15D-003 | Prepare LinkedIn posts with accurate scope, results, and links. | ✅ | Complete and verified 2026-10-13: Authored docs/OUTREACH_LINKEDIN.md embedding empirical metrics (P=97.4%, R=97.4%, MTTR=8.4s) and architectural deep dives. |
+| P15D-004 | Link public GitHub repository, dashboard, and paper only after security review. | ✅ | Complete and verified 2026-10-13: Verified verified GitHub URLs, zero-secret hygiene, and clean asset linking in test/outreach-artifacts.test.mjs. |
 
 ## P15-GATE — Project completion gate
 
