@@ -12,3 +12,10 @@ lint:
 
 status-report:
 	npm run report
+
+pipeline-e2e: enterprise-integration
+	@bash scripts/run-all-e2e.sh
+
+enterprise-integration:
+	@./scripts/orchestrate-enterprise-integrations.sh
+
