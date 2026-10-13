@@ -54,3 +54,4 @@ prometheus-data/
 .DS_Store
 Thumbs.db
 export-env.sh
+public-dashboard/

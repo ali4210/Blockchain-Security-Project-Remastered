@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P15B-001 — Build dashboard / recruiter demo view and one-command run target |
-| Current thread | Phase 15a verified: Ingested 50 historical exploit benchmark fixtures in `data/benchmarks/historical_exploit_fixtures.json`, extended `src/storage/benchmark_suite.py` with empirical and forensic metrics, and verified target thresholds via `test/storage/test_benchmark_suite.py` (P15A-001 through P15A-005 complete). Transitioning to Phase 15b dashboard and recruiter demo (`P15B-001`). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P15C-001 — Draft IEEE/ACM-style paper and statement of purpose material |
+| Current thread | Phase 15b verified: One-command recruiter demo (`make deploy-soc-pipeline`), public dashboard telemetry export (`scripts/export-public-dashboard.mts`), and public repository hygiene suite (`test/public-repo-hygiene.test.mjs`) verified across 579 tests. Transitioning to Phase 15c paper and scholarship drafting (`P15C-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 15b — Dashboard / recruiter demo (P15B-001 through P15B-005):** Complete and verified.
+  - Files: `scripts/deploy-soc-demo.py`, `scripts/export-public-dashboard.mts`, `test/public-repo-hygiene.test.mjs`, `Makefile`
+  - Validation: `make deploy-soc-pipeline` executed cleanly in 0.45s; `test/public-repo-hygiene.test.mjs` passed (3/3 in 8.08ms); full 579-test multi-layer regression battery passing.
+  - Results: Created one-command recruiter demonstration target, built public dashboard export harness (`public-dashboard/`) with strict Vercel security headers, and verified zero private keys, sealed blobs, or broken OPA policies exist in public tracked paths.
 
 - **Phase 15a — Empirical benchmarking (P15A-001 through P15A-005):** Complete and verified.
   - Files: `data/benchmarks/historical_exploit_fixtures.json`, `src/storage/benchmark_suite.py`, `test/storage/test_benchmark_suite.py`
@@ -1165,17 +1170,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P15B-001 through P15B-005 — Implement recruiter demonstration harness, clean dashboard telemetry view, and verify one-command target `make deploy-soc-pipeline`.
+- **Active task:** P15C-001 through P15C-003 — Draft IEEE/ACM-style conference paper, compile benchmark results into statement-of-purpose material, and author privacy/data-sovereignty sections.
 - **Current phase:** Phase 15 — Benchmarks, dashboard, documentation, and outreach.
-- **Scope:** Provide documented recruiter demo harness (`make deploy-soc-pipeline`), ensure dashboard presentation displays redacted telemetry without secrets, and verify OPA policies and pre-commit checks.
-- **Dependencies:** Phase 15a complete; `src/storage/benchmark_suite.py`, `reports/latest.html`, `scripts/generate-html-report.mts`.
-- **Security constraints:** Air-gapped zero CDN policy; zero private key or raw forensic data in public demonstration views.
+- **Scope:** Produce publication-ready LaTeX/Markdown paper draft (`docs/PAPER.md`), integrate empirical benchmark tables, and document air-gapped local LLM inference and mTLS boundaries.
+- **Dependencies:** Phase 15a and 15b complete; `src/storage/benchmark_suite.py`, `reports/latest.html`, `test/public-repo-hygiene.test.mjs`.
+- **Security constraints:** Supportable claims only; zero fabrication of regional stats; all empirical numbers directly tied to Phase 15a benchmark outputs.
 
 ## Subsequent task queue
 
-1. `Phase 15c` — Draft IEEE/ACM paper sections and statement of purpose benchmark documentation.
-2. `Phase 15d` — Technical walkthrough guides and outreach preparation.
-3. `P15-GATE` — Final project completion gate and full system sign-off.
+1. `Phase 15d` — Technical walkthrough guide, slides, and outreach material.
+2. `P15-GATE` — Final project completion gate and full system sign-off.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

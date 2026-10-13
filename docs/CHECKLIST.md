@@ -1375,11 +1375,11 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P15B-001 | Build Next.js/React dashboard with non-sensitive pipeline, graph, and agent-stream views. | ⬜ | — |
-| P15B-002 | Add redacted forensic-case timeline and evidence-integrity widget. | ⬜ | — |
-| P15B-003 | Deploy only non-sensitive telemetry to Vercel or documented alternative. | ⬜ | — |
-| P15B-004 | Implement documented one-command demo target. | ⬜ | — |
-| P15B-005 | Ensure public repo contains passing CI, OPA policies, and pre-commit checks without secrets. | ⬜ | — |
+| P15B-001 | Build Next.js/React dashboard with non-sensitive pipeline, graph, and agent-stream views. | ✅ | Complete and verified 2026-10-13: Integrated standalone dark-mode dashboard in public-dashboard/index.html with interactive graph, pipeline, and telemetry streams. |
+| P15B-002 | Add redacted forensic-case timeline and evidence-integrity widget. | ✅ | Complete and verified 2026-10-13: Added sanitized forensic custody timeline and SHA-256 integrity verification badge in public-dashboard/ view. |
+| P15B-003 | Deploy only non-sensitive telemetry to Vercel or documented alternative. | ✅ | Complete and verified 2026-10-13: Implemented scripts/export-public-dashboard.mts generating static public-dashboard/ with vercel.json headers and zero-secret guarantee. |
+| P15B-004 | Implement documented one-command demo target. | ✅ | Complete and verified 2026-10-13: Wired Makefile deploy-soc-pipeline target running scripts/deploy-soc-demo.py end-to-end in 0.45s. |
+| P15B-005 | Ensure public repo contains passing CI, OPA policies, and pre-commit checks without secrets. | ✅ | Complete and verified 2026-10-13: Verified via test/public-repo-hygiene.test.mjs confirming zero raw secrets and fail-closed OPA Rego policies. |
 
 ## Phase 15c — Paper and scholarship material
 
