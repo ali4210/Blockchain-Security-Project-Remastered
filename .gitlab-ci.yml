@@ -1,5 +1,6 @@
 stages:
   - verify
+  - report
 
 runner_smoke_test:
   stage: verify
@@ -54,3 +55,20 @@ production_readiness_gate:
     expire_in: 7 days
     paths:
       - artifacts/production-readiness.json
+
+executive_status_report:
+  stage: report
+  image: node:24.19.0-bookworm-slim
+  tags:
+    - soc-docker
+  script:
+    - 'npm ci --ignore-scripts --no-audit --fund=false'
+    - 'npm run report'
+    - 'test -f reports/latest.html'
+    - 'test -f reports/status.json'
+  artifacts:
+    when: on_success
+    expire_in: 7 days
+    paths:
+      - reports/latest.html
+      - reports/status.json

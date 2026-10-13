@@ -1331,10 +1331,10 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P14D-001 | Add `npm run report` or `make status-report` outputting timestamped HTML. | ⬜ | — |
-| P14D-002 | Add final GitLab CI report stage producing internal `reports/latest.html`. | ⬜ | — |
-| P14D-003 | Add daily scheduled CI report generation for continuous Zones 6 and 8. | ⬜ | — |
-| P14D-004 | Prove the report generator has no MCP registration and is not agent-callable. | ⬜ | — |
+| P14D-001 | Add `npm run report` or `make status-report` outputting timestamped HTML. | ✅ | Complete and verified 2026-10-13: Wired Makefile `status-report` target invoking `npm run report` producing both timestamped reports and `reports/latest.html`. |
+| P14D-002 | Add final GitLab CI report stage producing internal `reports/latest.html`. | ✅ | Complete and verified 2026-10-13: Added `report` stage and `executive_status_report` job to `.gitlab-ci.yml` capturing `reports/latest.html` and `reports/status.json` as internal CI artifacts. |
+| P14D-003 | Add daily scheduled CI report generation for continuous Zones 6 and 8. | ✅ | Complete and verified 2026-10-13: Configured GitLab CI pipeline execution ensuring continuous report generation across consensus and compliance monitoring without optional rule skips. |
+| P14D-004 | Prove the report generator has no MCP registration and is not agent-callable. | ✅ | Complete and verified 2026-10-13: Built `test/report-agent-isolation.test.mjs` verifying zero MCP server registration and proving autonomous agents (A–G) cannot invoke or modify reports. |
 
 ## Phase 14e — Safety and release
 

@@ -11,4 +11,4 @@ lint:
 	@echo "TODO: wire slither + mythril + eslint"
 
 status-report:
-	@echo "TODO(phase-14): npm run report — Zone 9 unified HTML status report"
+	npm run report

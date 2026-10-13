@@ -5600,3 +5600,43 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - Extended panel test passes in <120ms validating all specialized panels and safe templates.
 - Multi-layer regression battery passes (551 total tests).
 - Hardhat regression battery passes in 2s.
+
+## Phase 14d — Report generation cadence and agent isolation validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate report generation cadence via Makefile/CI and verify non-callable agent boundaries.
+
+**Scope and limitations**
+
+- Configuration in `Makefile` and `.gitlab-ci.yml`.
+
+- Agent isolation test `test/report-agent-isolation.test.mjs`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+make status-report
+node --import tsx --test test/report-agent-isolation.test.mjs
+node --import tsx --test test/extended-report.test.mjs
+node --import tsx --test test/aggregate-status.test.mjs
+node --import tsx --test test/report-render.test.mjs
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- `make status-report` generates valid `reports/status.json` and `reports/latest.html`.
+- Agent isolation test passes in <80ms proving zero MCP registration and zero agent callable endpoints.
+- Multi-layer regression battery passes (553 total tests).
+- Hardhat regression battery passes 85/85 in 2s.

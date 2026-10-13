@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | P14D-001 — Add `npm run report` generation cadence and CI integration |
-| Current thread | Phase 14c verified: Implemented extended report panels in `scripts/generate-html-report.mts` covering Zone 6 consensus timeline, Zone 7 wallet key schemes, Zone 5 forensic cases, executive KPI cards, safe templates, and Zone 8 compliance register. Verified via `test/extended-report.test.mjs`. P14C-001 through P14C-006 complete. Transitioning to Phase 14d generation cadence (`P14D-001`). Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P14E-001 — Initialize safety, mirror exclusion, and Phase 14 release gate |
+| Current thread | Phase 14d verified: Configured report cadence in Makefile and .gitlab-ci.yml, and built `test/report-agent-isolation.test.mjs` confirming zero MCP registration and zero agent-callable access (P14D-001 through P14D-004 complete). Hardhat CI tests pass (85/85). Transitioning to Phase 14e safety and release gate (`P14E-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 14d — Generation cadence (P14D-001 through P14D-004):** Complete and verified.
+  - Files: `Makefile`, `.gitlab-ci.yml`, `test/report-agent-isolation.test.mjs`
+  - Validation: `make status-report`, `node --import tsx --test test/report-agent-isolation.test.mjs` passed cleanly, and Hardhat regression test suite passed 85/85 tests cleanly.
+  - Results: Wired report generation cadence into Makefile and GitLab CI; proved through automated isolation testing that the report generation layer has zero MCP tool exposure and cannot be invoked by autonomous agents.
 
 - **Phase 14c — Extend report generator (P14C-001 through P14C-006):** Complete and verified.
   - Files: `scripts/generate-html-report.mts`, `test/extended-report.test.mjs`
@@ -1150,15 +1155,15 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** P14D-001 through P14D-004 — Implement report generation cadence, CI integration, and agent boundary verification.
+- **Active task:** P14E-001 through P14E-004 & P14-GATE — Execute Phase 14e safety invariants, redaction tests, Phase 9 HITL external sharing documentation, and final Phase 14 completion gate.
 - **Current phase:** Phase 14 — Zone 9: Unified executive HTML report layer.
-- **Scope:** Validate `npm run report` producing timestamped and latest HTML reports; update `.gitlab-ci.yml` with report generation stage outputting `reports/latest.html`; add scheduled daily CI report workflow; implement tests proving report generator has zero MCP tool registration and is not agent-callable (P14D-004).
-- **Dependencies:** Phases 14a, 14b, and 14c complete; `scripts/generate-html-report.mts`, `scripts/aggregate-status.mts`.
-- **Security constraints:** Zero agent-callable endpoints for report generation; output confined to local staging.
+- **Scope:** Verify `.gitignore` and `scripts/mirror-release-gate.sh` exclude `reports/` from external mirrors; add fixture redaction tests for forensic/compliance data; document Phase 9 HITL egress authorization protocol; verify standalone browser rendering; validate P14-GATE checklist criteria.
+- **Dependencies:** Phases 14a through 14d complete; `scripts/generate-html-report.mts`, `scripts/aggregate-status.mts`.
+- **Security constraints:** Air-gapped zero CDN policy; strict local staging of reports; external release strictly gated by Phase 9 human token.
 
 ## Subsequent task queue
 
-1. `Phase 14e` — Safety, mirror exclusion, and Phase 14 completion gate (P14-GATE).
+1. `P14-GATE` — Final Phase 14 completion sign-off and git release tagging.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |
