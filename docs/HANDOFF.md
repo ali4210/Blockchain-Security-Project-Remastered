@@ -12,8 +12,8 @@
 | Field | Current value |
 |---|---|
 | Current phase | Phase 13 (Zone 8: Compliance and regulatory automation) |
-| Current task | Phase 13 Complete — Prepare Phase 14 Transition |
-| Current thread | Phase 13 verified and concluded: Authored comprehensive compliance and regulatory automation documentation `docs/COMPLIANCE_AUTOMATION.md` detailing sanctions screening, AML heuristics, zero-knowledge attestations, OPA RBAC enforcement, and cryptographic HITL approval protocols. 55 compliance tests passing, 56 wallet tests passing, 42 agent tests passing, 99 consensus tests passing, 50 forensics tests passing, 26 mitigation tests passing, 26 MCP tests passing, 85 Hardhat tests passing, strict manifest ingestion valid, and 547 total workspace tests passing. Ready for Phase 14. Preserve untracked `docs/.backup/` and compiler caches. |
+| Current task | P14B-001 — Implement status aggregator `scripts/aggregate-status.mts` |
+| Current thread | Phase 14a verified: Implemented and validated standalone HTML report generator `scripts/generate-html-report.mts` and rendering regression suite `test/report-render.test.mjs`. P14A-001 and P14A-002 completed. Transitioning to Phase 14b status aggregator (`P14B-001`). Preserve untracked `docs/.backup/` and compiler caches. |
 | Current branch | `main` |
 | Last verified commit | `ae73cc80efd63fc2ce00942818e53e85b1e6a14a` — P03-008 implementation/evidence |
 | Last GitLab pipeline | User-reported green for `ae73cc80efd63fc2ce00942818e53e85b1e6a14a`; pipeline ID/job URL not captured. Separate closeout CI not yet run. |
@@ -26,6 +26,11 @@
 | Last updated | 2026-10-08 |
 
 ## Completed since previous handoff
+
+- **Phase 14a — Port existing report tool (P14A-001, P14A-002):** Complete and verified.
+  - Files: `scripts/generate-html-report.mts`, `test/report-render.test.mjs`
+  - Validation: `node --import tsx --test test/report-render.test.mjs` passed cleanly; full multi-layer regression battery passing.
+  - Results: Implemented self-contained HTML executive report layer with zero CDN dependency; verified standalone rendering against sanitized sample payloads with strict HTML escaping and air-gapped network isolation.
 
 - **P13-012 — Document compliance and regulatory automation with human-in-the-loop review confirmation:** Complete and verified.
   - Files: `docs/COMPLIANCE_AUTOMATION.md`
@@ -1135,15 +1140,16 @@ git log --follow --format='%H%x09%ad%x09%s' --date=short -- .gitlab-ci.yml
 
 ### Immediate next task
 
-- **Active task:** Phase 14 — Transition to System Integration & Final Readiness Drills.
-- **Current phase:** Phase 14 — Operational readiness and cross-zone end-to-end integration.
-- **Scope:** Scope and initialize Phase 14 work items across end-to-end swarm lifecycle execution, cross-zone integration drills, disaster recovery procedures, and final deployment runbook sign-offs.
-- **Dependencies:** Phases 1 through 13 fully complete and verified; 547 total tests passing.
-- **Security constraints:** Multi-tier fail-closed invariants intact across all zones.
+- **Active task:** P14B-001 — Implement `scripts/aggregate-status.mts` reading allowed summary fields from Zones 3–8 and benchmark suite.
+- **Current phase:** Phase 14 — Zone 9: Unified executive HTML report layer.
+- **Scope:** Implement status aggregator in `scripts/aggregate-status.mts` collecting verified status from manifest artifacts, test metrics, and forensic/compliance metadata; output versioned `reports/status.json` adhering to the aggregation contract; assert strict exclusion of raw secrets or sensitive data (P14B-002, P14B-003).
+- **Dependencies:** Phase 14a complete; `scripts/generate-html-report.mts`.
+- **Security constraints:** Zero raw private keys, shares, sealed evidence, or unredacted SAR leakage into `status.json`.
 
 ## Subsequent task queue
 
-1. `P14-001` — Scope and initialize Phase 14 system integration checklist and roadmap.
+1. `P14B-002` — Write versioned status.json matching documented aggregation contract.
+2. `P14B-003` — Add tests proving status.json excludes raw secrets.
 ## Known dependencies and planned stubs
 
 | Dependency | Producer | Consumer | Required interim behavior |

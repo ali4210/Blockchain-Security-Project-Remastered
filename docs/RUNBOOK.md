@@ -5490,3 +5490,38 @@ python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
 - 26 MCP middleware unit tests pass in 0.105s.
 - Ingestion verifier emits `status: "valid"` with intact asset map.
 - 85 Hardhat regression tests pass in 2s (547 total workspace tests passing).
+
+## Phase 14a — Executive HTML report port and rendering validation
+
+**Status:** Verified
+
+**Purpose**
+
+Validate standalone executive HTML report generation and escaping against sanitized JSON payloads.
+
+**Scope and limitations**
+
+- Report generator `scripts/generate-html-report.mts`.
+
+- Rendering regression suite `test/report-render.test.mjs`.
+
+**Verified commands**
+
+```bash
+cd ~/Blockchain-Security-Project-Remastered
+node --import tsx --test test/report-render.test.mjs
+python3 -m unittest discover -s test/compliance/ -p "test_*.py"
+python3 -m unittest discover -s test/wallet/ -p "test_*.py"
+python3 -m unittest discover -s test/consensus/ -p "test_*.py"
+python3 -m unittest discover -s test/forensics/ -p "test_*.py"
+python3 -m unittest discover -s test/mitigation/ -p "test_*.py"
+python3 -m unittest discover -s test/mcp_middleware/ -p "test_*.py"
+./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
+./node_modules/.bin/hardhat --config config/hardhat.config.js test --no-compile test/hardhat/placeholder.test.js
+```
+
+**Verified expected result**
+
+- Report render test passes in <80ms with intact escaping and zero-CDN compliance.
+- Full multi-zone unit test battery (547 tests) passes.
+- Hardhat regression battery (85 tests) passes in 2s.

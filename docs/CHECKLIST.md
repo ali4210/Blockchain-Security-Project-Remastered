@@ -1305,8 +1305,8 @@ resolve to the same full SHA.
 
 | ID | Task | Status | Evidence / commit |
 |---|---|---|---|
-| P14A-001 | Port existing `generate-html-report.mts` features into this repository. | ⬜ | — |
-| P14A-002 | Verify standalone rendering against synthetic sanitized sample JSON. | ⬜ | — |
+| P14A-001 | Port existing `generate-html-report.mts` features into this repository. | ✅ | Complete and verified 2026-10-13: Ported standalone executive report generator in `scripts/generate-html-report.mts` with zero-CDN dependencies, dark theme, SVG charts, zone verification health, and live search toolbar. |
+| P14A-002 | Verify standalone rendering against synthetic sanitized sample JSON. | ✅ | Complete and verified 2026-10-13: Built `test/report-render.test.mjs` verifying report generation against synthetic sanitized JSON with strict HTML escaping against script injection and zero-CDN boundary enforcement. |
 
 ## Phase 14b — Status aggregator
 
