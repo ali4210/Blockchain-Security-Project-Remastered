@@ -17,11 +17,11 @@ AgentType = Literal["A", "B", "C", "D", "E", "F", "G"]
 
 AGENT_MODEL_ROUTING_TIER1: Dict[AgentType, str] = {
     "A": "qwen2.5-coder:32b",
-    "B": "deepseek-r1:32b",
-    "C": "qwen2.5:32b",
-    "D": "deepseek-r1:32b",
-    "E": "qwen2.5:32b",
-    "F": "deepseek-r1:32b",
+    "B": "deepseek-r1:32b-stable",
+    "C": "qwen3:32b",
+    "D": "deepseek-r1:32b-stable",
+    "E": "qwen3.5:9b",
+    "F": "deepseek-r1:32b-stable",
     "G": "qwen2.5-coder:32b",
 }
 
@@ -104,7 +104,8 @@ def chat(
     Falls back to a deterministic offline response in headless or unreachable environments.
     """
     resolved_agent: AgentType = force_agent or "A"
-    resolved_model = model or AGENT_MODEL_ROUTING.get(resolved_agent, "qwen2.5-coder:32b")
+    routing = get_model_routing()
+    resolved_model = model or routing.get(resolved_agent, "qwen2.5-coder:32b")
     num_ctx = AGENT_NUM_CTX.get(resolved_agent, 32768)
     req_timeout = timeout or AGENT_TIMEOUTS.get(resolved_agent, 180.0)
 
@@ -187,7 +188,8 @@ def agent_stage(agent: AgentType) -> Generator[Dict[str, Any], None, None]:
     Context manager guaranteeing that the assigned model's VRAM is purged
     immediately upon exiting the agent's stage.
     """
-    assigned_model = AGENT_MODEL_ROUTING.get(agent, "qwen2.5-coder:32b")
+    routing = get_model_routing()
+    assigned_model = routing.get(agent, "qwen2.5-coder:32b")
     context_data = {
         "agent": agent,
         "model": assigned_model,

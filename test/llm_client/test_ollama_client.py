@@ -54,11 +54,11 @@ class TestOllamaClient(unittest.TestCase):
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
             with agent_stage("B") as ctx:
                 self.assertEqual(ctx["agent"], "B")
-                self.assertEqual(ctx["model"], "deepseek-r1:32b")
+                self.assertEqual(ctx["model"], "deepseek-r1:32b-stable")
                 self.assertEqual(ctx["num_ctx"], 16384)
                 self.assertEqual(ctx["timeout"], 180.0)
 
-        self.assertEqual(purged, ["deepseek-r1:32b"])
+        self.assertEqual(purged, ["deepseek-r1:32b-stable"])
 
     def test_chat_offline_fallback(self):
         with patch.dict(os.environ, {"OLLAMA_HOST": "http://127.0.0.1:99999"}):
