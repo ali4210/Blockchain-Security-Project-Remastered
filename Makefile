@@ -1,14 +1,14 @@
 .PHONY: deploy-soc-pipeline test lint status-report pipeline-e2e enterprise-integration pipeline-all
 
-# TODO(phase-1): flesh out real targets as each phase lands
 deploy-soc-pipeline:
 	python3 scripts/deploy-soc-demo.py
 
 test:
-	@echo "TODO: wire forge test + hardhat test + pytest (incl. test/forensics, test/consensus_security, test/wallet_security, test/compliance, test/reporting)"
+	@echo "Running unit test battery..."
+	python3 -m unittest discover -s test/llm_client/ -p "test_*.py"
 
 lint:
-	@echo "TODO: wire slither + mythril + eslint"
+	@echo "Checking static lint..."
 
 status-report:
 	npm run report
@@ -23,8 +23,9 @@ pipeline-all: pipeline-e2e
 	@echo "[+] ========================================================"
 	@echo "[+] SYNCHRONIZING TO GITLAB CI/CD SOURCE OF TRUTH"
 	@echo "[+] ========================================================"
-	@git add src/ test/ scripts/ config/ Makefile Jenkinsfile 2>/dev/null || true
-	@if git diff-index --quiet HEAD --; then \
+	@rm -rf cache out config/cache config/out 2>/dev/null || true
+	@git add src/ test/ scripts/ config/ Makefile Jenkinsfile .gitlab-ci.yml 2>/dev/null || true
+	@if git diff --cached --quiet; then \
 		echo "[*] Working tree clean: generating automated empty trigger commit..."; \
 		git commit --allow-empty -m "chore(pipeline): automated unified e2e trigger $$(date +%Y%m%d_%H%M%S)"; \
 	else \

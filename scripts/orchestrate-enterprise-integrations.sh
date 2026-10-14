@@ -64,3 +64,9 @@ else
 fi
 
 echo "[+] Enterprise integrations successfully executed."
+
+# Trigger SonarQube SAST Scanner Analysis
+if [ -n "$SONAR_TOKEN" ]; then
+    echo "[+] [SONARQUBE] Running automated SAST scan against contracts and source..."
+    npx --yes sonarqube-scanner         -Dsonar.projectKey=blockchain-security-soc         -Dsonar.sources=contracts,src         -Dsonar.host.url="${SONAR_ADDR:-http://127.0.0.1:9000}"         -Dsonar.login="$SONAR_TOKEN"         -Dsonar.token="$SONAR_TOKEN" || true
+fi

@@ -5,9 +5,9 @@ stages:
   - gitops-deploy
 
 variables:
-  VAULT_ADDR: "http://192.168.0.150:8200"
+  VAULT_ADDR: "http://172.17.0.1:8200"
   VAULT_TOKEN: "cross-vault-6b76c24b1e537ee522d3369651764e94"
-  JENKINS_ADDR: "http://192.168.0.150:8082"
+  JENKINS_ADDR: "http://172.17.0.1:8082"
 
 runner_smoke_test:
   stage: verify
@@ -90,11 +90,11 @@ jenkins_enterprise_audit:
   script:
     - 'echo "[+] [STAGE 3] Querying HashiCorp Vault for dynamic tokens..."'
     - 'export JENKINS_TOKEN=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r ".data.data.token")'
-    - 'export CRUMB_JSON=$(curl -s -u "admin:${JENKINS_TOKEN}" "${JENKINS_ADDR}/crumbIssuer/api/json")'
+    - 'export CRUMB_JSON=$(curl -s --cookie-jar /tmp/jk_cookies.txt -u "admin:${JENKINS_TOKEN}" "${JENKINS_ADDR}/crumbIssuer/api/json")'
     - 'export CRUMB_HEADER=$(echo "$CRUMB_JSON" | jq -r ".crumbRequestField")'
     - 'export CRUMB_VAL=$(echo "$CRUMB_JSON" | jq -r ".crumb")'
     - 'echo "[+] [JENKINS] Triggering Job blockchain-soc-audit..."'
-    - 'curl -s -i -X POST "${JENKINS_ADDR}/job/blockchain-soc-audit/build" -u "admin:${JENKINS_TOKEN}" -H "${CRUMB_HEADER}:${CRUMB_VAL}"'
+    - 'curl -s -i --cookie /tmp/jk_cookies.txt -X POST "${JENKINS_ADDR}/job/blockchain-soc-audit/build" -u "admin:${JENKINS_TOKEN}" -H "${CRUMB_HEADER}:${CRUMB_VAL}"'
     - 'echo "[+] Build triggered. Polling Jenkins for execution results..."'
     - 'sleep 6'
     - |
