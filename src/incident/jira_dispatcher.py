@@ -81,7 +81,7 @@ class JiraIncidentDispatcher:
                 print(f"[-] Jira API connection warning: {e}")
 
         # Local fallback artifact
-        local_key = f"{self.project_key}-{incident_id[-4:]}"
+        local_key = f"{self.project_key}-{incident_id[-4:].lstrip(\"-\")}"
         ticket_file = f"reports/jira-{local_key}.json"
         Path("reports").mkdir(exist_ok=True)
         try:
