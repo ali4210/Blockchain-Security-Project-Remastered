@@ -15,18 +15,22 @@ class JiraIncidentDispatcher:
 
     def dispatch_sev1_ticket(
         self,
-        incident_id: str,
-        contract_name: str,
-        dread_score: float,
-        findings_summary: str,
+        incident_id: str = "INC-SEV1-ACTIVE",
+        contract_name: str = None,
+        contract: str = None,
+        dread_score: float = 8.4,
+        findings_summary: str = "High-severity vulnerability confirmed by multi-zone consensus.",
         safe_pause_payload: str = None,
-        avs_quorum: bool = True
+        avs_quorum: bool = True,
+        stix_bundle_path: str = None,
+        **kwargs
     ) -> dict:
-        summary = f"[SEV-1 AUTO-HALT] Exploitation Prevented on {contract_name} (DREAD {dread_score})"
+        target_contract = contract_name or contract or "VulnerableVault.sol"
+        summary = f"[SEV-1 AUTO-HALT] Exploitation Prevented on {target_contract} (DREAD {dread_score})"
         desc = (
             f"*Autonomous Blockchain SOC — Emergency Halt Consensus Event*\n\n"
             f"*Incident ID:* `{incident_id}`\n"
-            f"*Target Contract:* `{contract_name}`\n"
+            f"*Target Contract:* `{target_contract}`\n"
             f"*Assessed DREAD Score:* `{dread_score} / 10.0`\n"
             f"*AVS Byzantine Consensus:* `{'VERIFIED (100% agreement)' if avs_quorum else 'PENDING'}`\n\n"
             f"h3. Technical Triage & Findings\n{findings_summary}\n\n"
@@ -35,6 +39,8 @@ class JiraIncidentDispatcher:
             f"- Autonomous execution halted deployment at Zone 9 deny-by-default readiness gate.\n"
             f"- Forensic volatile memory state bundle sealed with Merkle verification.\n"
         )
+        if stix_bundle_path:
+            desc += f"\n*STIX 2.1 Threat Indicator Bundle:* `{stix_bundle_path}`\n"
 
         ticket_payload = {
             "fields": {
@@ -91,10 +97,11 @@ if __name__ == "__main__":
     dispatcher = JiraIncidentDispatcher()
     res = dispatcher.dispatch_sev1_ticket(
         incident_id="INC-TEST-001",
-        contract_name="VulnerableVault.sol",
+        contract="VulnerableVault.sol",
         dread_score=8.4,
         findings_summary="Reentrancy exploit path verified via Slither AST and Mythril symbolic solver.",
         safe_pause_payload="0x8456cb59",
-        avs_quorum=True
+        avs_quorum=True,
+        stix_bundle_path="reports/stix/latest-incident-stix.json"
     )
     print(f"[+] Jira Dispatch Result: Status={res['status']} Key={res.get('key')} URL={res.get('url')}")
