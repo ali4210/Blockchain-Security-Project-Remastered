@@ -69,6 +69,12 @@ class JiraIncidentDispatcher:
                 )
                 if resp.status_code in [200, 201]:
                     issue_key = resp.json().get("key", f"{self.project_key}-AUTO")
+            try:
+                os.makedirs("reports", exist_ok=True)
+                with open("reports/latest-jira-ticket.txt", "w", encoding="utf-8") as jtf:
+                    jtf.write(issue_key.strip())
+            except Exception as e:
+                pass
                     return {
                         "status": "dispatched",
                         "key": issue_key,

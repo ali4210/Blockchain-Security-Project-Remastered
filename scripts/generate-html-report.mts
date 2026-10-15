@@ -446,7 +446,13 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           <tr>
             <td><b>Atlassian Jira</b></td>
             <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">Cloud REST API</td>
-            <td style="font-family: monospace; font-size: 12px;">Automated SEV-1 Incident Action: KAN-22</td>
+            <td style="font-family: monospace; font-size: 12px;">Automated SEV-1 Incident Action: ${(() => {
+              try {
+                const tf = resolve(process.cwd(), "reports/latest-jira-ticket.txt");
+                if (existsSync(tf)) return readFileSync(tf, "utf-8").trim();
+              } catch {}
+              return "KAN-DISPATCHED";
+            })()}</td>
             <td><span style="color: #4ade80; font-weight: 700;">DISPATCHED</span></td>
           </tr>
           <tr>

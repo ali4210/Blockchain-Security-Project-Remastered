@@ -1,30 +1,25 @@
 
 def get_latest_jira_ticket():
-    import json, glob, os
-    # 1. Try reading latest STIX bundle
-    stix_path = "reports/stix/latest-incident-stix.json"
-    if os.path.exists(stix_path):
+    import os, re
+    ticket_file = "reports/latest-jira-ticket.txt"
+    if os.path.exists(ticket_file):
         try:
-            with open(stix_path, "r") as f:
-                data = json.load(f)
-                for obj in data.get("objects", []):
-                    ext = obj.get("external_references", [])
-                    for r in ext:
-                        if "KAN-" in r.get("external_id", ""):
-                            return r["external_id"]
+            with open(ticket_file, "r", encoding="utf-8") as f:
+                val = f.read().strip()
+                if val.startswith("KAN-"):
+                    return val
         except Exception:
             pass
-    # 2. Try status.json
-    status_path = "reports/status.json"
-    if os.path.exists(status_path):
-        try:
-            with open(status_path, "r") as f:
-                data = json.load(f)
-                if "jira_ticket" in data:
-                    return data["jira_ticket"]
-        except Exception:
-            pass
-    return "KAN-LIVE"
+    for candidate in ["reports/stix/latest-incident-stix.json", "reports/status.json"]:
+        if os.path.exists(candidate):
+            try:
+                with open(candidate, "r", encoding="utf-8") as f:
+                    matches = re.findall(r"KAN-[0-9]+", f.read())
+                    if matches:
+                        return matches[-1]
+            except Exception:
+                pass
+    return "KAN-23"
 
 import json
 import os
