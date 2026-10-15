@@ -6,7 +6,7 @@ echo "[+] [ZONE 1] Running Native Gitleaks High-Entropy Secret & Key Leak Detect
 mkdir -p reports
 
 if command -v gitleaks >/dev/null 2>&1; then
-    gitleaks detect \
+    gitleaks detect --gitleaks-ignore-path=.gitleaksignore \
         --source . \
         --no-git \
         --verbose \
