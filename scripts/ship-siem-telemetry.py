@@ -1,3 +1,31 @@
+
+def get_latest_jira_ticket():
+    import json, glob, os
+    # 1. Try reading latest STIX bundle
+    stix_path = "reports/stix/latest-incident-stix.json"
+    if os.path.exists(stix_path):
+        try:
+            with open(stix_path, "r") as f:
+                data = json.load(f)
+                for obj in data.get("objects", []):
+                    ext = obj.get("external_references", [])
+                    for r in ext:
+                        if "KAN-" in r.get("external_id", ""):
+                            return r["external_id"]
+        except Exception:
+            pass
+    # 2. Try status.json
+    status_path = "reports/status.json"
+    if os.path.exists(status_path):
+        try:
+            with open(status_path, "r") as f:
+                data = json.load(f)
+                if "jira_ticket" in data:
+                    return data["jira_ticket"]
+        except Exception:
+            pass
+    return "KAN-LIVE"
+
 import json
 import os
 import sys
@@ -34,7 +62,7 @@ def ship_to_elasticsearch(status_data):
         "avs_consensus": v104.get("avs_consensus", {}),
         "langgraph_swarm": v104.get("langgraph_swarm", {}),
         "vault_signature": v104.get("hashicorp_vault", {}).get("status", "ONLINE"),
-        "jira_ticket": "KAN-10"
+        "jira_ticket": get_latest_jira_ticket()
     }
 
     try:

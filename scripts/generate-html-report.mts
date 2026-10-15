@@ -446,7 +446,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           <tr>
             <td><b>Atlassian Jira</b></td>
             <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">Cloud REST API</td>
-            <td style="font-family: monospace; font-size: 12px;">Automated SEV-1 Incident Ticket: KAN-20 / KAN-21</td>
+            <td style="font-family: monospace; font-size: 12px;">Automated SEV-1 Incident Action: KAN-22</td>
             <td><span style="color: #4ade80; font-weight: 700;">DISPATCHED</span></td>
           </tr>
           <tr>
