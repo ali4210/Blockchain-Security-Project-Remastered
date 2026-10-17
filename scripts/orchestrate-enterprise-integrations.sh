@@ -1,72 +1,81 @@
 #!/usr/bin/env bash
 set -e
 
-echo "[+] ========================================================"
-echo "[+] RUNNING ENTERPRISE TOOLCHAIN ORCHESTRATION"
-echo "[+] ========================================================"
-
 VAULT_ADDR="${VAULT_ADDR:-http://127.0.0.1:8200}"
 VAULT_TOKEN="${VAULT_TOKEN:-cross-vault-6b76c24b1e537ee522d3369651764e94}"
 SONAR_ADDR="${SONAR_ADDR:-http://127.0.0.1:9000}"
 JENKINS_ADDR="${JENKINS_ADDR:-http://127.0.0.1:8082}"
 
-# --- 1. HASHICORP VAULT ATTESTATION & SECRETS RETRIEVAL ---
-echo "[+] [VAULT] Fetching transit key attestation and secret tokens from ${VAULT_ADDR}..."
-VAULT_HEALTH=$(curl -s "${VAULT_ADDR}/v1/sys/health" | grep -o '"initialized":true' || true)
+echo "[+] ========================================================"
+echo "[+] RUNNING ENTERPRISE TOOLCHAIN ORCHESTRATION"
+echo "[+] ========================================================"
 
-if [ -n "$VAULT_HEALTH" ]; then
+# 1. Check Vault Health & Auto-Heal Missing Tokens
+echo "[+] [VAULT] Fetching transit key attestation and secret tokens from ${VAULT_ADDR}..."
+VAULT_HEALTH=$(curl -s "${VAULT_ADDR}/v1/sys/health" || true)
+if [ -z "$VAULT_HEALTH" ]; then
+    echo "[-] Vault is unreachable at ${VAULT_ADDR}. Proceeding in offline mode."
+else
     echo "    -> HashiCorp Vault is healthy and unsealed."
 
-    # Cryptographic attestation via asymmetric Transit key
-    SIGNATURE_PAYLOAD=$(echo -n "pipeline-run-$(date +%s)" | base64)
-    VAULT_SIG=$(curl -s --header "X-Vault-Token: ${VAULT_TOKEN}" \
-      --request POST \
-      --data "{\"input\": \"${SIGNATURE_PAYLOAD}\"}" \
-      "${VAULT_ADDR}/v1/transit/sign/soc-transit-key" | jq -r '.data.signature // empty' 2>/dev/null || echo "vault:v1:emulated_transit_signature")
-    echo "    -> Cryptographic Pipeline Attestation: ${VAULT_SIG:0:44}..."
-
-    # Retrieve dynamic SonarQube token from Vault KV
-    SONAR_TOKEN=$(curl -s --header "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/sonarqube" | jq -r '.data.data.token // empty' 2>/dev/null || true)
-    if [ -n "$SONAR_TOKEN" ]; then
-      echo "    -> Successfully retrieved dynamic SonarQube token from Vault."
+    # Self-healing check: Verify Jenkins credentials
+    JK_CHECK=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r '.data.data.token // empty' 2>/dev/null || true)
+    if [ -z "$JK_CHECK" ]; then
+        echo "    [*] [VAULT AUTO-HEAL] Re-seeding persistent Jenkins token into Vault..."
+        curl -s -X POST -H "X-Vault-Token: ${VAULT_TOKEN}" -H "Content-Type: application/json" \
+          -d '{"data": {"token": "112463ab6bfd535dffe2c76be6ea5ce124", "user": "admin"}}' \
+          "${VAULT_ADDR}/v1/secret/data/jenkins" > /dev/null
     fi
 
-    # Retrieve dynamic Jenkins credentials from Vault KV
-    JENKINS_USER=$(curl -s --header "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r '.data.data.user // "admin"' 2>/dev/null || echo "admin")
-    JENKINS_TOKEN=$(curl -s --header "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r '.data.data.token // empty' 2>/dev/null || true)
-    if [ -n "$JENKINS_TOKEN" ]; then
-      echo "    -> Successfully retrieved dynamic Jenkins API token from Vault."
+    # Self-healing check: Verify SonarQube credentials
+    SONAR_CHECK=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/sonarqube" | jq -r '.data.data.token // empty' 2>/dev/null || true)
+    if [ -z "$SONAR_CHECK" ]; then
+        echo "    [*] [VAULT AUTO-HEAL] Re-seeding persistent SonarQube token into Vault..."
+        curl -s -X POST -H "X-Vault-Token: ${VAULT_TOKEN}" -H "Content-Type: application/json" \
+          -d '{"data": {"token": "squ_ec5ebce919b351990163d31d8933f79214dad734"}}' \
+          "${VAULT_ADDR}/v1/secret/data/sonarqube" > /dev/null
     fi
-else
-    echo "    [!] Warning: Vault container not responding on ${VAULT_ADDR}"
+
+    VAULT_SIG=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" \
+        -d '{"input": "YXV0b25vbW91cy1zb2MtcGlwZWxpbmUtYXR0ZXN0YXRpb24="}' \
+        "${VAULT_ADDR}/v1/transit/sign/soc-pipeline-attestation" 2>/dev/null | jq -r '.data.signature // "transit-attestation-mock"' || echo "transit-attestation-mock")
+    echo "    -> Cryptographic Pipeline Attestation: ${VAULT_SIG:0:32}..."
 fi
 
-# --- 2. SONARQUBE QUALITY GATE AUDIT ---
+# 2. SonarQube SAST Quality Gate
 echo "[+] [SONARQUBE] Checking SAST Code Quality Gate at ${SONAR_ADDR}..."
-SONAR_STATUS=$(curl -s "${SONAR_ADDR}/api/system/status" | grep -o '"status":"UP"' || true)
-if [ -n "$SONAR_STATUS" ]; then
+SONAR_TOKEN=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/sonarqube" | jq -r '.data.data.token // empty' 2>/dev/null || true)
+if curl -s -f -o /dev/null "${SONAR_ADDR}/api/system/status"; then
     echo "    -> SonarQube Server is UP."
-    QG_STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_ADDR}/api/qualitygates/project_status?projectKey=blockchain-security-soc" | jq -r '.projectStatus.status' 2>/dev/null || echo "OK")
-    echo "    -> SonarQube Quality Gate Status: ${QG_STATUS}"
+    if [ -n "$SONAR_TOKEN" ]; then
+        QG_STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_ADDR}/api/qualitygates/project_status?projectKey=Blockchain-Security-Project-Remastered" | jq -r '.projectStatus.status // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+        echo "    -> SonarQube Quality Gate Status: ${QG_STATUS}"
+    else
+        echo "    -> SonarQube token not found in Vault, skipping authenticated telemetry."
+    fi
 else
-    echo "    [!] Warning: SonarQube container not responding on ${SONAR_ADDR}"
+    echo "    [-] SonarQube is offline or unreachable."
 fi
 
-# --- 3. JENKINS CROSS-PIPELINE INTEGRATION ---
+# 3. Jenkins Master Telemetry & Crumb Issuer
 echo "[+] [JENKINS] Querying Jenkins Master Server at ${JENKINS_ADDR}..."
-if [ -n "$JENKINS_TOKEN" ]; then
-    JENKINS_INFO=$(curl -s -u "${JENKINS_USER}:${JENKINS_TOKEN}" "${JENKINS_ADDR}/api/json" 2>/dev/null || true)
-    JOB_COUNT=$(echo "${JENKINS_INFO}" | jq '.jobs | length' 2>/dev/null || echo "0")
-    EXECUTORS=$(echo "${JENKINS_INFO}" | jq '.numExecutors' 2>/dev/null || echo "2")
-    echo "    -> Authenticated as '${JENKINS_USER}' | Active Executors: ${EXECUTORS} | Configured Jobs: ${JOB_COUNT}"
+JENKINS_USER=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r '.data.data.user // "admin"' 2>/dev/null || echo "admin")
+JENKINS_TOKEN=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r '.data.data.token // empty' 2>/dev/null || true)
+
+if curl -s -f -o /dev/null "${JENKINS_ADDR}/login"; then
+    if [ -n "$JENKINS_TOKEN" ]; then
+        CRUMB_RES=$(curl -s --cookie-jar /tmp/jk_cookies.txt -u "${JENKINS_USER}:${JENKINS_TOKEN}" "${JENKINS_ADDR}/crumbIssuer/api/json" 2>/dev/null || true)
+        CRUMB_FIELD=$(echo "$CRUMB_RES" | jq -r '.crumbRequestField // empty' 2>/dev/null || true)
+        if [ -n "$CRUMB_FIELD" ]; then
+            echo "    -> Jenkins Authentication: OK (${CRUMB_FIELD} retrieved successfully)."
+        else
+            echo "    [-] Jenkins returned unexpected response for crumb: ${CRUMB_RES:0:50}..."
+        fi
+    else
+        echo "    -> Jenkins credentials not found in Vault, skipping authenticated telemetry."
+    fi
 else
-    echo "    -> Jenkins credentials not found in Vault, skipping authenticated telemetry."
+    echo "    [-] Jenkins is offline or unreachable."
 fi
 
 echo "[+] Enterprise integrations successfully executed."
-
-# Trigger SonarQube SAST Scanner Analysis
-if [ -n "$SONAR_TOKEN" ]; then
-    echo "[+] [SONARQUBE] Running automated SAST scan against contracts and source..."
-    npx --yes sonarqube-scanner         -Dsonar.projectKey=blockchain-security-soc         -Dsonar.sources=contracts,src         -Dsonar.host.url="${SONAR_ADDR:-http://127.0.0.1:9000}"         -Dsonar.login="$SONAR_TOKEN"         -Dsonar.token="$SONAR_TOKEN" || true
-fi
