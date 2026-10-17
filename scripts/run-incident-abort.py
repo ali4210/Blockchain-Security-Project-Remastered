@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 from pathlib import Path
 
 # Explicitly ensure repository root is in sys.path
@@ -44,6 +45,23 @@ def main():
     print(f"    -> Jira SEV-1 Incident Action: Key={ticket.get('key')} Status={ticket.get('status')}")
     if ticket.get("url"):
         print(f"    -> Jira Ticket URL: {ticket.get('url')}")
+
+    # 4. Autonomous TheHive 4 Case & Observable Ingestion (Zone 5)
+    print("\n[+] [ZONE 5] Ingesting Forensics Case & Response Tasks into TheHive 4...")
+    try:
+        hive_script = REPO_ROOT / "scripts" / "ingest-thehive-incident.py"
+        hive_proc = subprocess.run(
+            [sys.executable, str(hive_script)],
+            capture_output=True,
+            text=True
+        )
+        if hive_proc.stdout:
+            for line in hive_proc.stdout.strip().split("\n"):
+                print(f"    {line}")
+        if hive_proc.returncode != 0 and hive_proc.stderr:
+            print(f"    [-] TheHive Warning: {hive_proc.stderr.strip()}")
+    except Exception as e:
+        print(f"    [-] TheHive Ingestion Exception: {e}")
 
 if __name__ == "__main__":
     main()
