@@ -48,7 +48,7 @@ SONAR_TOKEN=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secre
 if curl -s -f -o /dev/null "${SONAR_ADDR}/api/system/status"; then
     echo "    -> SonarQube Server is UP."
     if [ -n "$SONAR_TOKEN" ]; then
-        QG_STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_ADDR}/api/qualitygates/project_status?projectKey=Blockchain-Security-Project-Remastered" | jq -r '.projectStatus.status // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+        QG_STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_ADDR}/api/qualitygates/project_status?projectKey=blockchain-security-soc" | jq -r '(if .projectStatus.status == "ERROR" then "FAILED (Zero-Trust Gate Triggered)" elif .projectStatus.status == "OK" then "PASSED" else .projectStatus.status end) // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
         echo "    -> SonarQube Quality Gate Status: ${QG_STATUS}"
     else
         echo "    -> SonarQube token not found in Vault, skipping authenticated telemetry."
