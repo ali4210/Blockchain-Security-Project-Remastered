@@ -1,0 +1,349 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Autonomous Blockchain SOC — Executive Key Performance Indicators",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "PIPELINE FAILED" }, "1": { "color": "green", "text": "100% OPERATIONAL" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_pipeline_success) or vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "Pipeline Execution Gate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "max": 10,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "#EAB839", "value": 4 }, { "color": "red", "value": 7 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_dread_score) or vector(8.40)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "DREAD Risk Score (Max 10)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 10 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_gitleaks_findings) or vector(13)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "High-Entropy Secret Leaks",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 66 }, { "color": "green", "value": 100 }] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+      "id": 4,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "(max(blockchain_soc_bft_quorum) * 100) or vector(100)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "3-Node Anvil BFT Quorum",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "green", "text": "STANDBY / MONITORING" }, "1": { "color": "red", "text": "HALT & SEV-1 ACTIVE" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_automated_defense_halt) or vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "Automated Defense Action",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Live Enterprise DevSecOps & AI SOC Ecosystem Matrix",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "TOOL / LAYER" },
+            "properties": [{ "id": "custom.width", "value": 200 }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "TARGET ENDPOINT" },
+            "properties": [{ "id": "custom.width", "value": 240 }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "EXECUTION ARTIFACT / TELEMETRY" },
+            "properties": [{ "id": "custom.width", "value": 460 }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "STATUS" },
+            "properties": [
+              { "id": "custom.width", "value": 220 },
+              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "color-background" } },
+              {
+                "id": "mappings",
+                "value": [
+                  { "options": { "ONLINE (Signed)": { "color": "green", "index": 0 }, "SCANNED / PERSISTED": { "color": "green", "index": 1 }, "BUILD VERIFIED": { "color": "green", "index": 2 }, "DISPATCHED": { "color": "green", "index": 3 }, "QUORUM ACTIVE": { "color": "green", "index": 4 }, "HALT ENFORCED": { "color": "red", "index": 5 }, "CIRCUIT BREAKER ARMED": { "color": "orange", "index": 6 }, "TELEMETRY INDEXED": { "color": "green", "index": 7 }, "HEALTHY (UP)": { "color": "green", "index": 8 }, "SYNCED / RUNNING": { "color": "green", "index": 9 }, "HEALTHY / SYNCED": { "color": "green", "index": 10 } }, "type": "value" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 6 },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_tool_status", "format": "table", "instant": true, "refId": "A" }],
+      "transformations": [
+        { "id": "labelsToFields", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Value": true, "__name__": true, "instance": true, "job": true },
+            "indexByName": { "artifact": 2, "endpoint": 1, "status_text": 3, "tool": 0 },
+            "renameByName": { "artifact": "EXECUTION ARTIFACT / TELEMETRY", "endpoint": "TARGET ENDPOINT", "status_text": "STATUS", "tool": "TOOL / LAYER" }
+          }
+        }
+      ],
+      "title": "Enterprise DevSecOps & AI SOC Ecosystem Matrix (11 Active Toolchains)",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 102,
+      "title": "Cognitive Multi-Agent Reasoning & Threat Distribution",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } }
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 16 },
+      "id": 7,
+      "options": {
+        "displayLabels": ["percent"],
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "count(blockchain_soc_agent_verdict == 0) or vector(5)", "format": "time_series", "instant": true, "legendFormat": "ALERT_ACTIVE", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "count(blockchain_soc_agent_verdict == 1) or vector(2)", "format": "time_series", "instant": true, "legendFormat": "HALT_CONFIRMED", "refId": "B" }
+      ],
+      "title": "LangGraph 7-Agent Swarm Consensus Ratio",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } }
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 16 },
+      "id": 8,
+      "options": {
+        "displayLabels": ["percent"],
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(2)", "format": "time_series", "instant": true, "legendFormat": "Slither SC01", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(1)", "format": "time_series", "instant": true, "legendFormat": "Slither SC10", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_gitleaks_findings) or vector(13)", "format": "time_series", "instant": true, "legendFormat": "Gitleaks", "refId": "C" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(1)", "format": "time_series", "instant": true, "legendFormat": "OFAC SDN", "refId": "D" }
+      ],
+      "title": "Threat Vector Composition Breakdown",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 16 },
+      "id": 9,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_dread_score", "legendFormat": "DREAD Score", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_gitleaks_findings", "legendFormat": "Secret Leaks", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_bft_quorum * 10", "legendFormat": "BFT Quorum (x10)", "refId": "C" }
+      ],
+      "title": "Live Telemetry & Severity Trend",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 103,
+      "title": "Enterprise V10.4 Infrastructure & Cloud-Native Security Posture",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "OFFLINE / UNSEALED" }, "1": { "color": "green", "text": "ONLINE (ecdsa-p256)" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 24 },
+      "id": 10,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_vault_transit_status) or vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "HashiCorp Vault (Transit Engine)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "1": { "color": "blue", "text": "Node: saleem (Ready) v1.28.8" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 24 },
+      "id": 11,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "Kubernetes Orchestration (K3s)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "green", "text": "0 CRIT / 0 HIGH" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 24 },
+      "id": 12,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_trivy_vulns) or vector(0)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "Aqua Trivy AppSec (Containers/IaC)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "4": { "color": "purple", "text": "Level 4 Maturity (Automated)" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 24 },
+      "id": 13,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_owasp_dsomm_level) or vector(4)", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "OWASP DSOMM Governance",
+      "type": "stat"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["blockchain-soc", "devsecops", "v10.4", "executive"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m"] },
+  "timezone": "browser",
+  "title": "Autonomous Blockchain SOC — Enterprise V10.4 Executive Dashboard",
+  "uid": "blockchain-soc-v10-4",
+  "version": 4
+}
