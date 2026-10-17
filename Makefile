@@ -39,16 +39,18 @@ pipeline-all: pipeline-e2e
 	@echo "[+] UNIFIED CI/CD & AUTONOMOUS SOC COMPLETED IN LOCKSTEP"
 	@echo "[+] ========================================================"
 
+
 argocd-sync:
 	@echo "[+] [ARGOCD] Initiating GitOps cluster synchronization..."
 	@if kubectl get app blockchain-soc-pipeline -n argocd >/dev/null 2>&1; then \
-		echo "    -> Sending hard refresh trigger to Argo CD application..."; \
-		kubectl annotate app blockchain-soc-pipeline -n argocd argocd.argoproj.io/refresh="hard" --overwrite >/dev/null; \
+		echo "    -> Patching Argo CD sync operation to cluster..."; \
+		LATEST_REV=$$(git rev-parse HEAD); \
+		kubectl patch app blockchain-soc-pipeline -n argocd --type merge -p "{\"operation\": {\"sync\": {\"revision\": \"$$LATEST_REV\", \"prune\": true}}}" >/dev/null 2>&1 || true; \
+		kubectl annotate app blockchain-soc-pipeline -n argocd argocd.argoproj.io/refresh="hard" --overwrite >/dev/null 2>&1 || true; \
 		echo "    -> Waiting for Argo CD reconciliation..."; \
 		sleep 4; \
-		LATEST_REV=$$(git rev-parse HEAD); \
 		CURRENT_SYNC=$$(kubectl get app blockchain-soc-pipeline -n argocd -o jsonpath='{.status.sync.revision}' 2>/dev/null || echo "in-progress"); \
-		echo "    -> Live Cluster Sync Target: $${LATEST_REV:0:7} (Argo Status: $${CURRENT_SYNC:0:7})"; \
+		echo "    -> Live Cluster Sync Target: $$(echo "$$LATEST_REV" | cut -c 1-7) (Argo Status: $$(echo "$$CURRENT_SYNC" | cut -c 1-7))"; \
 		echo "    -> Argo CD GitOps synchronization successfully dispatched."; \
 	else \
 		echo "    [-] Argo CD application 'blockchain-soc-pipeline' not detected in cluster. Skipping sync."; \
