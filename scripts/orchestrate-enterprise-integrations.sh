@@ -42,12 +42,23 @@ else
     echo "    -> Cryptographic Pipeline Attestation: ${VAULT_SIG:0:32}..."
 fi
 
-# 2. SonarQube SAST Quality Gate
+# 2. SonarQube Active Scan Execution & SAST Quality Gate
 echo "[+] [SONARQUBE] Checking SAST Code Quality Gate at ${SONAR_ADDR}..."
 SONAR_TOKEN=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/sonarqube" | jq -r '.data.data.token // empty' 2>/dev/null || true)
 if curl -s -f -o /dev/null "${SONAR_ADDR}/api/system/status"; then
     echo "    -> SonarQube Server is UP."
     if [ -n "$SONAR_TOKEN" ]; then
+        echo "    -> Executing Dockerized SonarScanner CLI analysis..."
+        docker run --rm --network host \
+          -v "$(pwd):/usr/src" \
+          sonarsource/sonar-scanner-cli \
+          -Dsonar.projectKey=blockchain-security-soc \
+          -Dsonar.projectName="Blockchain-Security-Project-Remastered" \
+          -Dsonar.sources=contracts,scripts \
+          -Dsonar.host.url="${SONAR_ADDR}" \
+          -Dsonar.login="${SONAR_TOKEN}" \
+          -Dsonar.exclusions="out/**,cache/**,node_modules/**,lib/**,**/.git/**" > /tmp/sonar-scan.log 2>&1 || true
+
         QG_STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_ADDR}/api/qualitygates/project_status?projectKey=blockchain-security-soc" | jq -r '(if .projectStatus.status == "ERROR" then "FAILED (Zero-Trust Gate Triggered)" elif .projectStatus.status == "OK" then "PASSED" else .projectStatus.status end) // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
         echo "    -> SonarQube Quality Gate Status: ${QG_STATUS}"
     else
