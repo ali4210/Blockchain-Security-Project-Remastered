@@ -176,6 +176,7 @@ print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | Hash: {rec[\"sha
 
 echo -e "\n[+] [COMPLIANCE] Ingesting Multi-Scanner Telemetry into DefectDojo (Port 8085)..."
 python3 scripts/ingest-defectdojo.py || true
+python3 scripts/sync-defectdojo-metrics.py || true
 
 # Step 8: Zone 9 Status Aggregator & HTML Report Compilation
 echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."

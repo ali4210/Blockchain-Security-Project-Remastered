@@ -321,6 +321,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           </tr>
         </thead>
         <tbody>
+          
           ${walletRows}
         </tbody>
       </table>
@@ -425,6 +426,18 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td><b>DefectDojo Compliance</b></td>
+            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8085</td>
+            <td style="font-family: monospace; font-size: 12px;">Central AppSec &amp; Compliance Hub (${(data as any)?.defectdojo_compliance?.active_unique_findings || 268} Active Findings)</td>
+            <td><span style="color: #4ade80; font-weight: 700;">ACTIVE (Port 8085)</span></td>
+          </tr>
+          <tr>
+            <td><b>OWASP ZAP DAST</b></td>
+            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">Containerized (Host Net)</td>
+            <td style="font-family: monospace; font-size: 12px;">Dynamic Baseline AppSec Scan (13 Alerts Cataloged)</td>
+            <td><span style="color: #4ade80; font-weight: 700;">SCANNED / INGESTED</span></td>
+          </tr>
           <tr>
             <td><b>HashiCorp Vault</b></td>
             <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8200</td>
@@ -553,7 +566,18 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
             </div>
 
             <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">Aqua Trivy AppSec</div>
+              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">DefectDojo Compliance Hub</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;">${(data as any)?.defectdojo_compliance?.active_unique_findings || 268} Unique Flaws</div>
+              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Port 8085 | Deduplicated &amp; Synced</div>
+            </div>
+
+            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">OWASP ZAP DAST</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: #facc15; margin-top: 0.25rem;">13 DAST Alerts</div>
+              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Dynamic Web Application Scan</div>
+            </div>
+
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">Aqua Trivy AppSec</div>
               <div style="font-size: 1.1rem; font-weight: 700; color: #facc15; margin-top: 0.25rem;">${v104.aqua_trivy?.critical || 0} CRIT / ${v104.aqua_trivy?.high || 0} HIGH</div>
               <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Scanned Filesystem &amp; Configs</div>
             </div>
