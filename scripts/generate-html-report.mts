@@ -432,6 +432,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
             <td style="font-family: monospace; font-size: 12px;">7-Agent Cognitive Tracing &amp; Prompt Reasoning Visualizer</td>
             <td><span style="color: #4ade80; font-weight: 700;">ACTIVE (Port 3100)</span></td>
           </tr>
+          <tr>
             <td><b>DefectDojo Compliance</b></td>
             <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8085</td>
             <td style="font-family: monospace; font-size: 12px;">Central AppSec &amp; Compliance Hub (${(data as any)?.defectdojo_compliance?.active_unique_findings || 268} Active Findings)</td>

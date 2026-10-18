@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore generated report artifacts and dashboards"
+paths = [
+    '''config/\.langfuse\.env''',
+    '''reports/.*''',
+    '''public-dashboard/.*''',
+    '''node_modules/.*''',
+    '''\.git/.*'''
+]
