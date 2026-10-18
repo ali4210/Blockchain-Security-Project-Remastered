@@ -2,7 +2,7 @@
 import os
 import sys
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_FILE = os.path.join(PROJECT_ROOT, "config", ".defectdojo.env")
@@ -31,14 +31,15 @@ def upload_scan(engagement_id, scan_type, file_path):
         return False
     
     print(f"[+] [DEFECTDOJO] Ingesting {scan_type} ({os.path.basename(file_path)})...")
-    today = datetime.now().strftime("%Y-%m-%d")
+    # Always send UTC date to prevent 'scan_date cannot be in the future' errors
+    today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     url = f"{DEFECTDOJO_URL}/api/v2/import-scan/"
     
     with open(file_path, "rb") as fp:
         data = {
             "engagement": engagement_id,
             "scan_type": scan_type,
-            "scan_date": today,
+            "scan_date": today_utc,
             "active": True,
             "verified": False,
             "close_old_findings": True,
@@ -58,17 +59,15 @@ def main():
         pt_id = get_or_create("product_types", "name", "Blockchain", {"name": "Blockchain", "description": "Blockchain Infrastructure"})
         prod_id = get_or_create("products", "name", "Blockchain-SOC", {"name": "Blockchain-SOC", "description": "Autonomous SOC", "prod_type": pt_id})
         
-        today = datetime.now().strftime("%Y-%m-%d")
+        today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         eng_id = get_or_create("engagements", "name", "SOC-Continuous-Compliance", {
-            "name": "SOC-Continuous-Compliance", "product": prod_id, "target_start": today,
-            "target_end": today, "status": "In Progress", "engagement_type": "CI/CD"
+            "name": "SOC-Continuous-Compliance", "product": prod_id, "target_start": today_utc,
+            "target_end": today_utc, "status": "In Progress", "engagement_type": "CI/CD"
         })
 
-        # Ingest static, SCA, container, and DAST telemetry
         upload_scan(eng_id, "Gitleaks Scan", os.path.join(PROJECT_ROOT, "reports/gitleaks-report.json"))
         upload_scan(eng_id, "Trivy Scan", "/tmp/trivy-report.json")
         
-        # Check XML or JSON format for ZAP
         zap_xml = os.path.join(PROJECT_ROOT, "reports/zap-dast-report.xml")
         zap_json = os.path.join(PROJECT_ROOT, "reports/dast/zap-report.json")
         if not upload_scan(eng_id, "ZAP Scan", zap_xml):
