@@ -61,10 +61,57 @@ if res.status_code in [200, 201]:
 
     # 2. Attach Automated Response Tasks
     tasks = [
-        {"title": "TASK-01: Verify Gnosis Safe Circuit Breaker Execution", "description": "Confirm on-chain tx receipt for pause function selector 0x8456cb59.", "status": "InProgress", "flag": True},
-        {"title": "TASK-02: OFAC Sanctions Compliance & Address Taint Analysis", "description": "Trace outbound transactions from Tornado Cash Router 0xd90e...f31b.", "status": "Waiting", "flag": False},
-        {"title": "TASK-03: Slither AST Remediation Verification", "description": "Verify reentrancy lock patch against AST invariant violation SC01.", "status": "Waiting", "flag": False},
-        {"title": "TASK-04: RFC 3227 Evidence Chain Custody Validation", "description": "Confirm STIX 2.1 SHA-256 bundle hash integrity.", "status": "Completed", "flag": False}
+        {
+            "title": "TASK-01: Verify Gnosis Safe Circuit Breaker Execution (NIST SP 800-61 §3.2)",
+            "description": """### International Compliance Standard: NIST SP 800-61 Rev. 2 §3.2 (Containment)
+**Objective:** Halt state-changing execution on the target smart contract to eliminate active TVL drain.
+
+**Human-in-the-Loop Action Checklist:**
+1. **Verify Threshold Quorum:** Confirm 3-of-5 multi-sig signatures in Vault Transit HSM.
+2. **Validate Selector:** Confirm pause bytecode selector is `0x8456cb59`.
+3. **Execute On-Chain Pause:** Relay transaction to Gnosis Safe (`0x5FbDB2315678afecb367f032d93F642f64180aa3`).
+4. **Document Receipt:** Post the transaction hash receipt in this task log and transition state to `Completed`.""",
+            "status": "InProgress",
+            "flag": True
+        },
+        {
+            "title": "TASK-02: OFAC Sanctions & Border Gateway Taint Analysis (FATF Rec. 16)",
+            "description": """### International Compliance Standard: FATF Recommendation 16 & OFAC SDN Policy
+**Objective:** Quarantine malicious router entry points and block inbound laundering relayers.
+
+**Human-in-the-Loop Action Checklist:**
+1. **Address Screening:** Confirm match against OFAC Specially Designated Nationals (SDN) registry.
+2. **Node Border Control:** Inject `0xd90e2f925da726b50c4ed8d0fb90ad053324f31b` into P2P mempool filter.
+3. **Launder Tracing:** Run graph taint analysis on outbound transfers from Tornado Cash Router.
+4. **Audit Trail:** Record the screening rule confirmation into this task log.""",
+            "status": "Waiting",
+            "flag": False
+        },
+        {
+            "title": "TASK-03: Slither AST Remediation Verification (OWASP SC01 & ISO 27001 A.14.2)",
+            "description": """### International Compliance Standard: OWASP Smart Contract Top 10 (SC01) & ISO/IEC 27001 A.14.2
+**Objective:** Verify that source-code invariant violations are structurally eradicated.
+
+**Human-in-the-Loop Action Checklist:**
+1. **Pattern Enforcement:** Validate the Checks-Effects-Interactions (CEI) architecture on state modifications.
+2. **Guardrail Import:** Confirm OpenZeppelin `ReentrancyGuard` with `nonReentrant` modifier applied to `withdrawAll()`.
+3. **AST Static Regression:** Re-run Slither AST analysis (`slither contracts/solidity/VulnerableVault.sol`).
+4. **Sign-Off:** Confirm zero high-severity findings before closing this mitigation task.""",
+            "status": "Waiting",
+            "flag": False
+        },
+        {
+            "title": "TASK-04: RFC 3227 Evidence Chain Custody Validation (Forensic Attestation)",
+            "description": """### International Compliance Standard: RFC 3227 (Evidence Collection & Archiving)
+**Objective:** Seal raw scanner logs, STIX 2.1 bundles, and model inference traces cryptographically.
+
+**Human-in-the-Loop Action Checklist:**
+1. **Hash Verification:** Validate SHA-256 bundle digest against Vault Transit HMAC.
+2. **Persistence:** Confirm STIX 2.1 JSON bundle written to `reports/stix/latest-incident-stix.json`.
+3. **Custody Seal:** Log attestation signature into the Forensics DB.""",
+            "status": "Completed",
+            "flag": False
+        }
     ]
 
     for t in tasks:
@@ -73,5 +120,13 @@ if res.status_code in [200, 201]:
             print(f"    -> Attached task: {t['title']}")
 
     print("[+] Evidence & Task Pipeline complete.")
+
+    # 3. Synchronize Full-Fidelity Multi-Model Swarm Traces to Langfuse
+    try:
+        print("[*] Streaming full multi-model telemetry to Langfuse (:3100)...")
+        os.system("python3 -c \"import scripts.langfuse_tracer; scripts.langfuse_tracer.stream_verification_trace()\" 2>/dev/null || true")
+    except Exception as e:
+        print(f"[!] Langfuse auto-stream skipped: {e}")
+
 else:
     print(f"[-] Case creation failed: HTTP {res.status_code} - {res.text}")
