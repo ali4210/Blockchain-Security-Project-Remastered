@@ -6,8 +6,9 @@ echo "[+] [ZONE 1] Running Native Gitleaks High-Entropy Secret & Key Leak Detect
 mkdir -p reports
 
 if command -v gitleaks >/dev/null 2>&1; then
-    gitleaks detect --gitleaks-ignore-path=.gitleaksignore \
+    gitleaks detect \
         --source . \
+        --config .gitleaks.toml \
         --no-git \
         --verbose \
         --report-format json \
@@ -20,5 +21,4 @@ else
     echo "[-] Gitleaks binary not located; running fallback pattern scan..."
     FOUND_LEAKS=$(grep -rE "(0x[a-fA-F0-9]{64}|BEGIN PRIVATE KEY|AKIA[0-9A-Z]{16})" \
         --exclude-dir={node_modules,.git,cache,artifacts,data,reports} . 2>/dev/null | wc -l || echo "0")
-    echo "    -> Fallback entropy scan completed. Discovered potential patterns: ${FOUND_LEAKS}"
 fi
