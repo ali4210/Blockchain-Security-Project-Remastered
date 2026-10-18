@@ -29,6 +29,9 @@ echo -e "\n[+] [ZONE 2] Running Aqua Trivy Infrastructure & Container Scan..."
 trivy fs --scanners vuln,misconfig --severity HIGH,CRITICAL --quiet --format json --output /tmp/trivy-report.json . || true
 echo "    -> Aqua Trivy audit completed. Findings recorded to /tmp/trivy-report.json"
 
+echo -e "\n[+] [ZONE 2] Running OWASP ZAP Baseline DAST Containerized Scan..."
+make dast-scan || true
+
 echo -e "\n[+] [ZONE 2] Running OpenSCAP Baseline Audit..."
 if which oscap >/dev/null 2>&1; then
     echo "    -> OpenSCAP binary detected: $(oscap --version | head -n1)"
@@ -170,6 +173,9 @@ rec = db.register_evidence(
 )
 print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | Hash: {rec[\"sha256\"][:16]}...')
 "
+
+echo -e "\n[+] [COMPLIANCE] Ingesting Multi-Scanner Telemetry into DefectDojo (Port 8085)..."
+python3 scripts/ingest-defectdojo.py || true
 
 # Step 8: Zone 9 Status Aggregator & HTML Report Compilation
 echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."

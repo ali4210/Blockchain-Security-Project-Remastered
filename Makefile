@@ -74,3 +74,11 @@ dast-scan:
 	else \
 	  echo "    -> DAST Baseline executed against live endpoint (HTTP 9101)."; \
 	fi
+
+# ----------------------------------------------------------------------
+# Central Compliance Orchestration - DefectDojo (Port 8085)
+# ----------------------------------------------------------------------
+.PHONY: defectdojo-sync
+defectdojo-sync:
+	@echo "[+] [COMPLIANCE] Syncing Unified Findings to DefectDojo (Port 8085)..."
+	@python3 scripts/ingest-defectdojo.py || true
