@@ -17,6 +17,10 @@ if [ -z "$VAULT_HEALTH" ]; then
     echo "[-] Vault is unreachable at ${VAULT_ADDR}. Proceeding in offline mode."
 else
     echo "    -> HashiCorp Vault is healthy and unsealed."
+    # Ensure transit secrets engine and key are mounted and active
+    curl -s -o /dev/null -H "X-Vault-Token: ${VAULT_TOKEN}" -X POST "${VAULT_ADDR}/v1/sys/mounts/transit" -d '{"type":"transit"}' 2>/dev/null || true
+    curl -s -o /dev/null -H "X-Vault-Token: ${VAULT_TOKEN}" -X POST "${VAULT_ADDR}/v1/transit/keys/soc-relayer-key" -d '{"type":"ed25519"}' 2>/dev/null || true
+
 
     # Self-healing check: Verify Jenkins credentials
     JK_CHECK=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/jenkins" | jq -r '.data.data.token // empty' 2>/dev/null || true)
