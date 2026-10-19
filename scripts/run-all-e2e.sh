@@ -58,20 +58,23 @@ echo -e "\n[+] [ZONE 3] Ingesting OSINT Threat Intelligence Feeds..."
 python3 src/observability/threat_intel.py
 
 echo -e "\n[+] [ZONE 3] Constructing Knowledge Graph & DREAD Scoring..."
-python3 -c "
+python3 - <<'PYEOF'
+import os
 from src.storage.broker_store import BrokerStore
 from src.storage.attack_path_graph import AttackPathGraph
+
+sec_env = os.getenv("SECURE", "0")
+target_env = os.getenv("TARGET_CONTRACT", "")
+is_sec = (sec_env == "1") or ("SecureVault" in target_env)
+t_name = "SecureVault" if is_sec else "VulnerableVault"
 
 store = BrokerStore('data/broker_store.db')
 graph = AttackPathGraph()
 
-import os
-is_sec = os.getenv("SECURE") == "1" or "SecureVault" in os.getenv("TARGET_CONTRACT", "")
-t_name = "SecureVault" if is_sec else "VulnerableVault"
 t_id = graph.add_target_node(t_name, target_type='contract')
 
 finding = {
-    'finding_id': 'FIND-001' if not is_sec else 'AUDIT-001',
+    'finding_id': 'AUDIT-001' if is_sec else 'FIND-001',
     'title': 'ChecksEffectsGuarded' if is_sec else 'ReentrancyExternalCall',
     'severity': 'INFO' if is_sec else 'CRITICAL',
     'dread_score': 0.0 if is_sec else 8.5,
@@ -81,7 +84,7 @@ finding = {
 graph.build_from_findings([finding])
 paths = graph.list_attack_paths()
 print(f'    -> Graph synthesized: {len(paths)} attack path(s) mapped.')
-"
+PYEOF
 
 # Step 4: Zone 6 & 8 Consensus Monitoring & OFAC Screening
 # Step 3B: LangGraph 7-Agent Swarm Execution
