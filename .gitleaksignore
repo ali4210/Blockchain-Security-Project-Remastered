@@ -1,6 +1,5 @@
-# Exclude auto-generated telemetry and report archives from recursive secret scans
-reports/
+# Exclude scanner report artifacts and state outputs from secret scanning
 reports/gitleaks-report.json
 reports/status.json
 public-dashboard/status.json
-.scannerwork/
+reports/latest.html
