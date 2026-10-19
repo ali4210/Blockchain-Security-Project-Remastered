@@ -56,7 +56,7 @@ if curl -s -f -o /dev/null "${SONAR_ADDR}/api/system/status"; then
         docker run --rm --network host \
           -v "$(pwd):/usr/src" \
           sonarsource/sonar-scanner-cli \
-          -Dsonar.projectKey=blockchain-security-soc \
+          -Dsonar.projectKey=Blockchain-Security-Project-Remastered \
           -Dsonar.projectName="Blockchain-Security-Project-Remastered" \
           -Dsonar.sources=contracts,scripts \
           -Dsonar.host.url="${SONAR_ADDR}" \
