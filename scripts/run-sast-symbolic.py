@@ -1,3 +1,4 @@
+import os
 import json
 import subprocess
 import shutil
@@ -95,7 +96,7 @@ def run_mythril_symbolic(target_file: str) -> List[Dict[str, Any]]:
     return findings
 
 def main():
-    target = "contracts/solidity/VulnerableVault.sol"
+    target = os.getenv("TARGET_CONTRACT", "contracts/solidity/VulnerableVault.sol")
     print(f"[+] [ZONE 2] Executing Slither AST & Symbolic Engines on {target}...")
 
     slither_results = run_slither_analysis(target)

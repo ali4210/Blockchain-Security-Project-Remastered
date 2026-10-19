@@ -1,3 +1,21 @@
+# ==============================================================================
+# DYNAMIC SMART CONTRACT SELECTION TOGGLE
+# Usage:
+#   make pipeline-all            -> Scans contracts/solidity/VulnerableVault.sol (Default Exploit Path)
+#   make pipeline-all -- --secure -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
+#   make pipeline-all SECURE=1   -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
+# ==============================================================================
+ifeq ($(SECURE), 1)
+  export TARGET_CONTRACT := contracts/solidity/SecureVault.sol
+else ifneq ($(filter --secure,$(MAKECMDGOALS)),)
+  export TARGET_CONTRACT := contracts/solidity/SecureVault.sol
+else
+  export TARGET_CONTRACT := contracts/solidity/VulnerableVault.sol
+endif
+
+--secure:
+	@:
+
 .PHONY: deploy-soc-pipeline test lint status-report pipeline-e2e enterprise-integration pipeline-all
 
 deploy-soc-pipeline:

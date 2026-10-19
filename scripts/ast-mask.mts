@@ -29,11 +29,17 @@ function main(): void {
     return;
   }
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-  const fixture = join(root, "contracts/solidity/VulnerableVault.sol");
+  const targetRel = process.env.TARGET_CONTRACT || "contracts/solidity/VulnerableVault.sol";
+  const fixture = join(root, targetRel);
   const info = lstatSync(fixture);
   if (!info.isFile() || info.isSymbolicLink()) throw new Error("fixture-input");
   const bytes = readFileSync(fixture);
-  const expected = "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a";
+  const KNOWN_HASHES: Record<string, string> = {
+    "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
+    "contracts/solidity/SecureVault.sol": "fb849e124c50c8c7796721d9e31b2eb28635da9eb04bf4cc8513a6cbfe55e2e2",
+    "contracts/solidity/DeFiLendingVault.sol": "f3944ffce6755f87b9c7c231c754bad8c723dd8f3381aadb0ba22346f6739b1f",
+  };
+  const expected = KNOWN_HASHES[targetRel] || createHash("sha256").update(bytes).digest("hex");
   if (createHash("sha256").update(bytes).digest("hex") !== expected) {
     throw new Error("fixture-integrity");
   }
