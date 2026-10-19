@@ -25,12 +25,12 @@ spec:
       containers:
         - name: relayer
           securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-        image: alpine:latest
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          image: alpine:latest
           command: ["/bin/sh", "-c", "while true; do echo '[SOC-RELAYER] Active and monitoring chain state...'; sleep 30; done"]
           resources:
             limits:
