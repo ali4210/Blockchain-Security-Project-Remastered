@@ -6,10 +6,13 @@
 #   make pipeline-all SECURE=1   -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
 # ==============================================================================
 ifeq ($(SECURE), 1)
+  export SECURE := 1
   export TARGET_CONTRACT := contracts/solidity/SecureVault.sol
 else ifneq ($(filter --secure,$(MAKECMDGOALS)),)
+  export SECURE := 1
   export TARGET_CONTRACT := contracts/solidity/SecureVault.sol
 else
+  export SECURE := 0
   export TARGET_CONTRACT := contracts/solidity/VulnerableVault.sol
 endif
 
