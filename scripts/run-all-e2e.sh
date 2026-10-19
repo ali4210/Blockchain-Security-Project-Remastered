@@ -200,6 +200,7 @@ echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."
 python3 scripts/aggregate-infra-status.py
 python3 scripts/render-html-report.py
 python3 scripts/ship-siem-telemetry.py
+    python3 scripts/ingest-granular-siem.py || true
 python3 scripts/sync-defectdojo-metrics.py || true
 ./node_modules/.bin/tsx --no-cache scripts/generate-html-report.mts
 python3 scripts/notify-slack.py || true
