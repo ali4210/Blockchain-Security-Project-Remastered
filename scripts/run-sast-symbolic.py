@@ -119,6 +119,55 @@ def main():
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
+    # Export Standard SARIF v2.1.0 for DefectDojo Native Ingestion
+    sarif_rules = []
+    sarif_results = []
+    severity_map = {"CRITICAL": "error", "HIGH": "error", "MEDIUM": "warning", "LOW": "note", "INFORMATIONAL": "note"}
+
+    for idx, fnd in enumerate(all_findings):
+        r_id = fnd.get("check", f"RULE-{idx+1}").replace(" ", "-")
+        title = fnd.get("owasp_category", "Smart Contract Security Finding")
+        desc = fnd.get("description", title)
+        impact = fnd.get("impact", "HIGH").upper()
+        level = severity_map.get(impact, "warning")
+
+        sarif_rules.append({
+            "id": r_id,
+            "name": r_id,
+            "shortDescription": {"text": title},
+            "fullDescription": {"text": desc},
+            "defaultConfiguration": {"level": level}
+        })
+        sarif_results.append({
+            "ruleId": r_id,
+            "level": level,
+            "message": {"text": desc},
+            "locations": [{
+                "physicalLocation": {
+                    "artifactLocation": {"uri": target},
+                    "region": {"startLine": 14}
+                }
+            }]
+        })
+
+    sarif_doc = {
+        "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [{
+            "tool": {
+                "driver": {
+                    "name": "Slither-Mythril-Hybrid-SAST",
+                    "version": "1.0.0",
+                    "rules": sarif_rules
+                }
+            },
+            "results": sarif_results
+        }]
+    }
+    sarif_path = Path("reports/sast-symbolic-report.sarif")
+    sarif_path.write_text(json.dumps(sarif_doc, indent=2), encoding="utf-8")
+    print(f"    -> Native SARIF v2.1.0 generated: {sarif_path}")
+
     print(f"    -> SAST & Symbolic Execution completed: {len(all_findings)} finding(s) cataloged.")
     for f in all_findings[:3]:
         print(f"       * [{f['engine']}] {f['check']} -> {f['owasp_category']}")

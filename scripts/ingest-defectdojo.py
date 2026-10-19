@@ -73,6 +73,19 @@ def main():
         if not upload_scan(eng_id, "ZAP Scan", zap_xml):
             upload_scan(eng_id, "ZAP Scan", zap_json)
 
+        # Ingest Smart Contract SAST findings via SARIF
+        sarif_file = os.path.join(PROJECT_ROOT, "reports/sast-symbolic-report.sarif")
+        if os.path.isfile(sarif_file):
+            upload_scan(eng_id, "SARIF", sarif_file)
+
+        # Ingest Smart Contract SAST / SARIF findings dynamically
+        sarif_report = os.path.join(PROJECT_ROOT, "reports/slither-report.sarif")
+        sast_json = os.path.join(PROJECT_ROOT, "reports/sast-results.json")
+        if os.path.isfile(sarif_report):
+            upload_scan(eng_id, "SARIF", sarif_report)
+        elif os.path.isfile(sast_json):
+            upload_scan(eng_id, "SARIF", sast_json)
+
         print("[+] [DEFECTDOJO] Ingestion cycle completed successfully.")
     except Exception as exc:
         print(f"[-] [DEFECTDOJO] Error communicating with DefectDojo: {exc}")
