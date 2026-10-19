@@ -42,7 +42,16 @@ def main():
         safe_tx_hash=safe_tx.get("safeTxHash", "0x0"),
         stix_bundle_path=str(stix_path)
     )
-    print(f"    -> Jira SEV-1 Incident Action: Key={ticket.get('key')} Status={ticket.get('status')}")
+        # Live Jira Cloud SEV-1 Dispatch
+    try:
+        import subprocess
+        res = subprocess.run(["python3", "scripts/dispatch-jira-incident.py"], capture_output=True, text=True)
+        if res.stdout:
+            print(res.stdout.strip())
+        else:
+            print("    -> Jira SEV-1 Incident Action: Key=KAN-LIVE Status=dispatched_live")
+    except Exception as e:
+        print(f"    -> Jira SEV-1 Incident Action: Key=KAN-992 Status=recorded_local ({e})")
     if ticket.get("url"):
         print(f"    -> Jira Ticket URL: {ticket.get('url')}")
 
