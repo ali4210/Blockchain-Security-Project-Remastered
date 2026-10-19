@@ -38,7 +38,7 @@ else
 
     VAULT_SIG=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" \
         -d '{"input": "YXV0b25vbW91cy1zb2MtcGlwZWxpbmUtYXR0ZXN0YXRpb24="}' \
-        "${VAULT_ADDR}/v1/transit/sign/soc-pipeline-attestation" 2>/dev/null | jq -r '.data.signature // "transit-attestation-mock"' || echo "transit-attestation-mock")
+        "${VAULT_ADDR}/v1/transit/sign/soc-relayer-key" 2>/dev/null | jq -r '.data.signature // "transit-attestation-mock"' || echo "transit-attestation-mock")
     echo "    -> Cryptographic Pipeline Attestation: ${VAULT_SIG:0:32}..."
 fi
 
