@@ -58,7 +58,6 @@ pipeline-all: pipeline-e2e
 	@$(MAKE) argocd-sync
 	@echo "[+] ========================================================"
 	@echo "[+] UNIFIED CI/CD & AUTONOMOUS SOC COMPLETED IN LOCKSTEP"
-	@python3 scripts/notify-slack.py || true
 	@python3 scripts/notify-gmail.py || true
 
 	@echo "[+] ========================================================"

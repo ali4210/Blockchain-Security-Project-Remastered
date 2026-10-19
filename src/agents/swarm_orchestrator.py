@@ -109,8 +109,11 @@ def run_swarm():
     print("[+] [DISTRIBUTED INFERENCE] Initializing Formal LangGraph StateGraph Execution...")
     app = build_soc_graph()
     
+    target_env = os.getenv("TARGET_CONTRACT", "")
+    contract_name = "SecureVault.sol" if ("Secure" in target_env or os.getenv("SECURE") == "1") else "VulnerableVault.sol"
+
     initial_state = {
-        "contract": "VulnerableVault.sol",
+        "contract": contract_name,
         "sast_findings": [],
         "swarm_decisions": []
     }

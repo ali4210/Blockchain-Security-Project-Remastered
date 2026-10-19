@@ -144,7 +144,7 @@ def stream_verification_trace():
                 "name": "Autonomous-Blockchain-SOC-Production-Run",
                 "userId": user_id,
                 "input": {
-                    "target_asset": "contracts/solidity/VulnerableVault.sol",
+                    "target_asset": f"contracts/solidity/{os.getenv('TARGET_CONTRACT', 'contracts/solidity/VulnerableVault.sol').split('/')[-1]}",
                     "suspected_vector": "SC01:Reentrancy-Exploitation",
                     "initiating_source": "0xd90e2f925da726b50c4ed8d0fb90ad053324f31b",
                     "scan_profile": "Enterprise-Full-Pipeline-E2E"
