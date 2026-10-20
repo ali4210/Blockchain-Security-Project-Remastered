@@ -105,3 +105,4 @@ dast-scan:
 defectdojo-sync:
 	@echo "[+] [COMPLIANCE] Syncing Unified Findings to DefectDojo (Port 8085)..."
 	@python3 scripts/ingest-defectdojo.py || true
+
