@@ -163,7 +163,9 @@ export async function aggregateStatus(outputFile?: string, inputFile?: string): 
           rule_id: (process.env.TARGET_CONTRACT || "").includes("SecureVault") ? "SWC-107-CLEAN" : "SWC-107",
           zone: "ZONE_1_CONTRACTS",
           severity: (process.env.TARGET_CONTRACT || "").includes("SecureVault") ? "INFO" : "CRITICAL",
-          title: (process.env.TARGET_CONTRACT || "").includes("SecureVault") ? "Zero Reentrancy in SecureVault.sol" : "Reentrancy in VulnerableVault.sol",
+          title: (process.env.TARGET_CONTRACT || "").includes("SecureVault")
+            ? "Zero Reentrancy in SecureVault.sol"
+            : `Security Findings in ${(process.env.TARGET_CONTRACT || "contracts/solidity/VulnerableVault.sol").split("/").pop()}`,
           description: (process.env.TARGET_CONTRACT || "").includes("SecureVault") 
             ? "Checks-Effects-Interactions and nonReentrant modifier active. Zero reentrant paths satisfiable."
             : "State balance mutation occurs after low-level external ether transfer call.",
