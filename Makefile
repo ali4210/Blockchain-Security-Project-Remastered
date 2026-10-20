@@ -7,13 +7,13 @@
 # ==============================================================================
 ifeq ($(SECURE), 1)
   export SECURE := 1
-  export TARGET_CONTRACT := contracts/solidity/SecureVault.sol
+  export TARGET_CONTRACT ?= contracts/solidity/SecureVault.sol
 else ifneq ($(filter --secure,$(MAKECMDGOALS)),)
   export SECURE := 1
   export TARGET_CONTRACT := contracts/solidity/SecureVault.sol
 else
   export SECURE := 0
-  export TARGET_CONTRACT := contracts/solidity/VulnerableVault.sol
+  export TARGET_CONTRACT ?= contracts/solidity/VulnerableVault.sol
 endif
 
 --secure:
