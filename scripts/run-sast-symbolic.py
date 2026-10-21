@@ -1,176 +1,232 @@
-import os
+#!/usr/bin/env python3
+"""Zone 2 SAST + symbolic analysis: real Slither and real Mythril only.
+
+Nothing is ever invented: a missing or failing tool is recorded as not_run / error.
+Canary: both VulnerableVault and SecureVault are scanned (SOC_CANARY=0 disables).
+  * VulnerableVault MUST trigger Slither's reentrancy-eth (proves the detector works)
+  * SecureVault MUST NOT trigger it (proves no false positive)
+Mythril analyses solc runtime bytecode, so it needs no network and no solc download.
+"""
 import json
-import subprocess
+import os
 import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
-from typing import Dict, Any, List
 
-OWASP_TAXONOMY_MAP = {
-    "reentrancy-eth": "SC01: Reentrancy Exploitation",
-    "reentrancy-no-eth": "SC01: Reentrancy Exploitation",
-    "arbitrary-send-eth": "SC02: Access Control Vulnerability",
-    "unprotected-upgrade": "SC03: Unprotected Upgrade / Delegatecall",
-    "suicidal": "SC02: Access Control Vulnerability",
-    "controlled-delegatecall": "SC03: Unprotected Upgrade / Delegatecall"
-}
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from scanner_result import ROOT, RAW, write_result  # noqa: E402
 
-def run_slither_analysis(target_file: str) -> List[Dict[str, Any]]:
-    findings = []
-    out_file = Path("/tmp/slither-raw.json")
-    if out_file.exists():
-        out_file.unlink()
+SOLC_VERSION = os.getenv("SOLC_VERSION", "0.8.24")
+MYTH_TIMEOUT = int(os.getenv("MYTHRIL_TIMEOUT", "60"))
+VULN, SECURE = "VulnerableVault", "SecureVault"
+DEFAULT_TARGET = f"contracts/solidity/{VULN}.sol"
 
-    slither_bin = shutil.which("slither") or str(Path.home() / ".local/bin/slither")
-    
-    cmd = [
-        slither_bin,
-        target_file,
-        "--json", str(out_file)
-    ]
+SC01 = "SC01: Reentrancy Exploitation"
+SC02 = "SC02: Access Control Vulnerability"
+SC03 = "SC03: Unprotected Upgrade / Delegatecall"
+SC10 = "SC10: General Logic / Compiler Flaw"
+OWASP = {"reentrancy-eth": SC01, "reentrancy-no-eth": SC01,
+         "arbitrary-send-eth": SC02, "suicidal": SC02,
+         "unprotected-upgrade": SC03, "controlled-delegatecall": SC03}
+SWC = {"SWC-107": SC01, "SWC-105": SC02, "SWC-106": SC02, "SWC-112": SC03}
+RANK = {"ok": 0, "not_run": 1, "error": 2}
 
+
+def _res(status, detail, findings=None, **kw):
+    return {"status": status, "detail": detail, "findings": findings or [], **kw}
+
+
+def slither_scan(target, tag):
+    exe = shutil.which("slither") or str(Path.home() / ".local/bin/slither")
+    if not Path(exe).exists():
+        return _res("not_run", "slither is not installed")
+    RAW.mkdir(parents=True, exist_ok=True)
+    jpath, spath = RAW / f"slither-{tag}.json", RAW / f"slither-{tag}.sarif"
+    for p in (jpath, spath):
+        p.unlink(missing_ok=True)
+    cmd = [exe, str(target), "--solc-solcs-select", SOLC_VERSION,
+           "--json", str(jpath), "--sarif", str(spath)]
     try:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45)
-    except Exception as e:
-        print(f"[-] Slither invocation warning: {e}")
-
-    if out_file.exists():
-        try:
-            data = json.loads(out_file.read_text(encoding="utf-8"))
-            detectors = data.get("results", {}).get("detectors", [])
-            for item in detectors:
-                check_name = item.get("check", "unknown")
-                findings.append({
-                    "engine": "Slither AST SAST",
-                    "check": check_name,
-                    "impact": item.get("impact", "Medium").upper(),
-                    "confidence": item.get("confidence", "Medium"),
-                    "description": item.get("description", "").strip().split("\n")[0],
-                    "owasp_category": OWASP_TAXONOMY_MAP.get(check_name, "SC10: General Logic / Compiler Flaw")
-                })
-        except Exception:
-            pass
-
-    return findings
-
-def run_mythril_symbolic(target_file: str) -> List[Dict[str, Any]]:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=240, cwd=ROOT)
+    except Exception as exc:
+        return _res("error", f"slither could not run: {exc}")
+    if not jpath.is_file():
+        return _res("error", f"slither produced no JSON; stderr tail: {proc.stderr.strip()[-300:]}")
+    try:
+        data = json.loads(jpath.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        return _res("error", f"slither JSON unreadable: {exc}")
+    if not data.get("success"):
+        return _res("error", f"slither reported failure: {str(data.get('error'))[:200]}")
     findings = []
-    myth_bin = shutil.which("myth")
-    
-    if myth_bin:
-        cmd = [myth_bin, "analyze", target_file, "--execution-timeout", "30", "-o", "json"]
-        try:
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=35)
-            if res.stdout:
-                parsed = json.loads(res.stdout)
-                for issue in parsed.get("issues", []):
-                    findings.append({
-                        "engine": "Mythril Symbolic Execution",
-                        "check": issue.get("title", "Symbolic Flaw"),
-                        "impact": issue.get("severity", "High").upper(),
-                        "confidence": "High",
-                        "description": issue.get("description", ""),
-                        "owasp_category": "SC01: Reentrancy Exploitation" if "reentrancy" in issue.get("title", "").lower() else "SC02: Access Control Vulnerability"
-                    })
-        except Exception:
-            pass
-    else:
-        if "SecureVault" in target_file:
-            findings.append({
-                "engine": "Mythril Symbolic Engine (Bounded Sandbox)",
-                "check": "State Invariant Verification (Reentrancy Guard)",
-                "impact": "INFORMATIONAL",
-                "confidence": "HIGH",
-                "description": "Symbolic path constraint verified: reentrant call paths unreachable due to nonReentrant guard.",
-                "owasp_category": "SC00: Hardened Baseline Verified"
-            })
-        else:
-            findings.append({
-                "engine": "Mythril Symbolic Engine (Bounded Sandbox)",
-                "check": "State Reachability Check (Simulated Solver)",
-                "impact": "HIGH",
-                "confidence": "HIGH",
-                "description": "Symbolic path constraint solved: reentrant withdrawal condition satisfiable",
-                "owasp_category": "SC01: Reentrancy Exploitation"
-            })
+    for d in (data.get("results") or {}).get("detectors", []):
+        check = d.get("check", "unknown")
+        findings.append({
+            "engine": "Slither", "check": check,
+            "impact": str(d.get("impact", "Medium")).upper(),
+            "confidence": d.get("confidence", "Medium"),
+            "description": (d.get("description") or "").strip().split("\n")[0],
+            "owasp_category": OWASP.get(check, SC10), "target": str(target)})
+    return _res("ok", None, findings, sarif=spath if spath.is_file() else None)
 
-    return findings
+
+def _myth_backend():
+    exe = shutil.which("myth")
+    local = Path.home() / ".local/bin/myth"
+    if not exe and local.exists():
+        exe = str(local)
+    if exe:
+        return "native", exe
+    if shutil.which("docker"):
+        probe = subprocess.run(["docker", "image", "inspect", "mythril/myth"], capture_output=True)
+        if probe.returncode == 0:
+            return "docker", None
+    return None, None
+
+
+def mythril_scan(target, tag):
+    solc = shutil.which("solc")
+    if not solc:
+        return _res("not_run", "solc not on PATH (needed to build runtime bytecode)")
+    mode, myth = _myth_backend()
+    if not mode:
+        return _res("not_run", "no `myth` binary and no local mythril/myth image (pipx install mythril, or docker pull mythril/myth)")
+    findings, issues_raw = [], []
+    with tempfile.TemporaryDirectory(prefix="myth-") as tmp:
+        os.chmod(tmp, 0o755)
+        try:
+            comp = subprocess.run([solc, "--bin-runtime", "--overwrite", "-o", tmp, str(target)],
+                                  capture_output=True, text=True, timeout=120, cwd=ROOT)
+        except Exception as exc:
+            return _res("error", f"solc failed to run: {exc}")
+        bins = [p for p in sorted(Path(tmp).glob("*.bin-runtime")) if p.stat().st_size > 0]
+        if comp.returncode != 0 or not bins:
+            return _res("error", f"solc produced no runtime bytecode: {comp.stderr.strip()[-300:]}")
+        for b in [p for p in bins if p.stem == Path(target).stem] or bins:
+            os.chmod(b, 0o644)
+            tail = ["analyze", "-f", None, "--bin-runtime", "-t", "3",
+                    "--execution-timeout", str(MYTH_TIMEOUT), "--solver-timeout", "10000", "-o", "json"]
+            if mode == "native":
+                tail[2] = str(b)
+                cmd = [myth] + tail
+            else:
+                tail[2] = f"/w/{b.name}"
+                cmd = ["docker", "run", "--rm", "--network", "none",
+                       "-v", f"{tmp}:/w:ro", "mythril/myth"] + tail
+            try:
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=MYTH_TIMEOUT + 90)
+                out = json.loads(proc.stdout)
+            except subprocess.TimeoutExpired:
+                return _res("error", "mythril exceeded its wall-clock limit")
+            except ValueError:
+                return _res("error", f"mythril output unparseable: {(proc.stdout or proc.stderr)[-200:]}")
+            except Exception as exc:
+                return _res("error", f"mythril could not run: {exc}")
+            if not out.get("success", False):
+                return _res("error", f"mythril reported failure: {str(out.get('error'))[:200]}")
+            for issue in out.get("issues", []):
+                swc = str(issue.get("swc-id", ""))
+                swc = swc if swc.startswith("SWC-") else f"SWC-{swc}"
+                issues_raw.append(issue)
+                findings.append({
+                    "engine": "Mythril", "check": issue.get("title", "Symbolic finding"),
+                    "impact": str(issue.get("severity", "Medium")).upper(), "confidence": "High",
+                    "description": (issue.get("description") or "").strip().split("\n")[0],
+                    "owasp_category": SWC.get(swc, SC10), "swc": swc, "target": str(target)})
+    raw = RAW / f"mythril-{tag}.json"
+    raw.write_text(json.dumps({"issues": issues_raw}, indent=2), encoding="utf-8")
+    return _res("ok", None, findings, raw=raw)
+
+
+def pick_targets():
+    primary = Path(os.getenv("TARGET_CONTRACT", DEFAULT_TARGET))
+    primary = primary if primary.is_absolute() else ROOT / primary
+    targets = [primary]
+    if os.getenv("SOC_CANARY", "1") != "0" and primary.stem in (VULN, SECURE):
+        other = primary.with_name(f"{SECURE if primary.stem == VULN else VULN}.sol")
+        if other.is_file():
+            targets.append(other)
+    return targets
+
+
+def count_by_impact(findings):
+    out = {}
+    for f in findings:
+        k = f["impact"].lower()
+        out[k] = out.get(k, 0) + 1
+    return out
+
+
+def worst(per, tool):
+    return max((per[t][tool]["status"] for t in per), key=lambda s: RANK[s])
+
 
 def main():
-    target = os.getenv("TARGET_CONTRACT", "contracts/solidity/VulnerableVault.sol")
-    print(f"[+] [ZONE 2] Executing Slither AST & Symbolic Engines on {target}...")
+    strict = "--strict" in sys.argv
+    targets = pick_targets()
+    primary = targets[0]
+    print(f"[+] [ZONE 2] Slither + Mythril on: {', '.join(t.name for t in targets)}")
+    if not primary.is_file():
+        for n in ("slither", "mythril", "sast-canary"):
+            write_result(n, n, "error", detail=f"target not found: {primary}")
+        sys.exit(2 if strict else 0)
 
-    slither_results = run_slither_analysis(target)
-    mythril_results = run_mythril_symbolic(target)
+    per = {t.stem: {"slither": slither_scan(t, t.stem), "mythril": mythril_scan(t, t.stem)}
+           for t in targets}
+    p = per[primary.stem]
 
-    all_findings = slither_results + mythril_results
+    for tool in ("slither", "mythril"):
+        bad = [f"{t}: {per[t][tool]['detail']}" for t in per if per[t][tool]["status"] != "ok"]
+        raw = p[tool].get("sarif") if tool == "slither" else p[tool].get("raw")
+        write_result(tool, tool, worst(per, tool), target=str(primary.relative_to(ROOT)),
+                     counts=count_by_impact(p[tool]["findings"]) if p[tool]["status"] == "ok" else {},
+                     raw_report=raw, detail="; ".join(bad) or None,
+                     extra={"primary_target": primary.name})
 
-    report = {
-        "target": target,
-        "totalFindings": len(all_findings),
-        "findings": all_findings,
-        "owaspSummary": {}
-    }
+    problems, relevant = [], False
+    for t in targets:
+        if t.stem not in (VULN, SECURE):
+            continue
+        relevant = True
+        sl = per[t.stem]["slither"]
+        if sl["status"] != "ok":
+            problems.append(f"{t.stem}: slither {sl['status']}")
+            continue
+        hit = any(f["check"] == "reentrancy-eth" for f in sl["findings"])
+        if t.stem == VULN and not hit:
+            problems.append("VulnerableVault: Slither MISSED reentrancy-eth (detector broken)")
+        if t.stem == SECURE and hit:
+            problems.append("SecureVault: Slither reports reentrancy-eth (false positive)")
+    if not relevant:
+        write_result("sast-canary", "canary", "ok", detail="not applicable to this target")
+    elif problems:
+        write_result("sast-canary", "canary", "error", detail="; ".join(problems))
+    else:
+        write_result("sast-canary", "canary", "ok",
+                     detail="vulnerable contract detected, secure contract clean"
+                     if len(targets) == 2 else "single-target check passed")
 
-    for f in all_findings:
-        cat = f["owasp_category"]
-        report["owaspSummary"][cat] = report["owaspSummary"].get(cat, 0) + 1
-
-    report_path = Path("reports/sast-symbolic-report.json")
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-
-    # Export Standard SARIF v2.1.0 for DefectDojo Native Ingestion
-    sarif_rules = []
-    sarif_results = []
-    severity_map = {"CRITICAL": "error", "HIGH": "error", "MEDIUM": "warning", "LOW": "note", "INFORMATIONAL": "note"}
-
-    for idx, fnd in enumerate(all_findings):
-        r_id = fnd.get("check", f"RULE-{idx+1}").replace(" ", "-")
-        title = fnd.get("owasp_category", "Smart Contract Security Finding")
-        desc = fnd.get("description", title)
-        impact = fnd.get("impact", "HIGH").upper()
-        level = severity_map.get(impact, "warning")
-
-        sarif_rules.append({
-            "id": r_id,
-            "name": r_id,
-            "shortDescription": {"text": title},
-            "fullDescription": {"text": desc},
-            "defaultConfiguration": {"level": level}
-        })
-        sarif_results.append({
-            "ruleId": r_id,
-            "level": level,
-            "message": {"text": desc},
-            "locations": [{
-                "physicalLocation": {
-                    "artifactLocation": {"uri": target},
-                    "region": {"startLine": 14}
-                }
-            }]
-        })
-
-    sarif_doc = {
-        "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-        "version": "2.1.0",
-        "runs": [{
-            "tool": {
-                "driver": {
-                    "name": "Slither-Mythril-Hybrid-SAST",
-                    "version": "1.0.0",
-                    "rules": sarif_rules
-                }
-            },
-            "results": sarif_results
-        }]
-    }
-    sarif_path = Path("reports/sast-symbolic-report.sarif")
-    sarif_path.write_text(json.dumps(sarif_doc, indent=2), encoding="utf-8")
-    print(f"    -> Native SARIF v2.1.0 generated: {sarif_path}")
-
-    print(f"    -> SAST & Symbolic Execution completed: {len(all_findings)} finding(s) cataloged.")
-    for f in all_findings[:3]:
+    allf = p["slither"]["findings"] + p["mythril"]["findings"]
+    summary = {}
+    for f in allf:
+        summary[f["owasp_category"]] = summary.get(f["owasp_category"], 0) + 1
+    report = {"target": str(primary.relative_to(ROOT)), "totalFindings": len(allf),
+              "findings": allf, "owaspSummary": summary,
+              "toolStatus": {"slither": p["slither"]["status"], "mythril": p["mythril"]["status"]}}
+    out_json = ROOT / "reports" / "sast-symbolic-report.json"
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    sarif_out = ROOT / "reports" / "sast-symbolic-report.sarif"
+    sarif_out.unlink(missing_ok=True)  # never leave a stale SARIF for DefectDojo
+    if p["slither"].get("sarif"):
+        shutil.copyfile(p["slither"]["sarif"], sarif_out)  # Slither's own SARIF, real line numbers
+    for f in allf[:5]:
         print(f"       * [{f['engine']}] {f['check']} -> {f['owasp_category']}")
+    if strict and any(per[t][k]["status"] != "ok" for t in per for k in ("slither", "mythril")):
+        sys.exit(2)
+
 
 if __name__ == "__main__":
     main()

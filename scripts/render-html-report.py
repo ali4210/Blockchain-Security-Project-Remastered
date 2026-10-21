@@ -1,6 +1,31 @@
 import json
 from pathlib import Path
 from datetime import datetime
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from scanner_result import load_all
+
+SCAN = load_all()
+try:
+    VERDICT = json.loads(Path("reports/verdict.json").read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    VERDICT = {"health": "UNKNOWN", "verdict": "UNKNOWN", "halt_reasons": [], "health_problems": []}
+
+
+def row(name, label):
+    r = SCAN.get(name)
+    if r is None:
+        return f"<p><b>{label}:</b> <span class='badge halt'>NO RESULT</span></p>"
+    cls = {"ok": "ok", "not_run": "warn", "error": "halt"}.get(r.get("status"), "halt")
+    counts = " ".join(f"{k}={v}" for k, v in (r.get("counts") or {}).items())
+    note = (r.get("detail") or "")[:110].replace("<", "&lt;")
+    return (f"<p><b>{label}:</b> <span class='badge {cls}'>{r.get('status', '?').upper()}</span> "
+            f"<code>{counts}</code> <span class='meta'>{note}</span></p>")
+
+
+def verdict_badge():
+    cls = "ok" if VERDICT.get("health") == "OK" and VERDICT.get("verdict") == "PASS" else "halt"
+    return f"HEALTH: {VERDICT.get('health')} | VERDICT: {VERDICT.get('verdict')}", cls
 
 status_file = Path("reports/status.json")
 if not status_file.exists():
@@ -53,10 +78,10 @@ html_content = f"""<!DOCTYPE html>
   <div class="header">
     <div>
       <div class="title">AUTONOMOUS BLOCKCHAIN SOC (ENTERPRISE V10.4)</div>
-      <div class="meta">Full Augmented Blueprint Verification Dashboard | Zero-CDN Air-Gapped Release</div>
+      <div class="meta">Full Augmented Blueprint Verification Dashboard | Zero-CDN Release</div>
     </div>
     <div style="text-align: right;">
-      <span class="badge ok">ARCHITECTURE: 100% VERIFIED</span><br>
+      <span class="badge {verdict_badge()[1]}">{verdict_badge()[0]}</span><br>
       <span class="meta">{datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</span>
     </div>
   </div>
@@ -72,11 +97,11 @@ html_content = f"""<!DOCTYPE html>
 
     <div class="card">
       <h3>Zone 2: Static, Symbolic & Governance</h3>
-      <p><b>SAST Detectors:</b> Slither AST + Mythril Solver</p>
-      <p><b>Findings Mapped:</b> <code>SC01: Reentrancy</code>, <code>SC10: Logic Flaw</code></p>
-      <p><b>Aqua Trivy Container:</b> <span class="badge ok">0 Critical / 0 High</span></p>
-      <p><b>OpenSCAP Compliance:</b> <code>oscap 1.4.4</code> <span class="badge ok">{oscap.get('status', 'PASS')}</span></p>
-      <p><b>Standard:</b> {oscap.get('standard', 'NIST SP 800-53 (Rev 5)')}</p>
+      {row('slither', 'Slither')}{row('mythril', 'Mythril')}{row('sast-canary', 'Detector canary')}
+      {row('sca', 'SCA (OSV/NVD)')}{row('sonar', 'SonarQube')}
+      {row('trivy', 'Trivy')}{row('zap', 'OWASP ZAP')}
+      {row('openscap', 'OpenSCAP')}
+      {row('readiness', 'Readiness gate')}
     </div>
 
     <div class="card">
@@ -99,7 +124,7 @@ html_content = f"""<!DOCTYPE html>
 
     <div class="card">
       <h3>Zone 7 & GitOps Infrastructure</h3>
-      <p><b>Pre-Sign Barrier:</b> Gas 45000 <span class="badge ok">SIMULATION APPROVED</span></p>
+      <p><b>Pre-Sign Barrier:</b> <span class="badge warn">SIMULATED</span> <span class="meta">gas figure is a configured constant, not a measurement</span></p>
       <p><b>HashiCorp Vault:</b> Transit Engine <code>{vault.get('key', 'soc-relayer-key')}</code></p>
       <p><b>Key Standard:</b> <span class="badge ok">{vault.get('type', 'ecdsa-p256').upper()}</span></p>
       <p><b>K3s Cluster:</b> Node <code>{k3s.get('node', 'saleem')}</code> ({k3s.get('version', 'v1.28.8+k3s1')})</p>

@@ -2,7 +2,16 @@
 import os
 import sys
 import requests
+import json
 from datetime import datetime, timezone
+
+def scanner_ok(name):
+    """Only ingest evidence from scanners that really ran in THIS run."""
+    p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports", "scanners", name + ".json")
+    try:
+        return json.load(open(p)).get("status") == "ok"
+    except (OSError, ValueError):
+        return False
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_FILE = os.path.join(PROJECT_ROOT, "config", ".defectdojo.env")
@@ -15,7 +24,10 @@ if os.path.isfile(ENV_FILE):
                 os.environ.setdefault(k, v.strip('"\''))
 
 DEFECTDOJO_URL = os.getenv("DEFECTDOJO_URL", "http://127.0.0.1:8085")
-DEFECTDOJO_TOKEN = os.getenv("DEFECTDOJO_TOKEN", "1c2ce9ac8c065cb29ced06912968af7ee32f7c68")
+DEFECTDOJO_TOKEN = os.environ.get("DEFECTDOJO_TOKEN")
+if not DEFECTDOJO_TOKEN:
+    print("[-] [DEFECTDOJO] DEFECTDOJO_TOKEN not set (env or config/.defectdojo.env); skipping ingestion")
+    sys.exit(0)
 
 HEADERS = {"Authorization": f"Token {DEFECTDOJO_TOKEN}"}
 
@@ -65,28 +77,26 @@ def main():
             "target_end": today_utc, "status": "In Progress", "engagement_type": "CI/CD"
         })
 
+        results = {}
+        # Gitleaks left as in the original pipeline (deliberately not changed yet)
         upload_scan(eng_id, "Gitleaks Scan", os.path.join(PROJECT_ROOT, "reports/gitleaks-report.json"))
-        upload_scan(eng_id, "Trivy Scan", "/tmp/trivy-report.json")
-        
-        zap_xml = os.path.join(PROJECT_ROOT, "reports/zap-dast-report.xml")
-        zap_json = os.path.join(PROJECT_ROOT, "reports/dast/zap-report.json")
-        if not upload_scan(eng_id, "ZAP Scan", zap_xml):
-            upload_scan(eng_id, "ZAP Scan", zap_json)
-
-        # Ingest Smart Contract SAST findings via SARIF
-        sarif_file = os.path.join(PROJECT_ROOT, "reports/sast-symbolic-report.sarif")
-        if os.path.isfile(sarif_file):
-            upload_scan(eng_id, "SARIF", sarif_file)
-
-        # Ingest Smart Contract SAST / SARIF findings dynamically
-        sarif_report = os.path.join(PROJECT_ROOT, "reports/slither-report.sarif")
-        sast_json = os.path.join(PROJECT_ROOT, "reports/sast-results.json")
-        if os.path.isfile(sarif_report):
-            upload_scan(eng_id, "SARIF", sarif_report)
-        elif os.path.isfile(sast_json):
-            upload_scan(eng_id, "SARIF", sast_json)
-
-        print("[+] [DEFECTDOJO] Ingestion cycle completed successfully.")
+        if scanner_ok("trivy"):
+            results["trivy"] = upload_scan(eng_id, "Trivy Scan", os.path.join(PROJECT_ROOT, "reports/raw/trivy-report.json"))
+        if scanner_ok("zap"):
+            zap_xml = os.path.join(PROJECT_ROOT, "reports/dast/zap-report.xml")
+            zap_json = os.path.join(PROJECT_ROOT, "reports/dast/zap-report.json")
+            results["zap"] = upload_scan(eng_id, "ZAP Scan", zap_xml) or upload_scan(eng_id, "ZAP Scan", zap_json)
+        if scanner_ok("slither"):
+            # Slither's own SARIF (written by run-sast-symbolic.py); never a stale or hand-built file
+            results["slither"] = upload_scan(eng_id, "SARIF", os.path.join(PROJECT_ROOT, "reports/sast-symbolic-report.sarif"))
+        skipped = [n for n in ("trivy", "zap", "slither") if n not in results]
+        failed = [n for n, ok in results.items() if not ok]
+        if skipped:
+            print(f"[!] [DEFECTDOJO] Skipped (scanner did not run ok this run): {', '.join(skipped)}")
+        if failed:
+            print(f"[-] [DEFECTDOJO] Upload FAILED for: {', '.join(failed)}")
+            sys.exit(1)
+        print("[+] [DEFECTDOJO] Ingestion cycle finished (see skipped/failed lines above).")
     except Exception as exc:
         print(f"[-] [DEFECTDOJO] Error communicating with DefectDojo: {exc}")
 

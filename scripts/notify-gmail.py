@@ -6,6 +6,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import json
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+from scanner_result import load_all
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HTML_REPORT = os.path.join(REPO_ROOT, "reports", "latest.html")
@@ -32,22 +35,27 @@ if not (sender_email and app_password) or "your.email" in sender_email:
 msg = MIMEMultipart()
 msg["From"] = f"Blockchain SOC Orchestrator <{sender_email}>"
 msg["To"] = receiver_email
-msg["Subject"] = "Autonomous Blockchain SOC — Executive Pipeline Report"
 
-body_text = """Hello Operator,
-
-The Autonomous Blockchain Security Operations Center (SOC) E2E pipeline has executed successfully.
-
-Summary of Enforced Controls:
-- Zone 1 Static & Secrets: Gitleaks verified (7 fixtures baseline)
-- Zone 2 Code & Infra Security: Slither AST, Mythril, Aqua Trivy (0 CRIT / 0 HIGH), OWASP ZAP (13 DAST)
-- Zone 3 Cognitive Mesh: 7-Agent LangGraph Swarm (100% BFT Consensus Quorum)
-- Zone 4 & 5 SOAR & Ticketing: Jira Cloud SEV-1 ticket dispatched & TheHive 4 case created
-- Zone 7 Cryptographic Attestation: HashiCorp Vault Transit Engine (ed25519 signed)
-- GitOps: GitLab CE committed & Argo CD synchronized in lockstep
-
-The complete interactive HTML report (latest.html) is attached.
-"""
+_scan = load_all()
+try:
+    _v = json.load(open(os.path.join(REPO_ROOT, "reports", "verdict.json")))
+except (OSError, ValueError):
+    _v = {"health": "UNKNOWN", "verdict": "UNKNOWN", "halt_reasons": [], "health_problems": []}
+_lines = []
+for _n, _r in _scan.items():
+    _c = ", ".join(f"{k}={v}" for k, v in (_r.get("counts") or {}).items())
+    _lines.append(f"- {_n}: {_r.get('status', '?').upper()}" + (f" ({_c})" if _c else "") +
+                  (f" - {(_r.get('detail') or '')[:100]}" if _r.get("status") != "ok" else ""))
+body_text = (
+    "Hello Operator,\n\n"
+    f"Pipeline HEALTH: {_v['health']}   VERDICT: {_v['verdict']}\n"
+    + "".join(f"  halt reason: {r}\n" for r in _v.get("halt_reasons", []))
+    + "".join(f"  health problem: {p}\n" for p in _v.get("health_problems", []))
+    + "\nScanner results (read from this run's evidence, not hardcoded):\n"
+    + "\n".join(_lines)
+    + "\n\nThe HTML report (latest.html) is attached.\n"
+)
+msg["Subject"] = "Blockchain SOC pipeline: " + ("HEALTH FAILED" if _v["health"] != "OK" else "verdict " + _v["verdict"])
 
 msg.attach(MIMEText(body_text, "plain"))
 

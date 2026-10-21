@@ -19,7 +19,7 @@ endif
 --secure:
 	@:
 
-.PHONY: deploy-soc-pipeline test lint status-report pipeline-e2e enterprise-integration pipeline-all
+.PHONY: deploy-soc-pipeline test lint status-report pipeline-e2e enterprise-integration pipeline-all gitops-publish argocd-sync dast-scan
 
 deploy-soc-pipeline:
 	python3 scripts/deploy-soc-demo.py
@@ -40,7 +40,17 @@ enterprise-integration:
 pipeline-e2e: enterprise-integration
 	@bash scripts/run-all-e2e.sh
 
+# pipeline-e2e fails (non-zero) when a required scanner did not really run.
+# GitOps happens only when reports/verdict.json says gitops_allowed=true (health OK and verdict PASS).
 pipeline-all: pipeline-e2e
+	@if [ "$$(jq -r '.gitops_allowed' reports/verdict.json 2>/dev/null)" = "true" ]; then \
+		$(MAKE) gitops-publish; \
+	else \
+		echo "[!] GitOps SKIPPED: verdict=$$(jq -r .verdict reports/verdict.json) (see reasons above). Set ALLOW_GITOPS_ON_HALT=1 to override for demos."; \
+		python3 scripts/notify-gmail.py || true; \
+	fi
+
+gitops-publish:
 	@echo "[+] ========================================================"
 	@echo "[+] SYNCHRONIZING TO GITLAB CI/CD SOURCE OF TRUTH"
 	@echo "[+] ========================================================"
@@ -56,47 +66,30 @@ pipeline-all: pipeline-e2e
 	@echo "[*] Pushing commit to GitLab main branch..."
 	@git push gitlab main
 	@$(MAKE) argocd-sync
-	@echo "[+] ========================================================"
-	@echo "[+] UNIFIED CI/CD & AUTONOMOUS SOC COMPLETED IN LOCKSTEP"
+	@echo "[+] UNIFIED CI/CD COMPLETED (verdict: $$(jq -r .verdict reports/verdict.json))"
 	@python3 scripts/notify-gmail.py || true
-
-	@echo "[+] ========================================================"
-
 
 argocd-sync:
 	@echo "[+] [ARGOCD] Initiating GitOps cluster synchronization..."
 	@if kubectl get app blockchain-soc-pipeline -n argocd >/dev/null 2>&1; then \
-		echo "    -> Patching Argo CD sync operation to cluster..."; \
-		LATEST_REV=$$(git rev-parse HEAD); \
-		kubectl patch app blockchain-soc-pipeline -n argocd --type merge -p "{\"operation\": {\"sync\": {\"revision\": \"$$LATEST_REV\", \"prune\": true}}}" >/dev/null 2>&1 || true; \
-		kubectl annotate app blockchain-soc-pipeline -n argocd argocd.argoproj.io/refresh="hard" --overwrite >/dev/null 2>&1 || true; \
-		echo "    -> Waiting for Argo CD reconciliation..."; \
-		sleep 4; \
-		CURRENT_SYNC=$$(kubectl get app blockchain-soc-pipeline -n argocd -o jsonpath='{.status.sync.revision}' 2>/dev/null || echo "in-progress"); \
-		echo "    -> Live Cluster Sync Target: $$(echo "$$LATEST_REV" | cut -c 1-7) (Argo Status: $$(echo "$$CURRENT_SYNC" | cut -c 1-7))"; \
-		echo "    -> Argo CD GitOps synchronization successfully dispatched."; \
+	        echo "    -> Patching Argo CD sync operation to cluster..."; \
+	        LATEST_REV=$$(git rev-parse HEAD); \
+	        kubectl patch app blockchain-soc-pipeline -n argocd --type merge -p "{\"operation\": {\"sync\": {\"revision\": \"$$LATEST_REV\", \"prune\": true}}}" >/dev/null 2>&1 || true; \
+	        kubectl annotate app blockchain-soc-pipeline -n argocd argocd.argoproj.io/refresh="hard" --overwrite >/dev/null 2>&1 || true; \
+	        echo "    -> Waiting for Argo CD reconciliation..."; \
+	        sleep 4; \
+	        CURRENT_SYNC=$$(kubectl get app blockchain-soc-pipeline -n argocd -o jsonpath='{.status.sync.revision}' 2>/dev/null || echo "in-progress"); \
+	        echo "    -> Live Cluster Sync Target: $$(echo "$$LATEST_REV" | cut -c 1-7) (Argo Status: $$(echo "$$CURRENT_SYNC" | cut -c 1-7))"; \
+	        echo "    -> Argo CD GitOps synchronization successfully dispatched."; \
 	else \
-		echo "    [-] Argo CD application 'blockchain-soc-pipeline' not detected in cluster. Skipping sync."; \
+	        echo "    [-] Argo CD application 'blockchain-soc-pipeline' not detected in cluster. Skipping sync."; \
 	fi
 
 # ----------------------------------------------------------------------
 # Dynamic Application Security Testing (DAST) - OWASP ZAP Baseline
 # ----------------------------------------------------------------------
 dast-scan:
-	@echo "[+] [ZONE 2.5] Executing Dynamic Application Security Testing (OWASP ZAP)..."
-	@mkdir -p reports/dast
-	@docker run --rm --network host \
-	  -v "$$(pwd)/reports/dast:/zap/wrk/:rw" \
-	  ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-	  -t http://127.0.0.1:9101 \
-	  -J zap-report.json -r zap-report.html -I > /tmp/zap-exec.log 2>&1 || true
-	@if [ -f reports/dast/zap-report.json ]; then \
-	  ALERTS=$$(jq '.site[0].alerts | length // 0' reports/dast/zap-report.json 2>/dev/null || echo 0); \
-	  echo "    -> OWASP ZAP DAST scan completed: $$ALERTS alert(s) cataloged."; \
-	  echo "    -> Telemetry stored: reports/dast/zap-report.json"; \
-	else \
-	  echo "    -> DAST Baseline executed against live endpoint (HTTP 9101)."; \
-	fi
+	@./scripts/run-dast.sh
 
 # ----------------------------------------------------------------------
 # Central Compliance Orchestration - DefectDojo (Port 8085)

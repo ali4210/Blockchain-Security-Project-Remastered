@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
-set -e
+set -eo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # Determine target contract dynamically from environment or default
-export TARGET_CONTRACT="${TARGET_CONTRACT:-contracts/solidity/VulnerableVault.sol}"
-if [[ "$TARGET_CONTRACT" == *"SecureVault"* ]] || [ "${SECURE:-0}" = "1" ]; then
+if [ -n "${TARGET_CONTRACT:-}" ]; then
+    : # explicit path given — respect it as-is
+elif [ "${SECURE:-0}" = "1" ]; then
+    TARGET_CONTRACT="contracts/solidity/SecureVault.sol"
+else
+    TARGET_CONTRACT="contracts/solidity/VulnerableVault.sol"
+fi
+export TARGET_CONTRACT
+
+if [[ "$TARGET_CONTRACT" == *"SecureVault"* ]]; then
     export SECURE="1"
     TARGET_NAME="SecureVault"
 else
@@ -20,6 +28,9 @@ echo "========================================================================"
 echo "   AUTONOMOUS BLOCKCHAIN SOC — FULL ENTERPRISE E2E PIPELINE"
 echo "========================================================================"
 START_TIME=$(date +%s)
+export TARGET_NAME
+VERDICT_RC=0
+./scripts/init-run.sh
 
 # Step 1: Zone 1 Manifest Ingestion & Asset Map
 echo -e "\n[+] [ZONE 1] Validating Manifest Topologies & Asset Maps..."
@@ -34,24 +45,17 @@ echo -e "\n[+] [ZONE 2] Running AST String-Literal Masking..."
 ./node_modules/.bin/tsx --no-cache scripts/ast-mask.mts --approved-local-fixture
 
 echo -e "\n[+] [ZONE 2] Running SCA Dependency Verification..."
-./scripts/run-sca.sh --inventory
+python3 scripts/run-sca-gate.py
 
-echo -e "\n[+] [ZONE 2] Running Aqua Trivy Infrastructure & Container Scan..."
-trivy fs --scanners vuln,misconfig --severity HIGH,CRITICAL --quiet --format json --output /tmp/trivy-report.json . || true
-echo "    -> Aqua Trivy audit completed. Findings recorded to /tmp/trivy-report.json"
+./scripts/run-trivy.sh
 
-echo -e "\n[+] [ZONE 2] Running OWASP ZAP Baseline DAST Containerized Scan..."
-make dast-scan || true
+./scripts/run-dast.sh
 
-echo -e "\n[+] [ZONE 2] Running OpenSCAP Baseline Audit..."
-if which oscap >/dev/null 2>&1; then
-    echo "    -> OpenSCAP binary detected: $(oscap --version | head -n1)"
-else
-    python3 scripts/run-openscap-audit.py
-fi
+python3 scripts/run-openscap-audit.py
 
-echo -e "\n[+] [ZONE 2] Running Deny-by-Default Production Readiness Gate..."
-node scripts/production-readiness.cjs --check-production-readiness || true
+./scripts/run-sonar.sh
+
+./scripts/run-readiness-gate.sh
 
 # Step 3: Zone 3 Broker Store & Attack Path Graph
 echo -e "\n[+] [ZONE 3] Ingesting OSINT Threat Intelligence Feeds..."
@@ -129,24 +133,26 @@ print(f'    -> Simulation approved: digest={receipt.receipt_digest[:16]}... gas_
 
 echo -e "\n[+] [ZONE 7] Cryptographic Attestation via Live HashiCorp Vault Transit Engine..."
 python3 -c "
-import base64, requests
+import base64, os, requests
+from scripts.lib.scanner_result import write_result
 
-vault_addr = 'http://192.168.0.150:8200'
-vault_token = 'cross-vault-6b76c24b1e537ee522d3369651764e94'
-headers = {'X-Vault-Token': vault_token}
-
-payload_b64 = base64.b64encode(b'ATTESTATION:VulnerableVault:ZeroExploitApproved').decode('utf-8')
-url = f'{vault_addr}/v1/transit/sign/soc-relayer-key'
-
-try:
-    resp = requests.post(url, headers=headers, json={'input': payload_b64}, timeout=3)
-    if resp.status_code == 200:
-        sig = resp.json().get('data', {}).get('signature', 'unknown')
-        print(f'    -> Vault Transit Signature Verified: {sig[:36]}...')
-    else:
-        print(f'    -> Vault Transit warning: HTTP {resp.status_code} ({resp.text.strip()})')
-except Exception as e:
-    print(f'    -> Vault Transit call skipped: {e}')
+addr = os.environ.get('VAULT_ADDR', 'http://127.0.0.1:8200')
+token = os.environ.get('VAULT_TOKEN')
+if not token:
+    write_result('vault-sign', 'vault-transit', 'not_run', detail='VAULT_TOKEN not set')
+else:
+    msg = 'ATTESTATION:' + os.environ.get('TARGET_NAME', 'unknown') + ':PIPELINE_RUN'
+    payload = base64.b64encode(msg.encode()).decode()
+    try:
+        resp = requests.post(addr + '/v1/transit/sign/soc-relayer-key', headers={'X-Vault-Token': token},
+                             json={'input': payload}, timeout=5)
+        sig = resp.json().get('data', {}).get('signature') if resp.status_code == 200 else None
+        if sig:
+            write_result('vault-sign', 'vault-transit', 'ok', detail='signature ' + sig[:24] + '...')
+        else:
+            write_result('vault-sign', 'vault-transit', 'error', detail='HTTP ' + str(resp.status_code))
+    except Exception as e:
+        write_result('vault-sign', 'vault-transit', 'error', detail=str(e)[:120])
 "
 
 # Step 4B & 5B: Zone 4 Incident Abort, Jira Dispatch & Zone 5 STIX 2.1 DFIR Bundle
@@ -194,6 +200,9 @@ print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | Hash: {rec[\"sha
 echo -e "\n[+] [COMPLIANCE] Ingesting Multi-Scanner Telemetry into DefectDojo (Port 8085)..."
 python3 scripts/ingest-defectdojo.py || true
 
+# Verdict: health (did everything really run?) is separate from verdict (is it safe to ship?)
+python3 scripts/pipeline-verdict.py || VERDICT_RC=$?
+
 # Step 8: Zone 9 Status Aggregator & HTML Report Compilation
 echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."
 ./node_modules/.bin/tsx --no-cache scripts/aggregate-status.mts
@@ -208,6 +217,11 @@ python3 scripts/notify-slack.py || true
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))
 echo "========================================================================"
-echo -e " [+] FULL PIPELINE EXECUTED SUCCESSFULLY in ${ELAPSED}s!"
+if [ "$VERDICT_RC" -eq 0 ]; then
+    echo -e " [+] Pipeline health OK in ${ELAPSED}s. Verdict: $(jq -r .verdict reports/verdict.json)"
+else
+    echo -e " [-] PIPELINE HEALTH FAILED in ${ELAPSED}s. Not everything really ran: see verdict above."
+fi
 echo -e " [+] Executive Report: file://${REPO_ROOT}/reports/latest.html"
 echo "========================================================================"
+exit "$VERDICT_RC"

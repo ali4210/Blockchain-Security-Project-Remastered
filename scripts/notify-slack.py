@@ -5,19 +5,24 @@ import json
 import requests
 
 STATUS_FILE = "reports/status.json"
-ENV_FILE = ".env"
+VAULT_ADDR = os.getenv("VAULT_ADDR", "http://127.0.0.1:8200")
+VAULT_TOKEN = os.getenv("VAULT_TOKEN")
 
-# 1. Load Webhook URL from env or .env file
+# 1. Load Webhook URL: env var first, else Vault secret/data/slack (needs VAULT_TOKEN).
+# No plaintext .env fallback anymore -- the webhook never lives in a tracked file.
 webhook_url = os.getenv("SLACK_WEBHOOK_URL")
-if not webhook_url and os.path.exists(ENV_FILE):
-    with open(ENV_FILE) as f:
-        for line in f:
-            if line.startswith("SLACK_WEBHOOK_URL="):
-                webhook_url = line.strip().split("=", 1)[1].strip('"').strip("'")
-                break
+if not webhook_url and VAULT_TOKEN:
+    try:
+        resp = requests.get(
+            f"{VAULT_ADDR}/v1/secret/data/slack",
+            headers={"X-Vault-Token": VAULT_TOKEN}, timeout=5,
+        )
+        webhook_url = resp.json().get("data", {}).get("data", {}).get("webhook_url")
+    except Exception:
+        webhook_url = None
 
 if not webhook_url:
-    print("[-] [SLACK] Error: Valid SLACK_WEBHOOK_URL not configured in .env")
+    print("[-] [SLACK] Error: SLACK_WEBHOOK_URL not set (env or Vault secret/data/slack)")
     sys.exit(0)
 
 # 2. Determine target contract dynamically
