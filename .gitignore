@@ -55,3 +55,5 @@ prometheus-data/
 Thumbs.db
 export-env.sh
 public-dashboard/
+.env
+config/*.env
