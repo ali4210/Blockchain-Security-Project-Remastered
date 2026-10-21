@@ -1,94 +1,87 @@
+"""OSINT / threat-intel checks with honest failure semantics.
+
+Address screening delegates to the REAL OFAC SDN snapshot via AddressScreener
+(src/compliance/address_screener.py). There is no second hardcoded sanctions
+list here anymore, and the broken OTX "IPv4 indicator" call for Ethereum
+addresses has been removed (OTX has no Ethereum-address indicator type, so that
+call never worked; OFAC SDN is the authoritative source for sanctioned
+addresses).
+
+A lookup that cannot be performed (no snapshot, no API key) or that fails is
+reported with an explicit status of 'not_run' or 'error' and flagged=None. It is
+NEVER returned as a clean/"Verified Clean" result — only a lookup that actually
+ran against present data may say flagged=False.
+"""
 import os
-import json
+from typing import Any, Dict, Optional
+
 import requests
-from pathlib import Path
-from typing import Dict, Any
+
+from src.compliance.address_screener import AddressScreener, SnapshotUnavailable
+
 
 class LiveThreatIntelEngine:
-    """Queries live OSINT and Threat Intelligence feeds (AbuseIPDB, OTX, Forta, OFAC)."""
+    """IP reputation (AbuseIPDB) + sanctioned-address screening (OFAC SDN)."""
 
     def __init__(self):
         self.abuseipdb_key = os.getenv("ABUSEIPDB_API_KEY", "")
-        self.otx_key = os.getenv("OTX_API_KEY", "")
-        # Curated on-chain sanctions & high-risk mixer indicators
-        self.known_sanctioned_clusters = {
-            "0xd90e2f92060945240Ebe695742b48F670415a73b": "Tornado Cash Router",
-            "0x8589427373D6D84E98730D7795D8f6f8731FDA16": "Tornado.Cash: 0.1 ETH",
-            "0x722122dF12D4e14e13Ac3b6895a86e84145b6967": "Tornado.Cash: 1 ETH",
-            "0x090e53c44E8a9b6B1bCA800e881455b921AEC420": "Lazarus Group Associated Wallet"
-        }
+        self._screener: Optional[AddressScreener] = None
+        self._screener_error: Optional[str] = None
+        try:
+            self._screener = AddressScreener()
+        except SnapshotUnavailable as exc:
+            self._screener_error = str(exc)
 
     def check_ip_reputation(self, ip_address: str) -> Dict[str, Any]:
-        """Queries AbuseIPDB v2 endpoint if API key exists, otherwise evaluates local threat baseline."""
-        if self.abuseipdb_key and ip_address not in ["127.0.0.1", "localhost"]:
-            try:
-                url = "https://api.abuseipdb.com/api/v2/check"
-                headers = {"Key": self.abuseipdb_key, "Accept": "application/json"}
-                params = {"ipAddress": ip_address, "maxAgeInDays": 90}
-                resp = requests.get(url, headers=headers, params=params, timeout=4)
-                if resp.status_code == 200:
-                    data = resp.json().get("data", {})
-                    score = data.get("abuseConfidenceScore", 0)
-                    return {
-                        "source": "AbuseIPDB Live API",
-                        "ip": ip_address,
-                        "abuse_score": score,
-                        "flagged": score > 20,
-                        "country": data.get("countryCode", "UNKNOWN")
-                    }
-            except Exception:
-                pass
-
-        # Baseline peer assessment
-        return {
-            "source": "Local P2P Threat Intel Filter",
-            "ip": ip_address,
-            "abuse_score": 0,
-            "flagged": False,
-            "status": "clean"
-        }
+        """AbuseIPDB lookup. Without a key, or on failure, reports not_run/error
+        with flagged=None rather than pretending the IP is clean."""
+        if ip_address in ("127.0.0.1", "localhost"):
+            return {"source": "AbuseIPDB", "ip": ip_address, "status": "not_run",
+                    "flagged": None, "detail": "loopback address not screened"}
+        if not self.abuseipdb_key:
+            return {"source": "AbuseIPDB", "ip": ip_address, "status": "not_run",
+                    "flagged": None, "detail": "ABUSEIPDB_API_KEY not set"}
+        try:
+            resp = requests.get(
+                "https://api.abuseipdb.com/api/v2/check",
+                headers={"Key": self.abuseipdb_key, "Accept": "application/json"},
+                params={"ipAddress": ip_address, "maxAgeInDays": 90}, timeout=5)
+            if resp.status_code != 200:
+                return {"source": "AbuseIPDB", "ip": ip_address, "status": "error",
+                        "flagged": None, "detail": f"HTTP {resp.status_code}"}
+            data = resp.json().get("data", {})
+            score = data.get("abuseConfidenceScore", 0)
+            return {"source": "AbuseIPDB", "ip": ip_address, "status": "ok",
+                    "flagged": score > 20, "abuse_score": score,
+                    "country": data.get("countryCode", "UNKNOWN")}
+        except Exception as exc:  # noqa: BLE001
+            return {"source": "AbuseIPDB", "ip": ip_address, "status": "error",
+                    "flagged": None, "detail": str(exc)[:120]}
 
     def check_smart_contract_threat(self, address: str) -> Dict[str, Any]:
-        """Queries AlienVault OTX / on-chain threat registry for malicious indicators."""
-        addr_lower = address.lower()
-        for flagged_addr, label in self.known_sanctioned_clusters.items():
-            if flagged_addr.lower() == addr_lower:
-                return {
-                    "source": "OFAC_SDN / Forta Exploitation Registry",
-                    "target": address,
-                    "flagged": True,
-                    "attribution": label,
-                    "confidence": "HIGH",
-                    "severity": "CRITICAL"
-                }
-
-        # Check OTX indicator if key configured
-        if self.otx_key:
-            try:
-                url = f"https://otx.alienvault.com/api/v1/indicators/IPv4/{address}/general"
-                headers = {"X-OTX-API-KEY": self.otx_key}
-                resp = requests.get(url, headers=headers, timeout=4)
-                if resp.status_code == 200:
-                    pulse_count = resp.json().get("pulse_info", {}).get("count", 0)
-                    return {
-                        "source": "AlienVault OTX Live API",
-                        "target": address,
-                        "flagged": pulse_count > 0,
-                        "pulses": pulse_count
-                    }
-            except Exception:
-                pass
-
+        """Screen an address against the real OFAC SDN snapshot. If the snapshot
+        is unavailable, report not_run (never a fabricated clean result)."""
+        if self._screener is None:
+            return {"source": "OFAC SDN snapshot", "target": address, "status": "not_run",
+                    "flagged": None, "detail": self._screener_error or "screener unavailable"}
+        match = self._screener.screen(address)
         return {
-            "source": "Threat Intel Feed Aggregator",
+            "source": "OFAC SDN snapshot",
             "target": address,
-            "flagged": False,
-            "attribution": "Verified Clean Contract State",
-            "confidence": "MEDIUM"
+            "status": "ok",
+            "flagged": match.is_flagged,
+            "attribution": match.matched_entry.entity_name if match.matched_entry else None,
+            "risk_tier": match.risk_tier.value,
+            "detail": match.reason,
+            "snapshot_sha256": self._screener.snapshot_meta.get("sdn_csv_sha256"),
         }
+
 
 if __name__ == "__main__":
     intel = LiveThreatIntelEngine()
-    test_target = "0xd90e2f92060945240Ebe695742b48F670415a73b"
-    res = intel.check_smart_contract_threat(test_target)
-    print(f"[+] Threat Intel Query for {test_target[:12]}...: Flagged={res['flagged']} | {res.get('attribution')}")
+    # Demonstration against a documented, verified OFAC-listed address (Lazarus
+    # Group / Ronin bridge). This is a capability demo, not a live counterparty.
+    demo = "0x098B716B8Aaf21512996dC57EB0615e2383E2f96"
+    res = intel.check_smart_contract_threat(demo)
+    print(f"[+] OFAC screen {demo[:12]}...: status={res['status']} "
+          f"flagged={res['flagged']} | {res.get('attribution') or res.get('detail')}")
