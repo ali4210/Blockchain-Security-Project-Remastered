@@ -183,23 +183,24 @@ except Exception as e:
 # Step 7: Zone 5 Forensics Vault Sealing
 echo -e "\n[+] [ZONE 5] Sealing Incident Artifacts in Forensics DB..."
 python3 -c "
-import io, time
+import time
+from pathlib import Path
 from src.forensics.evidence_db import EvidenceDatabaseManager
-from src.forensics.hasher import StreamingEvidenceHasher
+from src.forensics.evidence_sealer import seal_run_evidence
 
-hasher = StreamingEvidenceHasher()
-digest = hasher.hash_stream(io.BytesIO(b'LIVE_PIPELINE_RUN_ARTIFACT'), path_label='run.log')
+# Seal this run's REAL evidence (the actual report files), not a constant.
+seal = seal_run_evidence(Path('.'), f'EVID-AUTO-RUN-{int(time.time())}')
 db = EvidenceDatabaseManager('data/forensics.db')
 rec = db.register_evidence(
-    evidence_id=f'EVID-AUTO-RUN-{int(time.time())}',
-    file_path='run.log',
-    byte_size=digest.byte_size,
-    sha256=digest.sha256,
-    sha512=digest.sha512,
+    evidence_id=seal['incident_id'] + '-manifest',
+    file_path=seal['manifest_path'],
+    byte_size=seal['manifest_bytes'],
+    sha256=seal['root_sha256'],
+    sha512=seal['root_sha512'],
     acquired_by='soc-operator',
-    status='SEALED'
+    status='SEALED',
 )
-print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | Hash: {rec[\"sha256\"][:16]}...')
+print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | {seal[\"file_count\"]} files | Hash: {rec[\"sha256\"][:16]}...')
 "
 
 echo -e "\n[+] [COMPLIANCE] Ingesting Multi-Scanner Telemetry into DefectDojo (Port 8085)..."
