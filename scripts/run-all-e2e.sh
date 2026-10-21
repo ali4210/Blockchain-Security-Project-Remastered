@@ -101,14 +101,13 @@ python3 src/consensus/avs_consensus.py
 echo -e "\n[+] [ZONE 6 & 8] Streaming P2P Network Telemetry & Address Screening..."
 python3 -c "
 from src.consensus.p2p_listener import ConsensusNetworkListener
-from src.compliance.address_screener import AddressScreener
-
 listener = ConsensusNetworkListener()
 listener.register_peer('peer-01', '198.51.100.12', 30303, 13335, 'Geth/v1.14', 24.5)
-screener = AddressScreener()
-res = screener.screen('0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b')
-print(f'    -> P2P Peer registered. Screener flag: {res.is_flagged} ({res.reason})')
+print('    -> P2P Peer registered.')
 "
+# Real OFAC SDN screening (writes reports/scanners/ofac-screening.json). Screens
+# TARGET_SCREEN_ADDRESS if set, else a documented demonstration canary.
+python3 scripts/run-ofac-screening.py
 
 # Step 5: Zone 7 Wallet Simulation Gate & Live HashiCorp Vault Signing
 echo -e "\n[+] [ZONE 7] Testing Pre-Sign Transaction Simulation Barrier..."

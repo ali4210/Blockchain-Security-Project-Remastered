@@ -76,13 +76,26 @@ def aggregate():
         except Exception:
             pass
 
-    # 5. OSINT Threat Intel
-    v104["threat_intel"] = {
-        "abuseipdb_active": True,
-        "otx_active": True,
-        "flagged_entity": "Tornado Cash Router (0xd90e2f9206...)",
-        "sanction_list": "OFAC SDN / Forta Registry"
-    }
+    # 5. OFAC SDN screening — read the REAL result from this run, never hardcoded.
+    ofac_path = Path("reports/scanners/ofac-screening.json")
+    screen_path = Path("reports/ofac-screening-report.json")
+    ti = {"status": "not_run", "screened": 0, "flagged": 0,
+          "sanction_list": "OFAC SDN", "detail": "screening did not run this cycle"}
+    if ofac_path.is_file():
+        try:
+            res = json.loads(ofac_path.read_text(encoding="utf-8"))
+            counts = res.get("counts", {})
+            ti["status"] = res.get("status", "not_run")
+            ti["screened"] = counts.get("screened", 0)
+            ti["flagged"] = counts.get("flagged", 0)
+            ti["detail"] = res.get("detail", "")
+            if screen_path.is_file():
+                snap = json.loads(screen_path.read_text(encoding="utf-8")).get("snapshot", {})
+                ti["snapshot_date"] = snap.get("downloaded_at")
+                ti["snapshot_addresses"] = snap.get("address_count")
+        except (OSError, ValueError):
+            ti["status"] = "error"
+    v104["threat_intel"] = ti
 
     status["enterprise_v10_4"] = v104
     status_file.write_text(json.dumps(status, indent=2), encoding="utf-8")

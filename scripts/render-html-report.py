@@ -41,6 +41,16 @@ oscap = v104.get("openscap", {})
 vault = v104.get("hashicorp_vault", {})
 k3s = v104.get("k3s_kubernetes", {})
 threat = v104.get("threat_intel", {})
+_ti_status = threat.get("status", "not_run")
+_ti_flagged = threat.get("flagged", 0)
+_ti_screened = threat.get("screened", 0)
+if _ti_status != "ok":
+    threat_badge, threat_cls = _ti_status.upper().replace("_", " "), "warn"
+elif _ti_flagged:
+    threat_badge, threat_cls = f"{_ti_flagged} FLAGGED", "halt"
+else:
+    threat_badge, threat_cls = "CLEAN", "ok"
+threat_line = f"OFAC SDN screening: {_ti_screened} screened"
 
 swarm_rows = "".join([
     f"<tr><td><b>{n.get('agent')}</b></td><td><code>{n.get('model')}</code></td><td><span class='badge ok'>{n.get('engine')}</span></td><td><span class='badge {'halt' if 'HALT' in n.get('verdict', '') else 'warn'}'>{n.get('verdict')}</span></td></tr>"
@@ -132,7 +142,7 @@ html_content = f"""<!DOCTYPE html>
 
     <div class="card">
       <h3>Zone 3, 4 & 5 Mitigation & Forensics</h3>
-      <p><b>Threat Intel:</b> {threat.get('flagged_entity', 'Tornado Cash Router')} <span class="badge halt">FLAGGED</span></p>
+      <p><b>Threat Intel:</b> {threat_line} <span class="badge {threat_cls}">{threat_badge}</span></p>
       <p><b>Gnosis Safe:</b> Pause Payload Built (<code>0x8456cb59</code>)</p>
       <p><b>Jira Incident:</b> Live SEV-1 Dispatched to Atlassian Cloud</p>
       <p><b>Forensic Custody:</b> Dual SHA-256/512 Hashed & Sealed to <code>forensics.db</code></p>
