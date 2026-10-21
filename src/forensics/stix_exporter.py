@@ -19,8 +19,12 @@ class Stix21BundleExporter:
         vulnerability_title: str,
         dread_score: float,
         evidence_sha256: str,
-        attacker_or_flagged_address: str = "0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b"
+        attacker_or_flagged_address: str = None,
+        owasp_id: str = "SC01",
     ) -> Path:
+        # The indicator object is only included when a REAL flagged/attacker
+        # address is supplied by the caller; no hardcoded sanctioned-address
+        # default and no fixed "tornado-cash-sdn" label.
         now_iso = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         bundle_id = f"bundle--{uuid.uuid4()}"
 
@@ -49,25 +53,28 @@ class Stix21BundleExporter:
             "external_references": [
                 {
                     "source_name": "OWASP Smart Contract Top 10",
-                    "external_id": "SC01"
+                    "external_id": owasp_id or "SC01"
                 }
             ]
         }
 
-        # 3. Indicator Object (Malicious Target or Interacting Address)
-        indicator_id = f"indicator--{uuid.uuid4()}"
-        indicator = {
-            "type": "indicator",
-            "spec_version": "2.1",
-            "id": indicator_id,
-            "created": now_iso,
-            "modified": now_iso,
-            "name": f"Exploited Contract or Sanctioned Entity ({attacker_or_flagged_address[:10]}...)",
-            "pattern_type": "stix",
-            "pattern": f"[ethereum-address:value = '{attacker_or_flagged_address}']",
-            "valid_from": now_iso,
-            "labels": ["malicious-activity", "smart-contract-exploit", "tornado-cash-sdn"]
-        }
+        # 3. Indicator Object — only when a REAL flagged address is provided.
+        indicator = None
+        indicator_id = None
+        if attacker_or_flagged_address:
+            indicator_id = f"indicator--{uuid.uuid4()}"
+            indicator = {
+                "type": "indicator",
+                "spec_version": "2.1",
+                "id": indicator_id,
+                "created": now_iso,
+                "modified": now_iso,
+                "name": f"Flagged address ({attacker_or_flagged_address[:10]}...)",
+                "pattern_type": "stix",
+                "pattern": f"[ethereum-address:value = '{attacker_or_flagged_address}']",
+                "valid_from": now_iso,
+                "labels": ["malicious-activity", "smart-contract-exploit"]
+            }
 
         # 4. Observed Data Object (Sealed Evidence Hash)
         observed_id = f"observed-data--{uuid.uuid4()}"
@@ -91,23 +98,26 @@ class Stix21BundleExporter:
             }
         }
 
-        # 5. Relationship (Indicator indicates Attack Pattern)
-        rel_id = f"relationship--{uuid.uuid4()}"
-        relationship = {
-            "type": "relationship",
-            "spec_version": "2.1",
-            "id": rel_id,
-            "created": now_iso,
-            "modified": now_iso,
-            "relationship_type": "indicates",
-            "source_ref": indicator_id,
-            "target_ref": attack_pattern_id
-        }
+        objects = [identity, attack_pattern, observed_data]
+        # 5. Relationship only exists if there is an indicator to relate.
+        if indicator is not None:
+            rel_id = f"relationship--{uuid.uuid4()}"
+            relationship = {
+                "type": "relationship",
+                "spec_version": "2.1",
+                "id": rel_id,
+                "created": now_iso,
+                "modified": now_iso,
+                "relationship_type": "indicates",
+                "source_ref": indicator_id,
+                "target_ref": attack_pattern_id
+            }
+            objects += [indicator, relationship]
 
         bundle = {
             "type": "bundle",
             "id": bundle_id,
-            "objects": [identity, attack_pattern, indicator, observed_data, relationship]
+            "objects": objects
         }
 
         output_file = self.output_dir / "latest-incident-stix.json"
