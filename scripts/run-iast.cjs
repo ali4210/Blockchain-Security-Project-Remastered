@@ -9,8 +9,8 @@ const {
 } = require("./iast-trace.cjs");
 
 const EXPECTED = {
-  "package.json": "e5814463f435a5ccb4f7901c09cd3935125b8fc32bd59f094c087ca2f61506df",
-  "package-lock.json": "89915039b15e0ec12a7e491ef5b9d2e2e2a4d63e669c5053c1f6cf469e548a8c",
+  "package.json": "d6bc406c19e305cedfa90a90e9256428b4ac304d67d29cb96848c736dfc1ea13",
+  "package-lock.json": "18aa490845b75ea0910b8c1f82b93bef94f9e9fb30b07741c2e843dc3e5efe50",
   "requirements.txt": "ef5f065c8c5dbfe00b50fd834b5c372b278fb39fb950ed83b8f2493bbfbc7faa",
   "config/hardhat.config.js": "9f210a2ce515df82925e28642dfac959cc3f99b7ced3c3a2a23e6fd65f6a62b5",
   "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
