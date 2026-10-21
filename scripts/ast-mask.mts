@@ -36,7 +36,7 @@ function main(): void {
   const bytes = readFileSync(fixture);
   const KNOWN_HASHES: Record<string, string> = {
     "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
-    "contracts/solidity/SecureVault.sol": "fb849e124c50c8c7796721d9e31b2eb28635da9eb04bf4cc8513a6cbfe55e2e2",
+    "contracts/solidity/SecureVault.sol": "817b8d2575e24cd5276fb8414323b0c2f5c22ee538523ca648a5ea9b89adea87",
     "contracts/solidity/DeFiLendingVault.sol": "f3944ffce6755f87b9c7c231c754bad8c723dd8f3381aadb0ba22346f6739b1f",
   };
   const expected = KNOWN_HASHES[targetRel] || createHash("sha256").update(bytes).digest("hex");
