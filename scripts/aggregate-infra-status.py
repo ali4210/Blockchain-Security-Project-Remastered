@@ -41,18 +41,19 @@ def aggregate():
     if swarm_path.exists():
         try:
             swarm_data = json.loads(swarm_path.read_text(encoding="utf-8"))
-            decisions = swarm_data.get("swarm_decisions", [])
+            decisions = swarm_data.get("agents", [])
             v104["langgraph_swarm"] = {
                 "agents_count": len(decisions),
                 "framework": "LangGraph StateGraph",
-                "host_bridge": "http://192.168.0.189:11434 (Windows GPU)",
-                "vram_lifecycle": "host_purged_keep_alive_0",
+                "host_bridge": "http://192.168.0.189:11434",
+                "decision": swarm_data.get("decision"),
+                "votes": swarm_data.get("votes", {}),
                 "nodes": [
                     {
                         "agent": d.get("agent"),
-                        "engine": d.get("status"),
-                        "model": d.get("model", "qwen3.5:9b"),
-                        "verdict": d.get("decision")
+                        "engine": d.get("status"),   # real per-agent status (ok/not_run/error)
+                        "model": d.get("model"),
+                        "verdict": d.get("vote"),     # real parsed vote (HALT/CLEAR/ABSTAIN)
                     } for d in decisions
                 ]
             }

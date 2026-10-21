@@ -91,8 +91,14 @@ print(f'    -> Graph synthesized: {len(paths)} attack path(s) mapped.')
 PYEOF
 
 # Step 4: Zone 6 & 8 Consensus Monitoring & OFAC Screening
-# Step 3B: LangGraph 7-Agent Swarm Execution
-python3 src/agents/swarm_orchestrator.py
+# Step 3B: LangGraph 7-Agent Swarm Execution.
+# Run every agent on the fast default model (OLLAMA_DEFAULT_MODEL, qwen3.5:9b):
+# the env's per-agent 32B overrides are impractically slow on this host (cold
+# load > 2 min, one-at-a-time serving) and time out. Scoped to a subshell so the
+# rest of the pipeline keeps its env. The orchestrator still honours
+# OLLAMA_MODEL_AGENT_* wherever they are set.
+( for a in A B C D E F G; do unset "OLLAMA_MODEL_AGENT_$a"; done
+  python3 src/agents/swarm_orchestrator.py )
 
 # Step 3C: AVS Cryptographic Consensus & Attestation Gate
 echo -e "\n[+] [AVS CONSENSUS] Executing 3-Node Byzantine Fault Tolerant Consensus..."

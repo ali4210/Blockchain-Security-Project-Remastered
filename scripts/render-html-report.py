@@ -118,8 +118,8 @@ html_content = f"""<!DOCTYPE html>
       <h3>Distributed Inference: LangGraph Swarm</h3>
       <p><b>Framework:</b> <code>{swarm.get('framework', 'LangGraph StateGraph')}</code></p>
       <p><b>GPU Hardware Bridge:</b> <code>{swarm.get('host_bridge', 'http://192.168.0.189:11434')}</code></p>
-      <p><b>Agents Evaluated:</b> {swarm.get('agents_count', 7)} / 7 (Agents A–G)</p>
-      <p><b>VRAM Lifecycle:</b> <span class="badge ok">{swarm.get('vram_lifecycle', 'host_purged_keep_alive_0')}</span></p>
+      <p><b>Agents Evaluated:</b> {swarm.get('agents_count', 0)} / 7 (Agents A–G)</p>
+      <p><b>Swarm Decision:</b> <span class="badge {'halt' if 'HALT' in (swarm.get('decision') or '') else 'ok' if swarm.get('decision') == 'CLEAR' else 'warn'}">{swarm.get('decision', 'N/A')}</span> <span class="meta">votes: {swarm.get('votes', {})}</span></p>
     </div>
 
     <div class="card">
