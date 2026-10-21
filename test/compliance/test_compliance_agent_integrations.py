@@ -10,6 +10,7 @@ import time
 import unittest
 
 from src.agents.state import SwarmState
+from src.compliance.address_screener import AddressScreener
 from src.compliance.compliance_mcp import ComplianceMCPRegistry
 from src.compliance.compliance_policy import CompliancePolicyEngine
 from src.compliance.graph_integrator import ComplianceGraphIntegrator
@@ -17,7 +18,10 @@ from src.compliance.graph_integrator import ComplianceGraphIntegrator
 
 class TestComplianceAgentIntegrations(unittest.TestCase):
     def setUp(self):
-        self.mcp = ComplianceMCPRegistry()
+        screener = AddressScreener(snapshot_records=[
+            {"address": "0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+             "entity_name": "LAZARUS GROUP", "currency": "ETH", "risk_score": 1.0}])
+        self.mcp = ComplianceMCPRegistry(screener=screener)
         self.policy_engine = CompliancePolicyEngine()
         self.graph_integrator = ComplianceGraphIntegrator()
         self.now = time.time()
@@ -42,7 +46,7 @@ class TestComplianceAgentIntegrations(unittest.TestCase):
         data = res["result"]
         self.assertTrue(data["is_flagged"])
         self.assertEqual(data["risk_tier"], "CRITICAL_SANCTIONED")
-        self.assertEqual(data["entity_name"], "Ronin Bridge Exploiter")
+        self.assertEqual(data["entity_name"], "LAZARUS GROUP")
 
         # Findings appended to state via graph integrator
         screening_finding = {

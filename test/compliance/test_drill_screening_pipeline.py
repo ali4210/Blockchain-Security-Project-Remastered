@@ -21,7 +21,11 @@ from src.compliance.compliance_policy import CompliancePolicyEngine
 
 class TestDrillScreeningPipeline(unittest.TestCase):
     def setUp(self):
-        self.screener = AddressScreener()
+        self.screener = AddressScreener(snapshot_records=[
+            {"address": "0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+             "entity_name": "LAZARUS GROUP", "currency": "ETH", "risk_score": 1.0},
+            {"address": "0xd90e2f925da726b50c4ed8d0fb90ad053324f31b",
+             "entity_name": "Test Sanctioned Router", "currency": "ETH", "risk_score": 1.0}])
         self.aml_detector = AMLDetector()
         self.graph_integrator = ComplianceGraphIntegrator()
         self.sar_generator = SARReportGenerator()

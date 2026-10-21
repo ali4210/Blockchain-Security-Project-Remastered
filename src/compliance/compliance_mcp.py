@@ -27,9 +27,10 @@ class ComplianceMCPRegistry:
     Model Context Protocol registry exposing Zone 8 compliance capabilities.
     """
 
-    def __init__(self, rate_limit_per_minute: int = 60):
+    def __init__(self, rate_limit_per_minute: int = 60, screener: AddressScreener = None):
         self.rate_limit_per_minute = rate_limit_per_minute
-        self._screener = AddressScreener()
+        # Injectable so tests use deterministic records instead of the live OFAC snapshot.
+        self._screener = screener if screener is not None else AddressScreener()
         self._aml_detector = AMLDetector()
         self._sar_generator = SARReportGenerator()
         self._zk_attestor = SimpleZKAttestor()

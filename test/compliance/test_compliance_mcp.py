@@ -12,13 +12,17 @@ Validates:
 import time
 import unittest
 
+from src.compliance.address_screener import AddressScreener
 from src.compliance.compliance_mcp import ComplianceMCPRegistry
 from src.compliance.zk_attestation import SimpleZKAttestor
 
 
 class TestComplianceMCP(unittest.TestCase):
     def setUp(self):
-        self.mcp = ComplianceMCPRegistry(rate_limit_per_minute=20)
+        screener = AddressScreener(snapshot_records=[
+            {"address": "0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+             "entity_name": "LAZARUS GROUP", "currency": "ETH", "risk_score": 1.0}])
+        self.mcp = ComplianceMCPRegistry(rate_limit_per_minute=20, screener=screener)
 
     def test_tool_registration_and_metadata(self):
         tools = self.mcp.get_tool_metadata()
@@ -38,7 +42,7 @@ class TestComplianceMCP(unittest.TestCase):
         data = res["result"]
         self.assertTrue(data["is_flagged"])
         self.assertEqual(data["risk_tier"], "CRITICAL_SANCTIONED")
-        self.assertEqual(data["entity_name"], "Ronin Bridge Exploiter")
+        self.assertEqual(data["entity_name"], "LAZARUS GROUP")
 
     def test_evaluate_aml_via_mcp(self):
         txs = [
