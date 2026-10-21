@@ -25,7 +25,6 @@ const NVD_MIRROR_DIR = path.join(os.homedir(), ".local/state/nvd-mirror");
 const OSV_MIRROR_DIR = path.join(os.homedir(), ".local/state/osv-mirror");
 const OFFLINE_NVD = loadJSON(path.join(NVD_MIRROR_DIR, "index.json"), {});
 const OFFLINE_OSV_BY_ID = loadJSON(path.join(OSV_MIRROR_DIR, "index-by-id.json"), {});
-const OFFLINE_OSV_BY_PKG = loadJSON(path.join(OSV_MIRROR_DIR, "index-by-package.json"), {});
 const OFFLINE_AVAILABLE =
   Object.keys(OFFLINE_NVD).length > 0 || Object.keys(OFFLINE_OSV_BY_ID).length > 0;
 if (OFFLINE_AVAILABLE) {
@@ -68,17 +67,11 @@ function allowedURL(address, payload) {
 }
 
 // --- try to answer a request purely from the local mirror; returns undefined on a miss ---
+// OSV querybatch (package -> advisory ids) always goes live: the package index only lists
+// packages that have advisories, so a missing package cannot be told apart from one the
+// mirror never covered, and the live API also applies version ranges.
 function offlineAnswer(url, payload) {
   if (!OFFLINE_AVAILABLE) return undefined;
-
-  if (url.hostname === "api.osv.dev" && url.pathname === "/v1/querybatch") {
-    const results = payload.queries.map((q) => {
-      const key = `${q.package.ecosystem}/${q.package.name}`;
-      const ids = OFFLINE_OSV_BY_PKG[key] ?? [];
-      return { vulns: ids.map((id) => ({ id })) };
-    });
-    return { results };
-  }
 
   if (url.hostname === "api.osv.dev" && url.pathname.startsWith("/v1/vulns/")) {
     const id = decodeURIComponent(url.pathname.slice("/v1/vulns/".length));
@@ -313,8 +306,8 @@ async function main(args) {
         "Network responses are timestamped; future results may change",
         "Caching is per run only; service errors abort rather than use stale data",
         ...(OFFLINE_AVAILABLE
-          ? ["Offline OSV matching is coarse-grained (package name only, not version ranges); " +
-             "treat offline findings as candidates to verify, not confirmed matches"]
+          ? ["Package-to-advisory matching is always live; advisory and CVE details may come " +
+             "from local mirrors and can be older than the live services"]
           : []),
       ],
     };
