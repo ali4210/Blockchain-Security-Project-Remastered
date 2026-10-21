@@ -13,6 +13,30 @@ const EXPECTED = {
   "requirements.txt": "ef5f065c8c5dbfe00b50fd834b5c372b278fb39fb950ed83b8f2493bbfbc7faa",
 };
 
+// --- offline mirrors: loaded once, used to skip live network calls when possible ---
+function loadJSON(file, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+const NVD_MIRROR_DIR = path.join(os.homedir(), ".local/state/nvd-mirror");
+const OSV_MIRROR_DIR = path.join(os.homedir(), ".local/state/osv-mirror");
+const OFFLINE_NVD = loadJSON(path.join(NVD_MIRROR_DIR, "index.json"), {});
+const OFFLINE_OSV_BY_ID = loadJSON(path.join(OSV_MIRROR_DIR, "index-by-id.json"), {});
+const OFFLINE_OSV_BY_PKG = loadJSON(path.join(OSV_MIRROR_DIR, "index-by-package.json"), {});
+const OFFLINE_AVAILABLE =
+  Object.keys(OFFLINE_NVD).length > 0 || Object.keys(OFFLINE_OSV_BY_ID).length > 0;
+if (OFFLINE_AVAILABLE) {
+  console.error(
+    `[+] offline mirrors loaded: ${Object.keys(OFFLINE_NVD).length} NVD CVEs, ` +
+    `${Object.keys(OFFLINE_OSV_BY_ID).length} OSV advisories`
+  );
+} else {
+  console.error("[!] no offline mirrors found; all lookups will hit the live network");
+}
+
 function parseMode(args) {
   if (args.length !== 1 ||
       !["--inventory", "--lookup-approved-public-dependencies"].includes(args[0])) {
@@ -43,6 +67,41 @@ function allowedURL(address, payload) {
   throw new Error("unapproved service URL or method");
 }
 
+// --- try to answer a request purely from the local mirror; returns undefined on a miss ---
+function offlineAnswer(url, payload) {
+  if (!OFFLINE_AVAILABLE) return undefined;
+
+  if (url.hostname === "api.osv.dev" && url.pathname === "/v1/querybatch") {
+    const results = payload.queries.map((q) => {
+      const key = `${q.package.ecosystem}/${q.package.name}`;
+      const ids = OFFLINE_OSV_BY_PKG[key] ?? [];
+      return { vulns: ids.map((id) => ({ id })) };
+    });
+    return { results };
+  }
+
+  if (url.hostname === "api.osv.dev" && url.pathname.startsWith("/v1/vulns/")) {
+    const id = decodeURIComponent(url.pathname.slice("/v1/vulns/".length));
+    if (OFFLINE_OSV_BY_ID[id]) return OFFLINE_OSV_BY_ID[id];
+    return undefined; // not in mirror -- fall through to live fetch
+  }
+
+  if (url.hostname === "services.nvd.nist.gov") {
+    const ids = url.searchParams.get("cveIds").split(",");
+    const have = ids.filter((id) => OFFLINE_NVD[id]);
+    if (have.length === ids.length) {
+      return {
+        totalResults: have.length,
+        startIndex: Number(url.searchParams.get("startIndex")),
+        vulnerabilities: have.map((id) => ({ cve: OFFLINE_NVD[id] })),
+      };
+    }
+    return undefined; // some CVEs missing from mirror -- fall through to live fetch
+  }
+
+  return undefined;
+}
+
 function makeTransport(options = {}) {
   const fetchImpl = options.fetchImpl ?? fetch;
   const save = options.save ?? (() => {});
@@ -56,6 +115,18 @@ function makeTransport(options = {}) {
     const url = allowedURL(address, payload);
     const key = JSON.stringify([url.href, payload ?? null]);
     if (cache.has(key)) return structuredClone(cache.get(key));
+
+    // offline-first: serve from local mirror when we have the data
+    const offline = offlineAnswer(url, payload);
+    if (offline !== undefined) {
+      save(`offline-${String(++count).padStart(4, "0")}`, {
+        url: url.href, method: payload === undefined ? "GET" : "POST",
+        query: payload ?? null, source: "local-mirror",
+      });
+      cache.set(key, offline);
+      return structuredClone(offline);
+    }
+
     const remaining = deadline - now();
     if (remaining <= 0) throw new Error("SCA lookup deadline exceeded");
     if (++count > 2500) throw new Error("SCA request limit exceeded");
@@ -220,6 +291,7 @@ async function main(args) {
       ...base,
       status: "lookup-completed",
       networkLookupExecuted: true,
+      offlineMirrorUsed: OFFLINE_AVAILABLE,
       matchedPackageCoordinates: result.packages.filter((item) =>
         item.advisoryIds.some((id) => activeIds.has(id))
       ).length,
@@ -240,6 +312,10 @@ async function main(args) {
         "No findings is not a comprehensive security guarantee",
         "Network responses are timestamped; future results may change",
         "Caching is per run only; service errors abort rather than use stale data",
+        ...(OFFLINE_AVAILABLE
+          ? ["Offline OSV matching is coarse-grained (package name only, not version ranges); " +
+             "treat offline findings as candidates to verify, not confirmed matches"]
+          : []),
       ],
     };
     write("summary", summary);
