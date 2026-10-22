@@ -15,9 +15,12 @@ from pathlib import Path
 
 import requests
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from scanner_result import write_result  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 THEHIVE_BASE = os.environ.get("THEHIVE_BASE", os.environ.get("THEHIVE_URL", "http://127.0.0.1:9005"))
-ORG = os.environ.get("THEHIVE_ORG", "SOC")
+ORG = os.environ.get("THEHIVE_ORG", "Blockchain-SOC")
 VAULT_ADDR = os.environ.get("VAULT_ADDR", "http://127.0.0.1:8200")
 VAULT_TOKEN = os.environ.get("VAULT_TOKEN")
 
@@ -54,6 +57,8 @@ def main():
     if not api_key:
         print("[*] [THEHIVE] no THEHIVE_API_KEY (env or Vault secret/data/soc/thehive); "
               "skipping case ingestion (not performed)")
+        write_result("thehive", "thehive", "not_run",
+                     detail="no THEHIVE_API_KEY (env or Vault secret/data/soc/thehive)")
         return 0
 
     headers = {"Authorization": f"Bearer {api_key}", "X-Organisation": ORG,
@@ -115,9 +120,12 @@ def main():
         res = requests.post(f"{THEHIVE_BASE}/api/case", json=case_payload, headers=headers, timeout=10)
     except Exception as exc:
         print(f"[-] [THEHIVE] unreachable: {str(exc)[:150]}")
+        write_result("thehive", "thehive", "error", detail=f"unreachable: {str(exc)[:150]}")
         return 1
     if res.status_code not in (200, 201):
         print(f"[-] [THEHIVE] case creation failed: HTTP {res.status_code} {res.text[:200]}")
+        write_result("thehive", "thehive", "error",
+                     detail=f"case creation failed: HTTP {res.status_code} {res.text[:200]}")
         return 1
 
     data = res.json()
@@ -165,6 +173,11 @@ def main():
 
     print(f"[+] [THEHIVE] created {created_obs}/{len(observables)} observable(s), "
           f"{created_tasks}/{len(tasks)} task(s) (none pre-completed)")
+    write_result("thehive", "thehive", "ok",
+                 counts={"observables_created": created_obs, "observables_total": len(observables),
+                         "tasks_created": created_tasks, "tasks_total": len(tasks)},
+                 detail=f"case {cid} (caseId={data.get('caseId')}): {case_title}",
+                 extra={"case_id": cid, "case_number": data.get("caseId")})
     return 0
 
 
