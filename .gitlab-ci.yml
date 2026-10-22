@@ -8,6 +8,11 @@ variables:
   VAULT_ADDR: "http://172.17.0.1:8200"
   VAULT_TOKEN: "cross-vault-6b76c24b1e537ee522d3369651764e94"
   JENKINS_ADDR: "http://172.17.0.1:8082"
+  # argocd-server exposed via NodePort (was ClusterIP-only) specifically so
+  # CI job containers can reach it over the same docker-bridge-gateway path
+  # already used for VAULT_ADDR/JENKINS_ADDR. Anonymous access confirmed
+  # disabled (401 on unauthenticated requests) before this was wired up.
+  ARGOCD_ADDR: "https://172.17.0.1:31703"
 
 runner_smoke_test:
   stage: verify
@@ -120,7 +125,39 @@ argocd_gitops_reconciliation:
   tags:
     - soc-docker
   before_script:
-    - apk add --no-cache curl
+    - apk add --no-cache curl jq python3
   script:
     - 'echo "[+] [STAGE 4] Reconciling deployment state on K3s via Argo CD..."'
-    - 'echo "[+] GitOps sync confirmed for application blockchain-soc-pipeline."'
+    - 'export ARGOCD_TOKEN=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/argocd" | jq -r ".data.data.token")'
+    - 'echo "[+] [ARGOCD] Triggering sync for application blockchain-soc-pipeline..."'
+    - 'curl -sk -X POST "${ARGOCD_ADDR}/api/v1/applications/blockchain-soc-pipeline/sync" -H "Authorization: Bearer ${ARGOCD_TOKEN}" -H "Content-Type: application/json" -d "{}"'
+    - 'echo "[+] Sync triggered. Polling Argo CD for reconciliation result..."'
+    - 'sleep 6'
+    - |
+      # Argo CD's own last-applied-configuration annotation can legitimately
+      # contain a raw unescaped control character (confirmed live against the
+      # real cluster, reproducible, also rejected by Python's own strict JSON
+      # parser) -- jq has no lenient mode for this, so status parsing below
+      # uses python3's json.loads(strict=False) instead, which tolerates it.
+      for i in $(seq 1 45); do
+        APP_INFO=$(curl -sk -H "Authorization: Bearer ${ARGOCD_TOKEN}" "${ARGOCD_ADDR}/api/v1/applications/blockchain-soc-pipeline")
+        STATUS_LINE=$(echo "$APP_INFO" | python3 -c "import json,sys
+      try:
+          d = json.loads(sys.stdin.read(), strict=False); s = d.get('status', {})
+          print(s.get('sync', {}).get('status', 'Unknown'), s.get('operationState', {}).get('phase', 'Running'), s.get('health', {}).get('status', 'Unknown'))
+      except Exception:
+          print('Unknown Running Unknown')")
+        SYNC_STATUS=$(echo "$STATUS_LINE" | cut -d' ' -f1)
+        OP_PHASE=$(echo "$STATUS_LINE" | cut -d' ' -f2)
+        HEALTH=$(echo "$STATUS_LINE" | cut -d' ' -f3)
+
+        if [ "$OP_PHASE" = "Succeeded" ] && [ "$SYNC_STATUS" = "Synced" ]; then
+          echo "[+] Argo CD sync Succeeded (sync=${SYNC_STATUS}, health=${HEALTH})."
+          break
+        elif [ "$OP_PHASE" = "Failed" ] || [ "$OP_PHASE" = "Error" ]; then
+          echo "[-] Argo CD sync ${OP_PHASE} (sync=${SYNC_STATUS}, health=${HEALTH})."
+          exit 1
+        fi
+        echo "    -> Waiting for reconciliation to finish (phase: ${OP_PHASE}, sync: ${SYNC_STATUS})..."
+        sleep 4
+      done

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  destinations:
+    - namespace: '*'
+      server: '*'
+  sourceRepos:
+    - '*'
+  roles:
+    - name: ci-sync
+      description: >-
+        CI-only role for .gitlab-ci.yml's gitops-deploy stage. Scoped to
+        sync + status checks on blockchain-soc-pipeline specifically --
+        no access to any other Application, project, or cluster-admin action.
+      policies:
+        - p, proj:default:ci-sync, applications, sync, default/blockchain-soc-pipeline, allow
+        - p, proj:default:ci-sync, applications, get, default/blockchain-soc-pipeline, allow
