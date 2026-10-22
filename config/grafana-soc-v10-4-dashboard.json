@@ -28,7 +28,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
       "id": 1,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_pipeline_success) or vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_pipeline_success)", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "Pipeline Execution Gate",
       "type": "stat"
     },
@@ -45,7 +45,7 @@
       "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
       "id": 2,
       "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_dread_score) or vector(8.40)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_dread_score)", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "DREAD Risk Score (Max 10)",
       "type": "gauge"
     },
@@ -60,7 +60,7 @@
       "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
       "id": 3,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_gitleaks_findings) or vector(13)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_gitleaks_findings)", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "High-Entropy Secret Leaks",
       "type": "stat"
     },
@@ -78,7 +78,7 @@
       "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
       "id": 4,
       "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "(max(blockchain_soc_bft_quorum) * 100) or vector(100)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "(max(blockchain_soc_bft_agreement_ratio) * 100) or vector(0)", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "3-Node Anvil BFT Quorum",
       "type": "gauge"
     },
@@ -96,7 +96,7 @@
       "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
       "id": 5,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_automated_defense_halt) or vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "(1 - max(blockchain_soc_pipeline_success))", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "Automated Defense Action",
       "type": "stat"
     },
@@ -193,8 +193,8 @@
         "tooltip": { "mode": "single", "sort": "none" }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "count(blockchain_soc_agent_verdict == 0) or vector(5)", "format": "time_series", "instant": true, "legendFormat": "ALERT_ACTIVE", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "count(blockchain_soc_agent_verdict == 1) or vector(2)", "format": "time_series", "instant": true, "legendFormat": "HALT_CONFIRMED", "refId": "B" }
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "count(blockchain_soc_agent_verdict == 0)", "format": "time_series", "instant": true, "legendFormat": "ALERT_ACTIVE", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "count(blockchain_soc_agent_verdict == 1)", "format": "time_series", "instant": true, "legendFormat": "HALT_CONFIRMED", "refId": "B" }
       ],
       "title": "LangGraph 7-Agent Swarm Consensus Ratio",
       "type": "piechart"
@@ -217,12 +217,12 @@
         "tooltip": { "mode": "single", "sort": "none" }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(2)", "format": "time_series", "instant": true, "legendFormat": "Slither SC01", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(1)", "format": "time_series", "instant": true, "legendFormat": "Slither SC10", "refId": "B" },
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_gitleaks_findings) or vector(13)", "format": "time_series", "instant": true, "legendFormat": "Gitleaks", "refId": "C" },
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(1)", "format": "time_series", "instant": true, "legendFormat": "OFAC SDN", "refId": "D" }
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"Critical\"}", "format": "time_series", "instant": true, "legendFormat": "Critical", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"High\"}", "format": "time_series", "instant": true, "legendFormat": "High", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"Medium\"}", "format": "time_series", "instant": true, "legendFormat": "Medium", "refId": "C" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"Low\"}", "format": "time_series", "instant": true, "legendFormat": "Low", "refId": "D" }
       ],
-      "title": "Threat Vector Composition Breakdown",
+      "title": "DefectDojo Finding Severity Composition",
       "type": "piechart"
     },
     {
@@ -251,7 +251,7 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_dread_score", "legendFormat": "DREAD Score", "refId": "A" },
         { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_gitleaks_findings", "legendFormat": "Secret Leaks", "refId": "B" },
-        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_bft_quorum * 10", "legendFormat": "BFT Quorum (x10)", "refId": "C" }
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_bft_agreement_ratio * 10", "legendFormat": "BFT Agreement Ratio (x10)", "refId": "C" }
       ],
       "title": "Live Telemetry & Severity Trend",
       "type": "timeseries"
@@ -277,7 +277,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 24 },
       "id": 10,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_vault_transit_status) or vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_tool_status{tool=\"HashiCorp Vault\"}) or vector(0)", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "HashiCorp Vault (Transit Engine)",
       "type": "stat"
     },
@@ -287,15 +287,15 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [
-            { "options": { "1": { "color": "blue", "text": "Node: saleem (Ready) v1.28.8" } }, "type": "value" }
+            { "options": { "0": { "color": "red", "text": "DOWN / NO RESULT" }, "1": { "color": "green", "text": "Ready" } }, "type": "value" }
           ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
         }
       },
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 24 },
       "id": 11,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "vector(1)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_tool_status{tool=\"Kubernetes (K3s)\"})", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "Kubernetes Orchestration (K3s)",
       "type": "stat"
     },
@@ -313,7 +313,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 24 },
       "id": 12,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_trivy_vulns) or vector(0)", "format": "time_series", "instant": true, "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "sum(blockchain_soc_trivy_vulns) or vector(0)", "format": "time_series", "instant": true, "refId": "A" }],
       "title": "Aqua Trivy AppSec (Containers/IaC)",
       "type": "stat"
     },
@@ -322,18 +322,167 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "mappings": [
-            { "options": { "4": { "color": "purple", "text": "Level 4 Maturity (Automated)" } }, "type": "value" }
-          ],
+          "unit": "none",
           "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
         }
       },
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 24 },
       "id": 13,
-      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "max(blockchain_soc_owasp_dsomm_level) or vector(4)", "format": "time_series", "instant": true, "refId": "A" }],
-      "title": "OWASP DSOMM Governance",
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_and_name" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_dsomm_activities_assessed_total", "format": "time_series", "instant": true, "refId": "A", "legendFormat": "DSOMM activities with real evidence (of 251 total)" }],
+      "title": "OWASP DSOMM: Automated Evidence Coverage",
       "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "id": 104,
+      "title": "Compliance, DAST & Case Management Telemetry",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 500 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 29 },
+      "id": 14,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_active_unique_findings", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "DefectDojo Active Unique Findings",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 29 },
+      "id": 15,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_raw_total_findings", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "DefectDojo Raw Total Findings",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 29 },
+      "id": 16,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "zap_dast_alerts_total", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "OWASP ZAP DAST Alerts",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 29 },
+      "id": 17,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "thehive_cases_total", "format": "time_series", "instant": true, "refId": "A" }],
+      "title": "TheHive Forensic Cases",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } }
+        }
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 29 },
+      "id": 18,
+      "options": {
+        "displayLabels": ["percent"],
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value"] },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"Critical\"}", "format": "time_series", "instant": true, "legendFormat": "Critical", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"High\"}", "format": "time_series", "instant": true, "legendFormat": "High", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"Medium\"}", "format": "time_series", "instant": true, "legendFormat": "Medium", "refId": "C" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "defectdojo_findings_by_severity{severity=\"Low\"}", "format": "time_series", "instant": true, "legendFormat": "Low", "refId": "D" }
+      ],
+      "title": "DefectDojo Findings by Severity",
+      "type": "piechart"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
+      "id": 105,
+      "title": "OWASP DSOMM Maturity Detail (Real Per-Subdimension Evidence)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left", "cellOptions": { "type": "auto" }, "inspect": false }
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 34 },
+      "id": 19,
+      "options": { "cellHeight": "sm", "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false }, "showHeader": true, "sortBy": [] },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_dsomm_level", "format": "table", "instant": true, "refId": "A" }],
+      "transformations": [
+        { "id": "labelsToFields", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Value": false, "__name__": true, "instance": true, "job": true },
+            "indexByName": { "subdimension": 0, "Value": 1 },
+            "renameByName": { "Value": "Claimed Level", "subdimension": "Subdimension" }
+          }
+        }
+      ],
+      "title": "OWASP DSOMM: Claimed Level by Subdimension",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus-default" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": { "align": "left", "cellOptions": { "type": "auto" }, "inspect": false }
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 34 },
+      "id": 20,
+      "options": { "cellHeight": "sm", "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false }, "showHeader": true, "sortBy": [] },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus-default" }, "expr": "blockchain_soc_dsomm_coverage_ratio", "format": "table", "instant": true, "refId": "A" }],
+      "transformations": [
+        { "id": "labelsToFields", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Value": false, "__name__": true, "instance": true, "job": true },
+            "indexByName": { "subdimension": 0, "Value": 1 },
+            "renameByName": { "Value": "Coverage", "subdimension": "Subdimension" }
+          }
+        }
+      ],
+      "title": "OWASP DSOMM: Coverage Ratio by Subdimension",
+      "type": "table"
     }
   ],
   "refresh": "5s",

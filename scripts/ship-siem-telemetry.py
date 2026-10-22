@@ -31,6 +31,29 @@ from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 
+# Same impact -> DREAD-style score mapping as run-incident-abort.py's
+# IMPACT_SCORE/IMPACT_RANK, so both tools report the same number for the
+# same run instead of one being a fixed SECURE-flag guess.
+_IMPACT_SCORE = {"CRITICAL": 9.5, "HIGH": 8.0, "MEDIUM": 5.5, "LOW": 3.0,
+                 "INFORMATIONAL": 1.0, "INFO": 1.0}
+_IMPACT_RANK = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "INFORMATIONAL": 1, "INFO": 1}
+
+
+def _compute_dread_score():
+    sast_path = Path("reports/sast-symbolic-report.json")
+    if not sast_path.is_file():
+        return 0.0
+    try:
+        sast = json.loads(sast_path.read_text(encoding="utf-8"))
+    except Exception:
+        return 0.0
+    findings = sast.get("findings", [])
+    if not findings:
+        return 0.0
+    top = max(findings, key=lambda f: _IMPACT_RANK.get((f.get("impact") or "").upper(), 0))
+    return _IMPACT_SCORE.get((top.get("impact") or "").upper(), 0.0)
+
+
 def get_elastic_auth():
     user = os.getenv("ELASTIC_USER", "elastic")
     pwd = os.getenv("ELASTIC_PASSWORD", "")
@@ -51,7 +74,7 @@ def ship_to_elasticsearch(status_data):
         "@timestamp": datetime.now(timezone.utc).isoformat(),
         "pipeline_status": "COMPLETED",
         "contract": "VulnerableVault.sol",
-        "dread_score": 0.0 if (os.getenv("SECURE") == "1" or "Secure" in os.getenv("TARGET_CONTRACT", "")) else 8.4,
+        "dread_score": _compute_dread_score(),
         "gitleaks_leaks_count": v104.get("gitleaks", {}).get("findings_count", 0),
         "openscap_status": v104.get("openscap", {}).get("status", "PASS"),
         "avs_consensus": v104.get("avs_consensus", {}),
@@ -108,6 +131,9 @@ def export_prometheus_metrics(status_data, es_ok=False):
     jenkins_res = _read_json("reports/scanners/jenkins.json")
     swarm_res = _read_json("reports/scanners/swarm.json")
     avs_res = _read_json("reports/scanners/avs-consensus.json")
+    trivy_res = _read_json("reports/scanners/trivy.json")
+    dsomm_res = _read_json("reports/scanners/dsomm.json")
+    k3s_res = _read_json("reports/scanners/k3s.json")
 
     def _ok(res):
         return 1 if (res and res.get("status") == "ok") else 0
@@ -135,6 +161,9 @@ def export_prometheus_metrics(status_data, es_ok=False):
                            "Index: blockchain-soc-audit-logs",
                            "indexed this run" if es_ok else "index failed this run",
                            1 if es_ok else 0),
+        _tool_status_line("Kubernetes (K3s)", "local kubectl context",
+                           f"node={(k3s_res or {}).get('target', 'unknown')} version={(k3s_res or {}).get('version', 'unknown')}",
+                           (k3s_res or {}).get("detail", "no result this run"), _ok(k3s_res)),
     ]
     # Dropped rows with no real per-run check anywhere in this repo (Gnosis Safe's
     # pause-calldata build is printed but never persisted; Prometheus/Grafana's own
@@ -144,10 +173,14 @@ def export_prometheus_metrics(status_data, es_ok=False):
     metrics = [
         "# HELP blockchain_soc_pipeline_success Pipeline execution status (1=success, 0=fail)",
         "# TYPE blockchain_soc_pipeline_success gauge",
-        "blockchain_soc_pipeline_success 1",
+        f"blockchain_soc_pipeline_success {1 if (status_data.get('pipeline', {}).get('health') == 'OK' and status_data.get('pipeline', {}).get('verdict') == 'PASS') else 0}",
         "# HELP blockchain_soc_gitleaks_findings Total secret leaks flagged",
         "# TYPE blockchain_soc_gitleaks_findings gauge",
         f"blockchain_soc_gitleaks_findings {gl.get('findings_count', 0)}",
+        "# HELP blockchain_soc_trivy_vulns Real Trivy critical/high findings this run (0 if trivy did not run ok)",
+        "# TYPE blockchain_soc_trivy_vulns gauge",
+        f'blockchain_soc_trivy_vulns{{severity="critical"}} {(trivy_res or {}).get("counts", {}).get("critical", 0)}',
+        f'blockchain_soc_trivy_vulns{{severity="high"}} {(trivy_res or {}).get("counts", {}).get("high", 0)}',
         "# HELP blockchain_soc_tool_status Multi-layer enterprise ecosystem status (1=OK/Active, 2=Halt/Tripped, 0=Down or no result this run)",
         "# TYPE blockchain_soc_tool_status gauge",
         *tool_status_lines,
@@ -156,8 +189,24 @@ def export_prometheus_metrics(status_data, es_ok=False):
         f"blockchain_soc_bft_agreement_ratio {1.0 if avs.get('consensus_reached', True) else 0.0}",
         "# HELP blockchain_soc_dread_score Calculated DREAD risk score",
         "# TYPE blockchain_soc_dread_score gauge",
-        f"blockchain_soc_dread_score {0.0 if (os.getenv('SECURE') == '1' or 'Secure' in os.getenv('TARGET_CONTRACT', '')) else 8.4}"
+        f"blockchain_soc_dread_score {_compute_dread_score()}",
+        "# HELP blockchain_soc_dsomm_activities_assessed_total OWASP DSOMM activities with real "
+        "automated evidence this run (never a fixed level; most of DSOMM requires manual/"
+        "organizational assessment no scanner can provide)",
+        "# TYPE blockchain_soc_dsomm_activities_assessed_total gauge",
+        f"blockchain_soc_dsomm_activities_assessed_total "
+        f"{(dsomm_res or {}).get('counts', {}).get('activities_assessed', 0)}",
+        "# HELP blockchain_soc_dsomm_activities_total Total activities in the official OWASP "
+        "DSOMM model (denominator for the assessed-activities count, not a target to reach)",
+        "# TYPE blockchain_soc_dsomm_activities_total gauge",
+        f"blockchain_soc_dsomm_activities_total "
+        f"{(dsomm_res or {}).get('counts', {}).get('activities_total', 0)}",
     ]
+    for sub, data in (dsomm_res or {}).get("subdimensions", {}).items():
+        sub_label = sub.replace('"', "")
+        metrics.append(f'blockchain_soc_dsomm_level{{subdimension="{sub_label}"}} {data["level"]}')
+        if data.get("coverage") is not None:
+            metrics.append(f'blockchain_soc_dsomm_coverage_ratio{{subdimension="{sub_label}"}} {data["coverage"]}')
 
     for n in v104.get("langgraph_swarm", {}).get("nodes", []):
         agent_clean = n.get("agent", "unknown").replace(" ", "_").replace("(", "").replace(")", "")
