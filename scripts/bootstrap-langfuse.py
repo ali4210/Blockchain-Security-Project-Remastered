@@ -7,7 +7,11 @@ import bcrypt
 
 USER_EMAIL = "saleemali.mohammad@gmail.com"
 USER_NAME = "Saleem Ali"
-RAW_PASSWORD = "AutonomousSocAdmin2026!"
+# Never a fixed, committed password: use LANGFUSE_ADMIN_PASSWORD if an operator
+# set one, else generate a fresh random one each bootstrap, same as the
+# PUBLIC_KEY/SECRET_KEY pair below -- written only to the untracked
+# config/.langfuse.env, never to source.
+RAW_PASSWORD = os.environ.get("LANGFUSE_ADMIN_PASSWORD") or secrets.token_urlsafe(16)
 PROJECT_NAME = "blockchain-soc-swarm"
 ORG_NAME = "Autonomous Blockchain SOC"
 
