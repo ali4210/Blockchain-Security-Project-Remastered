@@ -270,8 +270,8 @@ async function validateMove(path: string): Promise<IngestionResult["manifests"][
 }
 
 const EXPECTED_FILE_HASHES = {
-  "package.json": "d6bc406c19e305cedfa90a90e9256428b4ac304d67d29cb96848c736dfc1ea13",
-  "package-lock.json": "18aa490845b75ea0910b8c1f82b93bef94f9e9fb30b07741c2e843dc3e5efe50",
+  "package.json": "e63e857cd6c65618dfdc33261d9423a40dca2cfca960d0db849e01b56db7a560",
+  "package-lock.json": "49322dd4a8cfaefdff60fd11a8675db8ac63abb55f4669f28a5b67032bdcb8ed",
   "config/foundry.toml": "71c0b047c483a4e0c5aca70b5bc0315a75d2b3d73edd8c86e7c944a2bcb358bf",
   "config/hardhat.config.js": "9f210a2ce515df82925e28642dfac959cc3f99b7ced3c3a2a23e6fd65f6a62b5",
   "config/Move.toml": "52211ca389cb1353cd04c32ba21b2052e62fec320f7de8e4b759ddb4f6671f71",
