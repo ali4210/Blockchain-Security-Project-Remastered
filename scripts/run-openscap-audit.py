@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """Real OpenSCAP evaluation. Status comes from the results XML, never from a label.
 
-Setup:  sudo apt install ssg-base ssg-debderived   (provides ssg-*-ds.xml)
+Setup:  sudo apt install ssg-base ssg-debian   (provides the Debian-flavoured
+        ssg-debian{11,12,13}-ds.xml; the similarly-named ssg-debderived package
+        only ships Ubuntu-targeted content despite its name)
 Env:    OSCAP_DATASTREAM, OSCAP_PROFILE, OSCAP_SUDO=1 (run oscap via `sudo -n`)
-Kali is not an official SSG target, so many rules may be notapplicable/notchecked;
-that is reported, not hidden.
+
+Kali is not an official SSG target under EITHER package: verified that even the
+Debian-family datastream's platform-applicability OVAL check never matches
+Kali's /etc/os-release (ID=kali, not debian/ubuntu), so every selected rule
+comes back notapplicable and nothing is genuinely scored (0 pass + 0 fail).
+When that happens this script reports status=error with an explicit
+"0 of N rules were scored" detail -- never a hollow "ok".
 """
 import glob
 import json
@@ -94,6 +101,15 @@ def main():
     if total == 0:
         return finish("error", "results XML contains no rule results", ds=ds, profile=profile, version=version)
     scored = counts.get("pass", 0) + counts.get("fail", 0)
+    if scored == 0:
+        # Every selected rule came back notapplicable/notselected: the profile's
+        # platform-applicability check never matched this host, so nothing was
+        # genuinely evaluated. Reporting "ok" here would be a hollow pass (an
+        # empty "0/0 scored rules pass" reads as clean, not as "nothing ran").
+        detail = (f"{ds.name}/{profile}: 0 of {total} rules were scored on this host "
+                  f"(notselected={counts.get('notselected', 0)}, notapplicable={counts.get('notapplicable', 0)}) "
+                  "-- profile/platform mismatch, no rules genuinely evaluated")
+        return finish("error", detail, counts, ds, profile, res_xml, version)
     detail = f"{ds.name}: {counts.get('pass', 0)}/{scored} scored rules pass"
     if counts.get("notapplicable", 0) > total / 2:
         detail += " (most rules notapplicable: platform mismatch)"
