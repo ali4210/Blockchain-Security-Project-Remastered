@@ -1,12 +1,39 @@
 #!/usr/bin/env python3
+"""Streams one real Langfuse trace per run, built entirely from this run's
+real reports/*.json files. No fabricated executive summary, no fixed
+Tornado Cash address, no invented per-agent durations/token counts (none of
+that is captured anywhere in this pipeline, so none of it is claimed here)."""
 import os
 import json
+import sys
 import uuid
-import requests
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from scanner_result import write_result  # noqa: E402
+
+_IMPACT_SCORE = {"CRITICAL": 9.5, "HIGH": 8.0, "MEDIUM": 5.5, "LOW": 3.0,
+                 "INFORMATIONAL": 1.0, "INFO": 1.0}
+_IMPACT_RANK = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "INFORMATIONAL": 1, "INFO": 1}
+
+
+def _read_json(rel):
+    try:
+        with open(rel) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def _top_finding(sast):
+    findings = (sast or {}).get("findings", [])
+    if not findings:
+        return None
+    return max(findings, key=lambda f: _IMPACT_RANK.get((f.get("impact") or "").upper(), 0))
+
 
 def stream_verification_trace():
-    # 1. Load Langfuse Credentials
     env = {}
     config_path = "config/.langfuse.env"
     if os.path.exists(config_path):
@@ -21,213 +48,172 @@ def stream_verification_trace():
     host = env.get("LANGFUSE_HOST", "http://127.0.0.1:3100")
     if not pk or not sk:
         print("[!] Langfuse keys missing. Skipping trace stream.")
+        write_result("langfuse", "langfuse", "not_run", detail="no LANGFUSE_PUBLIC_KEY/LANGFUSE_SECRET_KEY in config/.langfuse.env")
         return
+    import requests  # imported here so missing keys short-circuit without needing it
 
-    # Dynamic target detection: Environment variables have highest authority
-    sec_env = os.getenv("SECURE")
-    target_env = os.getenv("TARGET_CONTRACT", "")
+    target = os.getenv("TARGET_CONTRACT", "contracts/solidity/VulnerableVault.sol")
+    target_name = target.split("/")[-1]
 
-    if sec_env == "1" or "SecureVault" in target_env:
-        is_secure = True
-        target_contract_name = "SecureVault.sol"
-    elif sec_env == "0" or "VulnerableVault" in target_env:
-        is_secure = False
-        target_contract_name = "VulnerableVault.sol"
-    else:
-        report_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports/sast-symbolic-report.json")
-        is_secure = False
-        target_contract_name = "VulnerableVault.sol"
-        if os.path.isfile(report_file):
-            try:
-                with open(report_file, "r") as rf:
-                    rep_data = json.load(rf)
-                    if "Secure" in rep_data.get("target", ""):
-                        has_exploit = any(f.get("owasp_category") == "SC01: Reentrancy Exploitation" for f in rep_data.get("findings", []))
-                        if not has_exploit:
-                            is_secure = True
-                            target_contract_name = "SecureVault.sol"
-            except Exception:
-                pass
+    verdict = _read_json("reports/verdict.json") or {}
+    sast = _read_json("reports/sast-symbolic-report.json")
+    swarm = _read_json("reports/swarm-execution-report.json") or {}
+    avs = _read_json("reports/scanners/avs-consensus.json") or {}
+    ofac = _read_json("reports/ofac-screening-report.json") or {}
+    jira_ticket = None
+    if os.path.isfile("reports/latest-jira-ticket.txt"):
+        jira_ticket = open("reports/latest-jira-ticket.txt").read().strip()
+
+    top = _top_finding(sast)
+    dread = _IMPACT_SCORE.get((top.get("impact") or "").upper(), 0.0) if top else 0.0
+    ofac_flag = next((r for r in ofac.get("screened", []) if r.get("flagged")), None)
 
     now = datetime.now(timezone.utc)
-    base_time = now - timedelta(seconds=25)
     trace_id = str(uuid.uuid4())
     user_id = "saleemali.mohammad@gmail.com"
 
-    # 2. Comprehensive Human-Readable Explanation & Compliance Playbook
-    if is_secure:
-        plain_english_verdict = {
-            "status": "AUTHORIZED_FOR_DEPLOYMENT",
-            "consensus_quorum": "100.0% (3/3 BFT Supermajority)",
-            "executive_summary": (
-                "The multi-agent security swarm verified hardened baseline controls "
-                "in 'contracts/solidity/SecureVault.sol'. Checks-Effects-Interactions pattern "
-                "and nonReentrant mutex active. Zero reachable exploit paths detected."
-            ),
-            "vulnerability_analysis": {
-                "category": "OWASP Smart Contract Top 10 - SC00: Hardened Baseline Verified",
-                "cwe_mapping": "CWE-NONE",
-                "root_cause": "State invariants preserved. Fallback recursion mitigated via Checks-Effects-Interactions."
-            },
-            "mitigation_guidance": [
-                {
-                    "standard": "ISO/IEC 27001 A.14.2 & OWASP SC00",
-                    "action": "Baseline Verification Passed",
-                    "instructions": "All formal AST assertions and symbolic solver invariants satisfied. Deployment gate authorized."
-                }
-            ]
-        }
-    else:
-        plain_english_verdict = {
-            "status": "EXPLOIT_VERIFIED_HALT_ENFORCED",
-            "consensus_quorum": "100.0% (3/3 BFT Supermajority)",
-            "executive_summary": (
-                "The multi-agent security swarm detected a critical state-draining vulnerability "
-                "in 'contracts/solidity/VulnerableVault.sol'. An exploit transaction originating from an "
-                "OFAC-sanctioned Tornado Cash router (0xd90e...f31b) was verified in the isolated Anvil BFT "
-                "sandbox. Emergency circuit breaker 0x8456cb59 has been proposed to halt the contract."
-            ),
-            "vulnerability_analysis": {
-                "category": "OWASP Smart Contract Top 10 - SC01: Reentrancy Exploitation",
-                "cwe_mapping": "CWE-841: User-Controlled Critical State Transition",
-                "root_cause": (
-                    "In function withdrawAll(), the contract performs an external Ether transfer "
-                    "before updating the user balance state variable (balances[msg.sender] = 0). "
-                    "This allows an external fallback function to recursively re-enter withdrawAll() "
-                    "and drain the vault's total assets."
-                )
-            },
-            "mitigation_guidance": [
-                {
-                    "standard": "NIST SP 800-61 Rev. 2 §3.2 (Containment)",
-                    "action": "Immediate Containment",
-                    "instructions": "Broadcast circuit breaker selector 0x8456cb59 via Gnosis Safe multi-sig to pause withdrawals."
-                },
-                {
-                    "standard": "OWASP SC01 & ISO/IEC 27001 A.14.2",
-                    "action": "Source Code Remediation",
-                    "instructions": "Adopt the Checks-Effects-Interactions (CEI) pattern. Update internal balance before external transfer, or apply OpenZeppelin's 'nonReentrant' modifier."
-                },
-                {
-                    "standard": "FATF Recommendation 16 / OFAC SDN",
-                    "action": "Border Gateway Screening",
-                    "instructions": "Add router 0xd90e2f925da726b50c4ed8d0fb90ad053324f31b to the RPC node deny-list to reject inbound relayed transactions."
-                },
-                {
-                    "standard": "RFC 3227 Forensic Custody",
-                    "action": "Evidence Archival",
-                    "instructions": "All AST logs, STIX 2.1 bundles, and model inference traces are cryptographically sealed via Vault Transit ed25519."
-                }
-            ]
-        }
+    pipeline_verdict = verdict.get("verdict", "UNKNOWN")
+    pipeline_health = verdict.get("health", "UNKNOWN")
 
-    # 3. Agent Execution Metadata Definition
-    agent_verdict = "AUTHORIZED_FOR_DEPLOYMENT" if is_secure else "HALT_CONFIRMED"
-    swarm_agents = [
-        {"name": "Agent_A_Smart_Contract_Auditor", "model": "qwen3.5:9b", "offset": 1, "duration": 2.15, "tokens": 2240, "verdict": "VERIFIED_CLEAN" if is_secure else "ALERT_ACTIVE"},
-        {"name": "Agent_B_SIEM_Threat_Hunter", "model": "qwen3.5:9b", "offset": 3, "duration": 1.10, "tokens": 1410, "verdict": "NO_ANOMALY" if is_secure else "ALERT_ACTIVE"},
-        {"name": "Agent_C_Compliance_Auditor", "model": "qwen3.5:9b", "offset": 4, "duration": 1.30, "tokens": 1590, "verdict": "COMPLIANT" if is_secure else "ALERT_ACTIVE"},
-        {"name": "Agent_D_Exploit_Red_Teamer", "model": "qwen3.5:9b", "offset": 5, "duration": 3.40, "tokens": 3490, "verdict": "EXPLOIT_BLOCKED" if is_secure else "HALT_CONFIRMED"},
-        {"name": "Agent_F_Formal_Logic_Analyst", "model": "qwen3.5:9b", "offset": 8, "duration": 5.60, "tokens": 6050, "verdict": "INVARIANTS_HELD" if is_secure else "ALERT_ACTIVE"},
-        {"name": "Agent_G_Guardrail_Watchdog", "model": "qwen3.5:9b", "offset": 13, "duration": 1.15, "tokens": 1730, "verdict": "PASSED" if is_secure else "ALERT_ACTIVE"},
-        {"name": "Agent_E_Incident_Commander", "model": "qwen3.5:9b", "offset": 14, "duration": 1.85, "tokens": 2090, "verdict": agent_verdict}
-    ]
+    executive_summary = (
+        f"Pipeline health {pipeline_health}, verdict {pipeline_verdict} for {target_name}. "
+        + (f"Top finding: {top.get('check')} ({top.get('impact')})." if top else "No SAST findings.")
+        + (f" AVS consensus: {avs.get('final_verdict', 'no result')} "
+           f"({avs.get('counts', {}).get('exploit_confirmed', 0)}/{avs.get('counts', {}).get('nodes', 0)} nodes)."
+           if avs else " No AVS consensus result this run.")
+        + (f" OFAC: {ofac_flag.get('entity')} flagged." if ofac_flag else " No OFAC match this run.")
+    )
 
-    scores = [
-        {"name": "Exploit_Confidence", "value": 0.0 if is_secure else 0.98, "comment": "Deterministic invariant solved"},
-        {"name": "Guardrail_Determinism", "value": 1.00, "comment": "NeMo Guardrail validation score"},
-        {"name": "OFAC_Sanction_Taint", "value": 0.0 if is_secure else 1.00, "comment": "Tornado Cash Router match score"},
-        {"name": "Reentrancy_Severity_DREAD", "value": 0.0 if is_secure else 0.88, "comment": "Calculated DREAD Risk Score"}
-    ]
+    plain_english_verdict = {
+        "status": pipeline_verdict,
+        "pipeline_health": pipeline_health,
+        "executive_summary": executive_summary,
+        "halt_reasons": verdict.get("halt_reasons", []),
+        "vulnerability_analysis": (
+            {
+                "category": (top.get("owasp_category") or "unknown") if top else "none",
+                "check": top.get("check") if top else None,
+                "description": top.get("description") if top else None,
+            } if top else {"category": "none", "check": None, "description": "No SAST findings this run."}
+        ),
+    }
 
     batch = [
         {
             "id": str(uuid.uuid4()),
             "type": "trace-create",
-            "timestamp": base_time.isoformat(),
+            "timestamp": now.isoformat(),
             "body": {
                 "id": trace_id,
                 "name": "Autonomous-Blockchain-SOC-Production-Run",
                 "userId": user_id,
                 "input": {
-                    "target_asset": f"contracts/solidity/{target_contract_name}",
-                    "suspected_vector": "SC00:Hardened-Baseline" if is_secure else "SC01:Reentrancy-Exploitation",
-                    "initiating_source": "0x0000000000000000000000000000000000000000" if is_secure else "0xd90e2f925da726b50c4ed8d0fb90ad053324f31b",
-                    "scan_profile": "Enterprise-Full-Pipeline-E2E"
+                    "target_asset": target,
+                    "suspected_vector": (top.get("owasp_category") if top else "none"),
+                    "flagged_counterparty": ofac_flag.get("address") if ofac_flag else None,
+                    "jira_ticket": jira_ticket,
                 },
                 "output": plain_english_verdict,
                 "metadata": {
-                    "consensus_supermajority": "True",
-                    "bft_validators": 3,
-                    "hsm_key_type": "ed25519",
-                    "environment": "Production-SOC"
+                    "avs_nodes_total": avs.get("counts", {}).get("nodes", 0),
+                    "avs_exploit_confirmed": avs.get("counts", {}).get("exploit_confirmed", 0),
+                    "dread_score": dread,
                 },
-                "tags": ["Production-SOC", "HITL-Guidance", "LangGraph-Swarm", "ISO-27001" if is_secure else "NIST-800-61", "OWASP-SC00" if is_secure else "OWASP-SC01"]
-            }
+                "tags": ["Production-SOC", "LangGraph-Swarm", pipeline_verdict],
+            },
         }
     ]
 
-    # Tool Spans
-    batch.append({
-        "id": str(uuid.uuid4()),
-        "type": "span-create",
-        "timestamp": (base_time + timedelta(seconds=5)).isoformat(),
-        "body": {
-            "id": str(uuid.uuid4()),
-            "traceId": trace_id,
-            "name": "Tool_Anvil_BFT_Sandbox_Execution",
-            "startTime": (base_time + timedelta(seconds=4.8)).isoformat(),
-            "endTime": (base_time + timedelta(seconds=8.2)).isoformat(),
-            "input": {"action": "verify_state" if is_secure else "fork_testnet", "ports": [8545, 8546, 8547]},
-            "output": {"status": "SUCCESS", "consensus": "3/3 Quorum"}
-        }
-    })
-
-    # Agent Generations
-    for a in swarm_agents:
-        s_time = base_time + timedelta(seconds=a["offset"])
-        e_time = s_time + timedelta(seconds=a["duration"])
+    if avs:
         batch.append({
             "id": str(uuid.uuid4()),
-            "type": "generation-create",
-            "timestamp": s_time.isoformat(),
+            "type": "span-create",
+            "timestamp": now.isoformat(),
             "body": {
                 "id": str(uuid.uuid4()),
                 "traceId": trace_id,
-                "name": a["name"],
-                "startTime": s_time.isoformat(),
-                "endTime": e_time.isoformat(),
-                "model": a["model"],
-                "modelParameters": {"temperature": 0.1, "max_tokens": 1024},
-                "input": {"task": f"Analyze {target_contract_name}"},
-                "output": {"verdict": a["verdict"]},
-                "usage": {"total": a["tokens"]}
-            }
+                "name": "Tool_Anvil_BFT_Sandbox_Execution",
+                "startTime": now.isoformat(),
+                "endTime": now.isoformat(),
+                "input": {"ports": [8545, 8546, 8547]},
+                "output": {
+                    "final_verdict": avs.get("final_verdict"),
+                    "consensus": f"{avs.get('counts', {}).get('exploit_confirmed', 0)}/{avs.get('counts', {}).get('nodes', 0)}",
+                },
+            },
         })
 
-    # Scores
+    # Real per-agent votes from this run's actual swarm execution. No
+    # fabricated duration/token counts: this pipeline doesn't capture
+    # per-agent timing or token usage anywhere, so none is claimed here --
+    # all agent spans share this run's one real completion timestamp.
+    for ag in swarm.get("agents", []):
+        batch.append({
+            "id": str(uuid.uuid4()),
+            "type": "generation-create",
+            "timestamp": now.isoformat(),
+            "body": {
+                "id": str(uuid.uuid4()),
+                "traceId": trace_id,
+                "name": ag.get("agent", "unknown-agent"),
+                "startTime": now.isoformat(),
+                "endTime": now.isoformat(),
+                "model": ag.get("model"),
+                "input": {"task": f"Analyze {target_name}"},
+                "output": {"status": ag.get("status"), "vote": ag.get("vote"), "reason": ag.get("reason")},
+            },
+        })
+
+    # Real scores only. "Guardrail_Determinism" from the old template is
+    # dropped -- no NeMo Guardrail or equivalent integration exists anywhere
+    # in this codebase, so there is no real signal to score.
+    avs_total = avs.get("counts", {}).get("nodes", 0)
+    scores = [
+        {
+            "name": "AVS_Exploit_Confidence",
+            "value": (avs.get("counts", {}).get("exploit_confirmed", 0) / avs_total) if avs_total else 0.0,
+            "comment": "Fraction of real AVS validator nodes that voted EXPLOIT_CONFIRMED this run",
+        },
+        {
+            "name": "OFAC_Sanction_Taint",
+            "value": 1.0 if ofac_flag else 0.0,
+            "comment": f"{ofac_flag.get('entity')} flagged" if ofac_flag else "No real OFAC SDN match this run",
+        },
+        {
+            "name": "Reentrancy_Severity_DREAD",
+            "value": dread,
+            "comment": f"Real DREAD score for top finding: {top.get('check')}" if top else "No SAST finding this run",
+        },
+    ]
     for sc in scores:
         batch.append({
             "id": str(uuid.uuid4()),
             "type": "score-create",
-            "timestamp": (base_time + timedelta(seconds=18)).isoformat(),
+            "timestamp": now.isoformat(),
             "body": {
                 "id": str(uuid.uuid4()),
                 "traceId": trace_id,
                 "name": sc["name"],
                 "value": sc["value"],
-                "comment": sc["comment"]
-            }
+                "comment": sc["comment"],
+            },
         })
 
     try:
         r = requests.post(f"{host}/api/public/ingestion", auth=(pk, sk), json={"batch": batch}, timeout=10)
         if r.status_code in [200, 201, 207]:
-            print(f"[+] Langfuse: Streamed comprehensive HITL explanation trace ({trace_id[:8]}...). Status: {plain_english_verdict['status']}")
+            print(f"[+] Langfuse: streamed real trace ({trace_id[:8]}...). Verdict: {pipeline_verdict}")
+            write_result("langfuse", "langfuse", "ok",
+                         counts={"events_sent": len(batch)},
+                         detail=f"trace {trace_id} ({pipeline_verdict})",
+                         extra={"trace_id": trace_id})
         else:
             print(f"[!] Langfuse returned status {r.status_code}: {r.text}")
+            write_result("langfuse", "langfuse", "error", detail=f"HTTP {r.status_code}: {r.text[:200]}")
     except Exception as err:
         print(f"[!] Langfuse stream error: {err}")
+        write_result("langfuse", "langfuse", "error", detail=f"stream error: {str(err)[:200]}")
+
 
 if __name__ == "__main__":
     stream_verification_trace()
