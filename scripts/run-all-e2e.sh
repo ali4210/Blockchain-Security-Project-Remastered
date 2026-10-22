@@ -115,10 +115,21 @@ print('    -> P2P Peer registered.')
 # TARGET_SCREEN_ADDRESS if set, else a documented demonstration canary.
 python3 scripts/run-ofac-screening.py
 
+# Verdict is computed here: after every REQUIRED Zone 2 scanner (slither,
+# mythril, sast-canary, trivy, zap, sca, openscap, sonar, readiness) AND after
+# the real AVS consensus / LangGraph swarm signals it also reads, but BEFORE
+# Zone 4 incident response (run-incident-abort.py) reads reports/verdict.json.
+# Previously verdict ran at the very end of the pipeline, so incident response
+# always saw a stale/missing verdict from the prior run (or UNKNOWN on a clean
+# checkout); running it before Zone 2's scanners instead would have the same
+# staleness problem against avs-consensus/swarm, which run after Zone 2.
+python3 scripts/pipeline-verdict.py || VERDICT_RC=$?
+
 # Step 5: Zone 7 Wallet Simulation Gate & Live HashiCorp Vault Signing
 echo -e "\n[+] [ZONE 7] Testing Pre-Sign Transaction Simulation Barrier..."
 python3 -c "
-from src.wallet.presign_simulator import PresignSimulator, RelayerTxIntent
+from src.wallet.presign_simulator import PresignSimulator, RelayerTxIntent, SimulationError
+from scripts.lib.scanner_result import write_result
 
 target_addr = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'
 sim = PresignSimulator(allowed_recipients={target_addr}, max_drain_wei=10**18, max_gas=500000)
@@ -132,8 +143,17 @@ intent = RelayerTxIntent(
     gas_limit=100000
 )
 
-receipt = sim.simulate_and_validate(intent)
-print(f'    -> Simulation approved: digest={receipt.receipt_digest[:16]}... gas_used={receipt.gas_used} success={receipt.success}')
+try:
+    receipt = sim.simulate_and_validate(intent)
+    print(f'    -> Simulation approved: digest={receipt.receipt_digest[:16]}... gas_used={receipt.gas_used} success={receipt.success}')
+    write_result('presign-sim', 'presign-simulator',
+                 'ok' if receipt.success else 'error',
+                 target=intent.target, counts={'gas_used': receipt.gas_used},
+                 detail=f'digest={receipt.receipt_digest[:16]}... success={receipt.success}')
+except SimulationError as e:
+    print(f'    -> Simulation REJECTED (fail-closed): {e}')
+    write_result('presign-sim', 'presign-simulator', 'error', target=intent.target,
+                 detail=f'rejected: {str(e)[:150]}')
 "
 
 echo -e "\n[+] [ZONE 7] Cryptographic Attestation via Live HashiCorp Vault Transit Engine..."
@@ -167,17 +187,27 @@ python3 scripts/run-incident-abort.py
 echo -e "\n[+] [ZONE 4] Verifying K3s Kubernetes Cluster & Active Nodes..."
 python3 -c "
 import subprocess
+from scripts.lib.scanner_result import write_result
 
 try:
     cmd = ['kubectl', '--kubeconfig=/etc/rancher/k3s/k3s.yaml', 'get', 'nodes']
-    out = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    out = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=15)
     lines = [l for l in out.stdout.strip().splitlines() if not l.startswith('NAME')]
     if lines:
+        fields = lines[0].split()
+        node_name, node_status = fields[0], fields[1] if len(fields) > 1 else 'unknown'
+        version = fields[4] if len(fields) > 4 else None
         print(f'    -> K3s Cluster Active Node: {lines[0]}')
+        write_result('k3s', 'kubectl', 'ok' if node_status == 'Ready' else 'error',
+                     target=node_name, version=version,
+                     counts={'node_name': node_name},
+                     detail=f'node {node_name} status={node_status}')
     else:
         print('    -> K3s Cluster Online (control-plane)')
+        write_result('k3s', 'kubectl', 'ok', detail='cluster reachable, no node rows parsed')
 except Exception as e:
     print(f'    -> K3s check note: {e}')
+    write_result('k3s', 'kubectl', 'not_run', detail=str(e)[:150])
 "
 
 # Step 7: Zone 5 Forensics Vault Sealing
@@ -206,14 +236,10 @@ print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | {seal[\"file_cou
 echo -e "\n[+] [COMPLIANCE] Ingesting Multi-Scanner Telemetry into DefectDojo (Port 8085)..."
 python3 scripts/ingest-defectdojo.py || true
 
-# Verdict: health (did everything really run?) is separate from verdict (is it safe to ship?)
-python3 scripts/pipeline-verdict.py || VERDICT_RC=$?
-
 # Step 8: Zone 9 Status Aggregator & HTML Report Compilation
 echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."
 ./node_modules/.bin/tsx --no-cache scripts/aggregate-status.mts
 python3 scripts/aggregate-infra-status.py
-python3 scripts/render-html-report.py
 python3 scripts/ship-siem-telemetry.py
     python3 scripts/ingest-granular-siem.py || true
 python3 scripts/sync-defectdojo-metrics.py || true
