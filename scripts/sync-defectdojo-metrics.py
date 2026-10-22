@@ -1,7 +1,30 @@
 #!/usr/bin/env python3
 import os
 import json
+import time
 import requests
+
+REQUEST_TIMEOUT = 15  # DefectDojo answered a direct test in 1.4s; 5s was too tight under load
+RETRIES = 3
+BACKOFF_BASE = 1.5  # seconds; attempt N waits BACKOFF_BASE * N before retrying
+
+
+def get_with_retry(url, headers, label, timeout=REQUEST_TIMEOUT, retries=RETRIES):
+    """GET with retry/backoff. Returns the Response on success, or None after all
+    retries are exhausted -- never raises, so one flaky call can't take down the
+    others. Prints a clear warning per failed attempt so operators can see in logs
+    which specific metric didn't refresh, even though the caller swallows this."""
+    last_exc = None
+    for attempt in range(1, retries + 1):
+        try:
+            return requests.get(url, headers=headers, timeout=timeout)
+        except requests.exceptions.RequestException as exc:
+            last_exc = exc
+            print(f"[!] [DEFECTDOJO EXPORTER] {label}: attempt {attempt}/{retries} failed ({exc})")
+            if attempt < retries:
+                time.sleep(BACKOFF_BASE * attempt)
+    print(f"[!] [DEFECTDOJO EXPORTER] {label}: giving up after {retries} attempts ({last_exc})")
+    return None
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATUS_FILE = os.path.join(PROJECT_ROOT, "reports", "status.json")
@@ -33,56 +56,106 @@ if not TOKEN:
 HEADERS = {"Authorization": f"Token {TOKEN}"}
 
 
-def fetch_metrics():
+def fetch_defectdojo_counts():
+    """Returns (ok, total_raw, total_unique, severities). Never raises -- a failed
+    or flaky request here just means ok=False, so callers can still use whatever
+    other metrics succeeded instead of losing everything."""
+    severities = {"Critical": 0, "High": 0, "Medium": 0, "Low": 0, "Info": 0}
+    all_resp = get_with_retry(f"{URL}/findings/?limit=1", HEADERS, "DefectDojo total findings count")
+    active_resp = get_with_retry(f"{URL}/findings/?active=true&duplicate=false&limit=500", HEADERS,
+                                  "DefectDojo active/unique findings")
+    if all_resp is None or active_resp is None or all_resp.status_code != 200 or active_resp.status_code != 200:
+        print("[!] [DEFECTDOJO EXPORTER] Could not refresh DefectDojo finding counts this run "
+              "(see attempt warnings above); leaving status.json defectdojo_compliance untouched.")
+        return False, 0, 0, severities
     try:
-        # 1. DefectDojo Queries
-        all_resp = requests.get(f"{URL}/findings/?limit=1", headers=HEADERS, timeout=5)
-        active_resp = requests.get(f"{URL}/findings/?active=true&duplicate=false&limit=500", headers=HEADERS, timeout=5)
-        defectdojo_ok = all_resp.status_code == 200 and active_resp.status_code == 200
-        all_res = all_resp.json() if defectdojo_ok else {}
-        active_res = active_resp.json() if defectdojo_ok else {}
+        all_res, active_res = all_resp.json(), active_resp.json()
+    except ValueError as exc:
+        print(f"[!] [DEFECTDOJO EXPORTER] DefectDojo returned unparseable JSON: {exc}")
+        return False, 0, 0, severities
+    total_raw = all_res.get("count", 0)
+    total_unique = active_res.get("count", 0)
+    for f in active_res.get("results", []):
+        sev = f.get("severity", "Info")
+        severities[sev] = severities.get(sev, 0) + 1
+    return True, total_raw, total_unique, severities
 
-        # Query specific ZAP Test ID to isolate true DAST alerts count.
-        # No hardcoded fallback: if the query fails or finds nothing, report 0 and say so
-        # rather than silently reporting a fixed invented number.
-        zap_test_res = requests.get(f"{URL}/tests/?engagement__name=SOC-Continuous-Compliance&test_type__name=ZAP+Scan", headers=HEADERS, timeout=5).json()
-        zap_alerts = 0
-        zap_source = "no ZAP test found in DefectDojo"
-        zap_ok = zap_test_res.get("count", 0) > 0
-        if zap_ok:
-            last_zap_id = zap_test_res["results"][-1]["id"]
-            zap_alerts_res = requests.get(f"{URL}/findings/?test={last_zap_id}", headers=HEADERS, timeout=5).json()
-            zap_alerts = zap_alerts_res.get("count", 0)
-            zap_source = f"queried from DefectDojo test id {last_zap_id}"
 
-        # TheHive case count: query TheHive itself for real, instead of a hardcoded constant.
-        thehive_cases = None
-        thehive_url = os.environ.get("THEHIVE_URL", "http://127.0.0.1:9005")
-        thehive_token = os.environ.get("THEHIVE_TOKEN")
-        if thehive_token:
-            try:
-                th_res = requests.post(
-                    f"{thehive_url}/api/v1/query",
-                    headers={"Authorization": f"Bearer {thehive_token}"},
-                    json={"query": [{"_name": "listCase"}, {"_name": "count"}]},
-                    timeout=5,
-                ).json()
-                thehive_cases = th_res if isinstance(th_res, int) else th_res.get("count")
-            except Exception:
-                thehive_cases = None
-        thehive_status_text = "HEALTHY (Active)" if thehive_cases is not None else "UNKNOWN (no THEHIVE_TOKEN or query failed)"
-        thehive_cases_line = thehive_cases if thehive_cases is not None else 0
+def fetch_zap_alerts():
+    """Returns (ok, alerts, source_text). Independent of the DefectDojo count
+    query above and the TheHive query below -- a failure here must not block
+    either of those."""
+    zap_test_resp = get_with_retry(
+        f"{URL}/tests/?engagement__name=SOC-Continuous-Compliance&test_type__name=ZAP+Scan",
+        HEADERS, "ZAP test lookup")
+    if zap_test_resp is None:
+        return False, 0, "ZAP test lookup failed (see attempt warnings above)"
+    if zap_test_resp.status_code != 200:
+        print(f"[!] [DEFECTDOJO EXPORTER] ZAP test lookup returned HTTP {zap_test_resp.status_code}")
+        return False, 0, f"ZAP test lookup returned HTTP {zap_test_resp.status_code}"
+    try:
+        zap_test_res = zap_test_resp.json()
+    except ValueError as exc:
+        print(f"[!] [DEFECTDOJO EXPORTER] ZAP test lookup returned unparseable JSON: {exc}")
+        return False, 0, "ZAP test lookup returned unparseable JSON"
+    if zap_test_res.get("count", 0) == 0:
+        return False, 0, "no ZAP test found in DefectDojo"
 
-        total_raw = all_res.get("count", 0)
-        total_unique = active_res.get("count", 0)
+    last_zap_id = zap_test_res["results"][-1]["id"]
+    zap_alerts_resp = get_with_retry(f"{URL}/findings/?test={last_zap_id}", HEADERS,
+                                      f"ZAP alerts for test id {last_zap_id}")
+    if zap_alerts_resp is None or zap_alerts_resp.status_code != 200:
+        print(f"[!] [DEFECTDOJO EXPORTER] Could not fetch ZAP alerts for test id {last_zap_id}")
+        return False, 0, f"found ZAP test id {last_zap_id} but could not fetch its alerts"
+    try:
+        zap_alerts = zap_alerts_resp.json().get("count", 0)
+    except ValueError as exc:
+        print(f"[!] [DEFECTDOJO EXPORTER] ZAP alerts response unparseable: {exc}")
+        return False, 0, f"found ZAP test id {last_zap_id} but its alerts response was unparseable"
+    return True, zap_alerts, f"queried from DefectDojo test id {last_zap_id}"
 
-        severities = {"Critical": 0, "High": 0, "Medium": 0, "Low": 0, "Info": 0}
-        for f in active_res.get("results", []):
-            sev = f.get("severity", "Info")
-            severities[sev] = severities.get(sev, 0) + 1
 
-        # 2. Update status.json
-        if os.path.exists(STATUS_FILE):
+def fetch_thehive_cases():
+    """Returns (cases_or_none, status_text). Independent of the DefectDojo/ZAP
+    queries above -- a TheHive outage must not drop the DefectDojo counts that
+    already succeeded."""
+    thehive_url = os.environ.get("THEHIVE_URL", "http://127.0.0.1:9005")
+    thehive_token = os.environ.get("THEHIVE_TOKEN")
+    if not thehive_token:
+        return None, "UNKNOWN (no THEHIVE_TOKEN)"
+    last_exc = None
+    for attempt in range(1, RETRIES + 1):
+        try:
+            th_res = requests.post(
+                f"{thehive_url}/api/v1/query",
+                headers={"Authorization": f"Bearer {thehive_token}"},
+                json={"query": [{"_name": "listCase"}, {"_name": "count"}]},
+                timeout=REQUEST_TIMEOUT,
+            ).json()
+            cases = th_res if isinstance(th_res, int) else th_res.get("count")
+            return cases, "HEALTHY (Active)" if cases is not None else "UNKNOWN (query returned no count)"
+        except (requests.exceptions.RequestException, ValueError) as exc:
+            last_exc = exc
+            print(f"[!] [DEFECTDOJO EXPORTER] TheHive case count: attempt {attempt}/{RETRIES} failed ({exc})")
+            if attempt < RETRIES:
+                time.sleep(BACKOFF_BASE * attempt)
+    print(f"[!] [DEFECTDOJO EXPORTER] TheHive case count: giving up after {RETRIES} attempts ({last_exc})")
+    return None, "UNKNOWN (query failed)"
+
+
+def fetch_metrics():
+    defectdojo_ok, total_raw, total_unique, severities = fetch_defectdojo_counts()
+    zap_ok, zap_alerts, zap_source = fetch_zap_alerts()
+    thehive_cases, thehive_status_text = fetch_thehive_cases()
+    thehive_cases_line = thehive_cases if thehive_cases is not None else 0
+    thehive_url = os.environ.get("THEHIVE_URL", "http://127.0.0.1:9005")
+
+    try:
+        # Update status.json -- only touch defectdojo_compliance if the core
+        # DefectDojo counts actually refreshed this run. Partial data (DefectDojo
+        # ok, ZAP/TheHive not) still beats no data, so this never depends on the
+        # ZAP or TheHive lookups succeeding.
+        if defectdojo_ok and os.path.exists(STATUS_FILE):
             with open(STATUS_FILE, "r") as fp:
                 data = json.load(fp)
             data["defectdojo_compliance"] = {
@@ -95,8 +168,14 @@ def fetch_metrics():
             }
             with open(STATUS_FILE, "w") as fp:
                 json.dump(data, fp, indent=2)
+            print(f"[+] [DEFECTDOJO EXPORTER] Updated status.json defectdojo_compliance "
+                  f"({total_unique} active unique findings)")
+    except (OSError, ValueError) as exc:
+        print(f"[!] [DEFECTDOJO EXPORTER] Could not update status.json: {exc}")
 
-        # 3. Append to Prometheus metrics.prom for Grafana Port 3000
+    try:
+        # Append to Prometheus metrics.prom for Grafana Port 3000 -- written
+        # regardless of which parts above succeeded, same as before.
         prom_lines = [
             "\n# HELP defectdojo_active_unique_findings Number of active deduplicated findings in DefectDojo",
             "# TYPE defectdojo_active_unique_findings gauge",
@@ -125,8 +204,8 @@ def fetch_metrics():
             with open(PROM_FILE, "a") as pf:
                 pf.write("\n".join(prom_lines))
             print(f"[+] [PROMETHEUS] Exported DefectDojo ({total_unique} flaws), ZAP DAST ({zap_alerts} alerts, {zap_source}), and TheHive ({thehive_cases_line} cases) to {PROM_FILE}")
-    except Exception as exc:
-        print(f"[*] [DEFECTDOJO EXPORTER] Error: {exc}")
+    except OSError as exc:
+        print(f"[!] [DEFECTDOJO EXPORTER] Could not write {PROM_FILE}: {exc}")
 
 
 if __name__ == "__main__":
