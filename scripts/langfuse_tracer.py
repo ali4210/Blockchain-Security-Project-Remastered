@@ -143,25 +143,47 @@ def stream_verification_trace():
             },
         })
 
-    # Real per-agent votes from this run's actual swarm execution. No
-    # fabricated duration/token counts: this pipeline doesn't capture
-    # per-agent timing or token usage anywhere, so none is claimed here --
-    # all agent spans share this run's one real completion timestamp.
+    # Real per-agent votes from this run's actual swarm execution.
+    # swarm_orchestrator.py now captures each agent's real wall-clock
+    # start/end time and Ollama's own prompt_eval_count/eval_count (these were
+    # always present in Ollama's response, just discarded before). Usage is
+    # only attached when both counts are real; if either is missing, that is
+    # printed as a visible warning and the event is sent with no usage field
+    # at all, never a fabricated 0 standing in for "unknown".
     for ag in swarm.get("agents", []):
+        start_ts, end_ts = ag.get("start_time"), ag.get("end_time")
+        start_iso = (datetime.fromtimestamp(start_ts, tz=timezone.utc).isoformat()
+                     if start_ts is not None else now.isoformat())
+        end_iso = (datetime.fromtimestamp(end_ts, tz=timezone.utc).isoformat()
+                   if end_ts is not None else now.isoformat())
+        prompt_tokens, completion_tokens = ag.get("prompt_tokens"), ag.get("completion_tokens")
+
+        gen_body = {
+            "id": str(uuid.uuid4()),
+            "traceId": trace_id,
+            "name": ag.get("agent", "unknown-agent"),
+            "startTime": start_iso,
+            "endTime": end_iso,
+            "model": ag.get("model"),
+            "input": {"task": f"Analyze {target_name}"},
+            "output": {"status": ag.get("status"), "vote": ag.get("vote"), "reason": ag.get("reason")},
+        }
+        if prompt_tokens is not None and completion_tokens is not None:
+            # Real token counts only; no per-token cost is attached -- these are
+            # local Ollama models with no dollar price, so cost stays $0/unset
+            # rather than an invented estimate.
+            gen_body["usage"] = {"input": prompt_tokens, "output": completion_tokens,
+                                 "total": prompt_tokens + completion_tokens, "unit": "TOKENS"}
+        elif ag.get("token_capture_error"):
+            print(f"[!] Langfuse: {ag.get('agent')} has no real token data "
+                  f"({ag['token_capture_error']}); sending without a usage field "
+                  f"rather than reporting 0.")
+
         batch.append({
             "id": str(uuid.uuid4()),
             "type": "generation-create",
             "timestamp": now.isoformat(),
-            "body": {
-                "id": str(uuid.uuid4()),
-                "traceId": trace_id,
-                "name": ag.get("agent", "unknown-agent"),
-                "startTime": now.isoformat(),
-                "endTime": now.isoformat(),
-                "model": ag.get("model"),
-                "input": {"task": f"Analyze {target_name}"},
-                "output": {"status": ag.get("status"), "vote": ag.get("vote"), "reason": ag.get("reason")},
-            },
+            "body": gen_body,
         })
 
     # Real scores only. "Guardrail_Determinism" from the old template is

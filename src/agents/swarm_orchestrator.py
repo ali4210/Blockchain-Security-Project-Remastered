@@ -24,6 +24,7 @@ Honest rules (what changed from the fabricated version):
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -89,22 +90,50 @@ def call_ollama(role: str, agent_id: str, state: AgentState) -> Dict[str, Any]:
     req = urllib.request.Request(f"{OLLAMA_BASE.rstrip('/')}/api/generate",
                                  data=body, headers={"Content-Type": "application/json"})
     base = {"agent": role, "agent_id": agent_id, "model": model}
+    wall_start = time.time()
     try:
         with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT) as resp:
-            raw = json.load(resp).get("response", "")
+            full = json.load(resp)
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        wall_end = time.time()
         return {**base, "status": "not_run", "vote": "ABSTAIN",
-                "reason": f"ollama unreachable: {str(exc)[:100]}", "raw": ""}
+                "reason": f"ollama unreachable: {str(exc)[:100]}", "raw": "",
+                "start_time": wall_start, "end_time": wall_end,
+                "prompt_tokens": None, "completion_tokens": None,
+                "token_capture_error": "ollama unreachable, no response to read tokens from"}
     except (ValueError, json.JSONDecodeError) as exc:
+        wall_end = time.time()
         return {**base, "status": "error", "vote": "ABSTAIN",
-                "reason": f"unparseable ollama response: {str(exc)[:100]}", "raw": ""}
+                "reason": f"unparseable ollama response: {str(exc)[:100]}", "raw": "",
+                "start_time": wall_start, "end_time": wall_end,
+                "prompt_tokens": None, "completion_tokens": None,
+                "token_capture_error": "ollama response was not valid JSON"}
+    wall_end = time.time()
+    raw = full.get("response", "")
+
+    # Ollama's own /api/generate response (stream=false) natively includes real
+    # per-call token counts -- prompt_eval_count (input) and eval_count (output)
+    # -- that were previously parsed out of `full` and discarded. Captured here
+    # instead of estimated; if a future Ollama version ever omits them, that is
+    # surfaced as an explicit error, never silently reported as 0 tokens used.
+    prompt_tokens = full.get("prompt_eval_count")
+    completion_tokens = full.get("eval_count")
+    token_capture_error = None
+    if prompt_tokens is None or completion_tokens is None:
+        token_capture_error = (f"ollama response missing prompt_eval_count/eval_count "
+                               f"(keys present: {sorted(full.keys())})")
+        print(f"[!] [SWARM] {role} (Agent {agent_id}): {token_capture_error}")
+
+    timing = {"start_time": wall_start, "end_time": wall_end,
+             "prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens,
+             "token_capture_error": token_capture_error}
 
     m = VERDICT_RE.search(raw)
     if m:
-        return {**base, "status": "ok", "vote": m.group(1).upper(),
+        return {**base, **timing, "status": "ok", "vote": m.group(1).upper(),
                 "reason": raw.strip().replace("\n", " ")[:200], "raw": raw.strip()[:200]}
     # Model answered but not in the required format -> ABSTAIN, never a silent HALT.
-    return {**base, "status": "ok", "vote": "ABSTAIN",
+    return {**base, **timing, "status": "ok", "vote": "ABSTAIN",
             "reason": "model response did not contain a VERDICT: HALT/CLEAR line",
             "raw": raw.strip()[:200]}
 
