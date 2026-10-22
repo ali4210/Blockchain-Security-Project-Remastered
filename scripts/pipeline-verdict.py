@@ -70,6 +70,20 @@ def main():
         reasons.append("sonarqube: quality gate ERROR")
     if os.getenv("ENFORCE_READINESS") == "1" and results.get("readiness", {}).get("decision") == "block":
         reasons.append(f"readiness gate: block ({results['readiness'].get('detail')})")
+    # AVS consensus and the LangGraph swarm are real signals (live 3-node EVM
+    # exploit execution; 7-agent LLM vote over real findings) but neither tool
+    # is in REQUIRED: AVS needs a local Foundry toolchain and swarm needs a
+    # reachable Ollama host, and pipeline HEALTH should not depend on that
+    # infra being up. A confirmed exploit/halt from either can still force a
+    # HALT verdict when it genuinely fires, independent of health.
+    if results.get("avs-consensus", {}).get("status") == "ok" and results["avs-consensus"].get("supermajority_exploit"):
+        reasons.append(f"avs-consensus: {results['avs-consensus'].get('final_verdict', 'EXPLOIT_PROVEN_HALT_DEPLOYMENT')} "
+                       f"({results['avs-consensus'].get('counts', {}).get('exploit_confirmed', '?')}/"
+                       f"{results['avs-consensus'].get('counts', {}).get('nodes', '?')} nodes)")
+    if results.get("swarm", {}).get("status") == "ok" and results["swarm"].get("decision") == "HALT_CONFIRMED":
+        reasons.append(f"swarm: HALT_CONFIRMED "
+                       f"({results['swarm'].get('counts', {}).get('halt', '?')}/"
+                       f"{results['swarm'].get('counts', {}).get('agents', '?')} agents)")
 
     health = "OK" if not health_problems else "FAILED"
     # PASS may only be claimed when everything really ran; otherwise the safe answer is UNKNOWN.
