@@ -61,7 +61,6 @@ def collect_events():
     run_id = os.getenv("PIPELINE_RUN_ID", str(uuid.uuid4())[:8])
     target_contract = os.getenv("TARGET_CONTRACT", "contracts/solidity/SecureVault.sol")
     target_name = target_contract.split("/")[-1]
-    sec_flag = os.getenv("SECURE", "1")
     ts = get_timestamp()
 
     # 1. Zone 1: Gitleaks Individual Leaks
@@ -140,46 +139,63 @@ def collect_events():
         except Exception as e:
             print(f"[!] Parsing {zap_file}: {e}")
 
-    # 4. Zone 3: LangGraph Swarm Agents Telemetry
-    agent_specs = [
-        {"name": "Agent_A_Smart_Contract_Auditor", "model": "qwen2.5-coder:32b", "verdict": "VERIFIED_CLEAN" if sec_flag=="1" else "ALERT_ACTIVE"},
-        {"name": "Agent_B_SIEM_Threat_Hunter", "model": "qwen3.5:9b", "verdict": "NO_ANOMALY" if sec_flag=="1" else "ALERT_ACTIVE"},
-        {"name": "Agent_C_Compliance_Auditor", "model": "qwen3.5:9b", "verdict": "COMPLIANT" if sec_flag=="1" else "ALERT_ACTIVE"},
-        {"name": "Agent_D_Exploit_Red_Teamer", "model": "qwen3.5:9b", "verdict": "EXPLOIT_BLOCKED" if sec_flag=="1" else "HALT_CONFIRMED"},
-        {"name": "Agent_F_Formal_Logic_Analyst", "model": "qwen3.5:9b", "verdict": "INVARIANTS_HELD" if sec_flag=="1" else "ALERT_ACTIVE"},
-        {"name": "Agent_G_Guardrail_Watchdog", "model": "qwen3.5:9b", "verdict": "PASSED" if sec_flag=="1" else "ALERT_ACTIVE"},
-        {"name": "Agent_E_Incident_Commander", "model": "qwen3.5:9b", "verdict": "AUTHORIZED_FOR_DEPLOYMENT" if sec_flag=="1" else "HALT_CONFIRMED"}
-    ]
-    for ag in agent_specs:
-        events.append({
-            "@timestamp": ts,
-            "event_category": "ai-swarm",
-            "event_kind": "event",
-            "log_level": "INFO" if ag["verdict"] in ["VERIFIED_CLEAN", "COMPLIANT", "PASSED", "AUTHORIZED_FOR_DEPLOYMENT"] else "ERROR",
-            "pipeline_run_id": run_id,
-            "pipeline_target": target_name,
-            "tool_name": "LangGraph-Swarm",
-            "agent_name": ag["name"],
-            "agent_model": ag["model"],
-            "agent_verdict": ag["verdict"],
-            "message": f"{ag['name']} executed evaluation using {ag['model']}. Verdict emitted: {ag['verdict']}"
-        })
+    # 4. Zone 3: LangGraph Swarm Agents Telemetry -- real per-agent votes from
+    # this run's actual swarm execution, never a fixed agent/model/verdict list.
+    swarm_file = "reports/swarm-execution-report.json"
+    if os.path.exists(swarm_file):
+        try:
+            with open(swarm_file) as f:
+                swarm = json.load(f)
+                for ag in swarm.get("agents", []):
+                    vote = ag.get("vote", "ABSTAIN")
+                    status = ag.get("status", "not_run")
+                    events.append({
+                        "@timestamp": ts,
+                        "event_category": "ai-swarm",
+                        "event_kind": "event",
+                        "log_level": "ERROR" if vote == "HALT" else ("WARN" if status != "ok" else "INFO"),
+                        "pipeline_run_id": run_id,
+                        "pipeline_target": target_name,
+                        "tool_name": "LangGraph-Swarm",
+                        "agent_name": ag.get("agent"),
+                        "agent_id": ag.get("agent_id"),
+                        "agent_model": ag.get("model"),
+                        "agent_status": status,
+                        "agent_verdict": vote,
+                        "message": f"{ag.get('agent')} ({status}) executed evaluation using {ag.get('model')}. Verdict emitted: {vote}"
+                    })
+        except Exception as e:
+            print(f"[!] Parsing {swarm_file}: {e}")
 
-    # 5. Zone 4: BFT AVS Consensus Nodes
-    for port, node_id in [(8545, "avs-validator-alpha"), (8546, "avs-validator-beta"), (8547, "avs-validator-gamma")]:
-        events.append({
-            "@timestamp": ts,
-            "event_category": "avs-consensus",
-            "event_kind": "event",
-            "log_level": "INFO",
-            "pipeline_run_id": run_id,
-            "pipeline_target": target_name,
-            "tool_name": "Anvil-BFT-Sandbox",
-            "validator_id": node_id,
-            "validator_rpc_port": port,
-            "consensus_quorum": "3/3 (100.0%)",
-            "message": f"Validator node {node_id} on port {port} confirmed block state consistency."
-        })
+    # 5. Zone 4: BFT AVS Consensus Nodes -- real per-validator observations
+    # from this run's actual 3-node Anvil exploit execution, never a fixed
+    # "confirmed block state consistency" claim regardless of outcome.
+    avs_file = "reports/avs-consensus-report.json"
+    if os.path.exists(avs_file):
+        try:
+            with open(avs_file) as f:
+                avs = json.load(f)
+                total = avs.get("nodes_total", 0)
+                exploit_votes = avs.get("exploit_confirmed_votes", 0)
+                for obs in avs.get("validator_observations", []):
+                    vote = obs.get("vote", "INDETERMINATE")
+                    events.append({
+                        "@timestamp": ts,
+                        "event_category": "avs-consensus",
+                        "event_kind": "event",
+                        "log_level": "ERROR" if vote == "EXPLOIT_CONFIRMED" else ("WARN" if vote == "INDETERMINATE" else "INFO"),
+                        "pipeline_run_id": run_id,
+                        "pipeline_target": target_name,
+                        "tool_name": "Anvil-BFT-Sandbox",
+                        "validator_id": obs.get("validator"),
+                        "validator_rpc_port": obs.get("port"),
+                        "validator_vote": vote,
+                        "consensus_quorum": f"{exploit_votes}/{total} ({(exploit_votes / total * 100) if total else 0:.1f}%)",
+                        "message": f"Validator node {obs.get('validator')} on port {obs.get('port')} voted {vote} "
+                                   f"({avs.get('final_verdict', 'unknown')})"
+                    })
+        except Exception as e:
+            print(f"[!] Parsing {avs_file}: {e}")
 
     return events
 

@@ -64,16 +64,83 @@ def ship_to_elasticsearch(status_data):
         res = requests.post(es_url, auth=auth, json=doc, headers={"Content-Type": "application/json"}, timeout=5)
         if res.status_code in [200, 201]:
             print(f"[+] [SIEM ELASTICSEARCH] Successfully indexed run document -> ID: {res.json().get('_id')}")
+            return True
         else:
             print(f"[-] [SIEM ELASTICSEARCH] HTTP {res.status_code}: {res.text[:120]}")
+            return False
     except Exception as e:
         print(f"[-] [SIEM ELASTICSEARCH] Connection failed: {e}")
+        return False
 
-def export_prometheus_metrics(status_data):
+def _read_json(rel):
+    p = Path(rel)
+    if p.is_file():
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+    return None
+
+def _tool_status_line(tool, endpoint, artifact, status_text, value):
+    return (f'blockchain_soc_tool_status{{tool="{tool}",endpoint="{endpoint}",'
+            f'artifact="{artifact}",status_text="{status_text}"}} {value}')
+
+def _jira_tool_status_line():
+    ticket_file = Path("reports/latest-jira-ticket.txt")
+    if not ticket_file.is_file():
+        return _tool_status_line("Atlassian Jira", "Cloud REST API", "no ticket produced this run", "NOT RUN", 0)
+    key = ticket_file.read_text(encoding="utf-8").strip()
+    local_artifact = Path(f"reports/jira-{key}.json")
+    if local_artifact.is_file():
+        return _tool_status_line("Atlassian Jira", "Cloud REST API", f"Incident ticket: {key}", "RECORDED LOCALLY (no live Jira dispatch)", 1)
+    return _tool_status_line("Atlassian Jira", "Cloud REST API", f"Incident ticket: {key}", "DISPATCHED (live)", 1)
+
+def export_prometheus_metrics(status_data, es_ok=False):
     v104 = status_data.get("enterprise_v10_4", {})
     avs = v104.get("avs_consensus", {})
     gl = v104.get("gitleaks", {})
-    
+
+    # Real per-run scanner results this run actually produced (reports/scanners/*.json),
+    # never a fixed healthy default. A missing result file is itself a real signal
+    # (that check didn't run this cycle), reported as not_run/0, not silently skipped.
+    vault_res = _read_json("reports/scanners/vault-sign.json")
+    sonar_res = _read_json("reports/scanners/sonar.json")
+    jenkins_res = _read_json("reports/scanners/jenkins.json")
+    swarm_res = _read_json("reports/scanners/swarm.json")
+    avs_res = _read_json("reports/scanners/avs-consensus.json")
+
+    def _ok(res):
+        return 1 if (res and res.get("status") == "ok") else 0
+
+    tool_status_lines = [
+        _tool_status_line("HashiCorp Vault", "http://127.0.0.1:8200",
+                           "Transit Key Attestation", (vault_res or {}).get("detail", "no result this run"),
+                           _ok(vault_res)),
+        _tool_status_line("SonarQube SAST", "http://127.0.0.1:9000",
+                           f"gate={(sonar_res or {}).get('gate', 'unknown')}",
+                           (sonar_res or {}).get("detail", "no result this run"), _ok(sonar_res)),
+        _tool_status_line("Jenkins Enterprise", "http://127.0.0.1:8082",
+                           "connectivity/auth check only",
+                           (jenkins_res or {}).get("detail", "enterprise-integration step did not run this cycle"),
+                           _ok(jenkins_res)),
+        _jira_tool_status_line(),
+        _tool_status_line("LangGraph Swarm", "192.168.0.189:11434",
+                           f"decision={(swarm_res or {}).get('decision', 'unknown')}",
+                           (swarm_res or {}).get("detail", "no result this run"), _ok(swarm_res)),
+        _tool_status_line("Anvil AVS Consensus", ":8545, :8546, :8547",
+                           f"final_verdict={(avs_res or {}).get('final_verdict', 'unknown')}",
+                           (avs_res or {}).get("detail", "no result this run"),
+                           (2 if (avs_res or {}).get("supermajority_exploit") else _ok(avs_res))),
+        _tool_status_line("Elasticsearch SIEM", "http://127.0.0.1:9200",
+                           "Index: blockchain-soc-audit-logs",
+                           "indexed this run" if es_ok else "index failed this run",
+                           1 if es_ok else 0),
+    ]
+    # Dropped rows with no real per-run check anywhere in this repo (Gnosis Safe's
+    # pause-calldata build is printed but never persisted; Prometheus/Grafana's own
+    # health, GitLab CE, and Argo CD have no live check wired into this pipeline) --
+    # left out rather than defaulting them to "healthy".
+
     metrics = [
         "# HELP blockchain_soc_pipeline_success Pipeline execution status (1=success, 0=fail)",
         "# TYPE blockchain_soc_pipeline_success gauge",
@@ -81,21 +148,9 @@ def export_prometheus_metrics(status_data):
         "# HELP blockchain_soc_gitleaks_findings Total secret leaks flagged",
         "# TYPE blockchain_soc_gitleaks_findings gauge",
         f"blockchain_soc_gitleaks_findings {gl.get('findings_count', 0)}",
-        "# HELP blockchain_soc_tool_status Multi-layer enterprise ecosystem status (1=OK/Active, 2=Halt/Tripped, 0=Down)",
+        "# HELP blockchain_soc_tool_status Multi-layer enterprise ecosystem status (1=OK/Active, 2=Halt/Tripped, 0=Down or no result this run)",
         "# TYPE blockchain_soc_tool_status gauge",
-        'blockchain_soc_tool_status{tool="HashiCorp Vault",endpoint="http://127.0.0.1:8200",artifact="Transit Key Attestation & Dynamic Secret Tokens",status_text="ONLINE (Signed)"} 1',
-        'blockchain_soc_tool_status{tool="SonarQube SAST",endpoint="http://127.0.0.1:9000",artifact="Project: blockchain-security-soc (240 files analyzed)",status_text="SCANNED / PERSISTED"} 1',
-        'blockchain_soc_tool_status{tool="Jenkins Enterprise",endpoint="http://127.0.0.1:8082",artifact="Job: blockchain-soc-audit (Vault Auth)",status_text="BUILD VERIFIED"} 1',
-        f'blockchain_soc_tool_status{{tool="Atlassian Jira",endpoint="Cloud REST API",artifact="Automated {"Compliance Audit" if (os.getenv("SECURE") == "1" or "Secure" in os.getenv("TARGET_CONTRACT", "")) else "SEV-1 Incident Action"}: KAN-992",status_text="DISPATCHED"}} 1',
-        f'blockchain_soc_tool_status{{tool="LangGraph Swarm",endpoint="192.168.0.189:11434",artifact="7-Agent Cognitive Reasoning ({"AUTHORIZED_FOR_DEPLOYMENT" if (os.getenv("SECURE") == "1" or "Secure" in os.getenv("TARGET_CONTRACT", "")) else "HALT_CONFIRMED"})",status_text="QUORUM ACTIVE"}} 1',
-        f'blockchain_soc_tool_status{{tool="Anvil AVS Consensus",endpoint=":8545, :8546, :8547",artifact="3-Node BFT Sandbox (100% agreement, 0x1d96...)",status_text="{"AUTHORIZED_FOR_DEPLOYMENT" if (os.getenv("SECURE") == "1" or "Secure" in os.getenv("TARGET_CONTRACT", "")) else "HALT ENFORCED"}"}} {1 if (os.getenv("SECURE") == "1" or "Secure" in os.getenv("TARGET_CONTRACT", "")) else 2}', 
-        'blockchain_soc_tool_status{tool="Gnosis Safe",endpoint="On-Chain (Local Node)",artifact="Pause Calldata: 0x8456cb59 (to: 0x5FbDB231...)",status_text="CIRCUIT BREAKER ARMED"} 1',
-        'blockchain_soc_tool_status{tool="Elasticsearch SIEM",endpoint="http://127.0.0.1:9200",artifact="Index: blockchain-soc-audit-logs",status_text="TELEMETRY INDEXED"} 1',
-        'blockchain_soc_tool_status{tool="Prometheus & Grafana",endpoint=":9101 / :9090 / :3000",artifact="19 Real-Time Telemetry Metric Gauges",status_text="HEALTHY (UP)"} 1',
-        'blockchain_soc_tool_status{tool="GitLab CE CI/CD",endpoint="http://127.0.0.1:8929",artifact="Unified 4-Stage Lockstep Pipeline (soc-docker runner)",status_text="SYNCED / RUNNING"} 1',
-        'blockchain_soc_tool_status{tool="Argo CD GitOps",endpoint="http://127.0.0.1:8080",artifact="App: blockchain-soc-pipeline (K3s: saleem)",status_text="HEALTHY / SYNCED"} 1',
-
-
+        *tool_status_lines,
         "# HELP blockchain_soc_bft_agreement_ratio Validator consensus ratio",
         "# TYPE blockchain_soc_bft_agreement_ratio gauge",
         f"blockchain_soc_bft_agreement_ratio {1.0 if avs.get('consensus_reached', True) else 0.0}",
@@ -151,6 +206,6 @@ if __name__ == "__main__":
     s_path = Path("reports/status.json")
     if s_path.exists():
         data = json.loads(s_path.read_text(encoding="utf-8"))
-        ship_to_elasticsearch(data)
-        export_prometheus_metrics(data)
+        es_ok = ship_to_elasticsearch(data)
+        export_prometheus_metrics(data, es_ok)
         ensure_metrics_server()

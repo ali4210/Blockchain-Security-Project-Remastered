@@ -36,8 +36,11 @@ HEADERS = {"Authorization": f"Token {TOKEN}"}
 def fetch_metrics():
     try:
         # 1. DefectDojo Queries
-        all_res = requests.get(f"{URL}/findings/?limit=1", headers=HEADERS, timeout=5).json()
-        active_res = requests.get(f"{URL}/findings/?active=true&duplicate=false&limit=500", headers=HEADERS, timeout=5).json()
+        all_resp = requests.get(f"{URL}/findings/?limit=1", headers=HEADERS, timeout=5)
+        active_resp = requests.get(f"{URL}/findings/?active=true&duplicate=false&limit=500", headers=HEADERS, timeout=5)
+        defectdojo_ok = all_resp.status_code == 200 and active_resp.status_code == 200
+        all_res = all_resp.json() if defectdojo_ok else {}
+        active_res = active_resp.json() if defectdojo_ok else {}
 
         # Query specific ZAP Test ID to isolate true DAST alerts count.
         # No hardcoded fallback: if the query fails or finds nothing, report 0 and say so
@@ -45,7 +48,8 @@ def fetch_metrics():
         zap_test_res = requests.get(f"{URL}/tests/?engagement__name=SOC-Continuous-Compliance&test_type__name=ZAP+Scan", headers=HEADERS, timeout=5).json()
         zap_alerts = 0
         zap_source = "no ZAP test found in DefectDojo"
-        if zap_test_res.get("count", 0) > 0:
+        zap_ok = zap_test_res.get("count", 0) > 0
+        if zap_ok:
             last_zap_id = zap_test_res["results"][-1]["id"]
             zap_alerts_res = requests.get(f"{URL}/findings/?test={last_zap_id}", headers=HEADERS, timeout=5).json()
             zap_alerts = zap_alerts_res.get("count", 0)
@@ -112,9 +116,9 @@ def fetch_metrics():
             "# HELP thehive_cases_total Total forensic incident cases managed in TheHive",
             "# TYPE thehive_cases_total gauge",
             f"thehive_cases_total {thehive_cases_line}",
-            f'blockchain_soc_tool_status{{tool="DefectDojo Compliance",endpoint="{URL.replace("/api/v2", "")}",artifact="Continuous AppSec Hub & Ingestion Engine",status_text="HEALTHY (Active)"}} 1',
-            f'blockchain_soc_tool_status{{tool="TheHive 4 SIEM",endpoint="{thehive_url}",artifact="Incident Response & Case Management",status_text="{thehive_status_text}"}} 1',
-            'blockchain_soc_tool_status{tool="OWASP ZAP DAST",endpoint="Containerized (Host Net)",artifact="Dynamic Baseline AppSec Scan",status_text="SCANNED / INGESTED"} 1\n'
+            f'blockchain_soc_tool_status{{tool="DefectDojo Compliance",endpoint="{URL.replace("/api/v2", "")}",artifact="Continuous AppSec Hub & Ingestion Engine",status_text="{"HEALTHY (Active)" if defectdojo_ok else "UNREACHABLE / QUERY FAILED"}"}} {1 if defectdojo_ok else 0}',
+            f'blockchain_soc_tool_status{{tool="TheHive 4 SIEM",endpoint="{thehive_url}",artifact="Incident Response & Case Management",status_text="{thehive_status_text}"}} {1 if thehive_cases is not None else 0}',
+            f'blockchain_soc_tool_status{{tool="OWASP ZAP DAST",endpoint="Containerized (Host Net)",artifact="Dynamic Baseline AppSec Scan",status_text="{zap_source}"}} {1 if zap_ok else 0}\n'
         ]
 
         if os.path.exists(PROM_FILE):
