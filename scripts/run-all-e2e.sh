@@ -123,6 +123,13 @@ python3 scripts/run-ofac-screening.py
 # always saw a stale/missing verdict from the prior run (or UNKNOWN on a clean
 # checkout); running it before Zone 2's scanners instead would have the same
 # staleness problem against avs-consensus/swarm, which run after Zone 2.
+#
+# openscap is advisory-only on this host: neither Ubuntu nor Debian SSG content
+# has platform-applicability checks that match Kali's /etc/os-release (ID=kali),
+# so 0 rules are ever genuinely scored (verified against both ssg-ubuntu2204-ds.xml
+# and ssg-debian13-ds.xml). The scanner still runs and still reports its real,
+# honest status -- it just no longer gates pipeline health.
+export SOC_OPTIONAL="openscap${SOC_OPTIONAL:+,$SOC_OPTIONAL}"
 python3 scripts/pipeline-verdict.py || VERDICT_RC=$?
 
 # Step 5: Zone 7 Wallet Simulation Gate & Live HashiCorp Vault Signing
@@ -182,6 +189,13 @@ else:
 
 # Step 4B & 5B: Zone 4 Incident Abort, Jira Dispatch & Zone 5 STIX 2.1 DFIR Bundle
 python3 scripts/run-incident-abort.py
+
+# Stream this run's real verdict/swarm/AVS/OFAC data to Langfuse as one real
+# trace (runs after run-incident-abort.py so the Jira ticket this run
+# produced, if any, is already on disk). Non-fatal: skips cleanly if
+# Langfuse keys aren't configured.
+echo -e "\n[+] [LANGFUSE] Streaming real verification trace..."
+python3 -c "from scripts.langfuse_tracer import stream_verification_trace; stream_verification_trace()" || true
 
 # Step 6: Zone 4 K3s Kubernetes Cluster Verification
 echo -e "\n[+] [ZONE 4] Verifying K3s Kubernetes Cluster & Active Nodes..."

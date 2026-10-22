@@ -3,7 +3,7 @@
 
 No hardcoded API key, no fixed case narrative, no pre-completed tasks, and no
 "success" line that isn't backed by a real API status code. The API key comes
-from THEHIVE_API_KEY or Vault (secret/data/thehive); with neither, ingestion is
+from THEHIVE_API_KEY or Vault (secret/data/soc/thehive); with neither, ingestion is
 skipped honestly (exit 0, reported as not performed) rather than posting with a
 baked-in credential.
 """
@@ -28,7 +28,7 @@ def resolve_api_key():
         return key, "env"
     if VAULT_TOKEN:
         try:
-            r = requests.get(f"{VAULT_ADDR}/v1/secret/data/thehive",
+            r = requests.get(f"{VAULT_ADDR}/v1/secret/data/soc/thehive",
                              headers={"X-Vault-Token": VAULT_TOKEN}, timeout=5)
             if r.status_code == 200:
                 k = r.json().get("data", {}).get("data", {}).get("api_key")
@@ -52,7 +52,7 @@ def read_json(rel):
 def main():
     api_key, key_src = resolve_api_key()
     if not api_key:
-        print("[*] [THEHIVE] no THEHIVE_API_KEY (env or Vault secret/data/thehive); "
+        print("[*] [THEHIVE] no THEHIVE_API_KEY (env or Vault secret/data/soc/thehive); "
               "skipping case ingestion (not performed)")
         return 0
 
