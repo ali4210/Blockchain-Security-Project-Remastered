@@ -12,17 +12,50 @@ function escapeHtml(str: string | null | undefined): string {
     .replace(/'/g, "&#39;");
 }
 
-function renderSeverityBadge(severity: string): string {
-  const sev = (severity || "INFO").toUpperCase();
-  const colors: Record<string, string> = {
-    CRITICAL: "#ef4444; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4);",
-    HIGH: "#f97316; background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.4);",
-    MEDIUM: "#eab308; background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4);",
-    LOW: "#3b82f6; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4);",
-    INFO: "#94a3b8; background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.4);",
-  };
-  const style = colors[sev] || colors.INFO;
-  return `<span style="display:inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: ${style}">${escapeHtml(sev)}</span>`;
+// --- One consistent badge system for every status/verdict/severity shown in
+// the report, instead of each section hand-rolling its own colors. ---
+type Tone = "green" | "red" | "amber" | "gray" | "blue";
+const TONE_STYLE: Record<Tone, string> = {
+  green: "color:#22c55e; background:rgba(34,197,94,0.14); border:1px solid rgba(34,197,94,0.4);",
+  red: "color:#ef4444; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.4);",
+  amber: "color:#eab308; background:rgba(234,179,8,0.14); border:1px solid rgba(234,179,8,0.4);",
+  gray: "color:#94a3b8; background:rgba(148,163,184,0.14); border:1px solid rgba(148,163,184,0.4);",
+  blue: "color:#38bdf8; background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.4);",
+};
+
+function badge(label: string, tone: Tone): string {
+  return `<span style="display:inline-block; padding:2px 9px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:0.2px; ${TONE_STYLE[tone]}">${escapeHtml(label)}</span>`;
+}
+
+function toneForGateStatus(status: string): Tone {
+  const s = (status || "").toLowerCase();
+  if (s === "ok") return "green";
+  if (s === "error") return "red";
+  if (s === "not_run") return "amber";
+  return "gray";
+}
+
+function toneForVerdict(verdict: string): Tone {
+  const v = (verdict || "").toUpperCase();
+  if (v === "PASS") return "green";
+  if (v === "HALT") return "red";
+  return "amber"; // UNKNOWN
+}
+
+function toneForSeverity(sev: string): Tone {
+  const s = (sev || "INFO").toUpperCase();
+  if (s === "CRITICAL" || s === "HIGH") return "red";
+  if (s === "MEDIUM") return "amber";
+  if (s === "LOW") return "blue";
+  return "gray";
+}
+
+function toneForFindingStatus(status: string): Tone {
+  const s = (status || "").toUpperCase();
+  if (s === "OPEN") return "red";
+  if (s === "MITIGATED" || s === "REJECTED") return "amber";
+  if (s === "VERIFIED" || s === "DISPATCHED" || s === "PASS") return "green";
+  return "gray";
 }
 
 function renderDonutChart(crit: number, high: number, med: number, low: number): string {
@@ -34,42 +67,47 @@ function renderDonutChart(crit: number, high: number, med: number, low: number):
 
   return `
     <div style="display:flex; align-items:center; gap:20px;">
-      <svg width="120" height="120" viewBox="0 0 42 42" style="transform: rotate(-90deg);">
+      <svg width="110" height="110" viewBox="0 0 42 42" style="transform: rotate(-90deg);">
         <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#1e293b" stroke-width="5"></circle>
         <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5" stroke-dasharray="${pCrit} ${100 - pCrit}" stroke-dashoffset="0"></circle>
         <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f97316" stroke-width="5" stroke-dasharray="${pHigh} ${100 - pHigh}" stroke-dashoffset="-${pCrit}"></circle>
         <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#eab308" stroke-width="5" stroke-dasharray="${pMed} ${100 - pMed}" stroke-dashoffset="-${pCrit + pHigh}"></circle>
         <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#3b82f6" stroke-width="5" stroke-dasharray="${pLow} ${100 - pLow}" stroke-dashoffset="-${pCrit + pHigh + pMed}"></circle>
       </svg>
-      <div style="font-size: 12px; display:flex; flex-direction:column; gap:6px;">
+      <div style="font-size:12px; display:flex; flex-direction:column; gap:6px;">
         <div><span style="color:#ef4444">■</span> Critical: <b>${crit}</b></div>
         <div><span style="color:#f97316">■</span> High: <b>${high}</b></div>
         <div><span style="color:#eab308">■</span> Medium: <b>${med}</b></div>
         <div><span style="color:#3b82f6">■</span> Low: <b>${low}</b></div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-function renderTimelineSvg(alerts: any[]): string {
-  if (!alerts || alerts.length === 0) {
-    return `<div style="font-size:12px; color:#94a3b8; padding: 10px 0;">Zero active anomaly alerts recorded in rolling observation window.</div>`;
+function renderTrendSparkline(trend: StatusJsonOutput["trend"]): string {
+  if (!trend || trend.length === 0) {
+    return `<div style="font-size:12px; color:#94a3b8;">No run history yet — this view was added on ${new Date().toISOString().slice(0, 10)} and only tracks runs from here forward (reports/run-history.jsonl). It is not backfilled.</div>`;
   }
+  const rows = trend
+    .slice()
+    .reverse()
+    .map(
+      (t) => `
+    <tr>
+      <td style="font-family:monospace; font-size:11px;">${escapeHtml(t.timestamp)}</td>
+      <td style="font-family:monospace; font-size:11px;">${escapeHtml(t.commitSha.slice(0, 10))}</td>
+      <td style="font-family:monospace; font-size:11px;">${escapeHtml(t.target.split("/").pop() || t.target)}</td>
+      <td>${badge(t.health, toneForGateStatus(t.health === "OK" ? "ok" : "error"))}</td>
+      <td>${badge(t.verdict, toneForVerdict(t.verdict))}</td>
+      <td style="font-family:monospace; font-size:12px;">${t.criticalFindings} crit / ${t.highFindings} high / ${t.totalFindings} total</td>
+    </tr>`
+    )
+    .join("");
   return `
-    <div style="position:relative; padding-left: 20px; border-left: 2px solid #334155; margin: 15px 0;">
-      ${alerts.map(a => `
-        <div style="margin-bottom: 12px; position:relative;">
-          <div style="position:absolute; left:-27px; top:4px; width:12px; height:12px; border-radius:50%; background:#f97316; border:2px solid #0f172a;"></div>
-          <div style="font-size:13px; font-weight:600; color:#f8fafc;">${escapeHtml(a.anomalyType)} —${renderSeverityBadge(a.severity)}</div>
-          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
-            <span>ID: <code>${escapeHtml(a.alertId)}</code></span> | 
-            <span>AVS Quorum: <b>${a.avsQuorumConfirmed ? "<span style='color:#22c55e;'>VERIFIED (2/3+)</span>" : "<span style='color:#ef4444;'>UNVERIFIED</span>"}</b></span> | 
-            <span>Time: ${escapeHtml(a.timestamp)}</span>
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `;
+    <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">Last ${trend.length} run(s) recorded in <code>reports/run-history.jsonl</code> since this view was added — a real, growing history, never backfilled with invented past runs.</p>
+    <table>
+      <thead><tr><th>Run Timestamp</th><th>Commit</th><th>Target</th><th>Health</th><th>Verdict</th><th>Findings</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 export async function generateHtmlReport(statusJsonPath?: string): Promise<string> {
@@ -82,74 +120,129 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   }
 
   const data: StatusJsonOutput = JSON.parse(readFileSync(targetJsonPath, "utf-8"));
-  const targetContract = process.env.TARGET_CONTRACT || "contracts/solidity/VulnerableVault.sol";
-  const isSecure = targetContract.includes("SecureVault") || process.env.SECURE === "1";
+  const v104 = data.enterprise_v10_4 || {};
+  const ddj = data.defectdojo_compliance;
+  const targetName = (data.pipeline?.target || "").split("/").pop() || data.pipeline?.target || "unknown";
 
+  // --- Executive summary paragraph, generated from this run's real verdict ---
+  const healthOk = data.pipeline?.health === "OK";
+  const verdict = data.pipeline?.verdict || "UNKNOWN";
+  const summaryParts: string[] = [];
+  if (!healthOk) {
+    summaryParts.push(
+      `Pipeline HEALTH is FAILED: ${(data.pipeline?.healthProblems || []).join("; ") || "one or more required scanners did not run cleanly"}. The verdict below is only as trustworthy as that gap allows.`
+    );
+  }
+  if (verdict === "PASS") {
+    summaryParts.push(`All required security gates passed for ${escapeHtml(targetName)}. No high/critical findings blocked this run.`);
+  } else if (verdict === "HALT") {
+    summaryParts.push(
+      `This run HALTS deployment of ${escapeHtml(targetName)}. Reason(s): ${(data.pipeline?.haltReasons || []).join("; ") || "see gate detail below"}.`
+    );
+  } else {
+    summaryParts.push(`Verdict is UNKNOWN for ${escapeHtml(targetName)} — not enough of this run's real data was available to make a ship/no-ship call.`);
+  }
+  const execSummary = summaryParts.join(" ");
 
-  // 1. Findings table
-  const rows = (data.findings || []).map((f) => `
+  // --- Gate-by-gate table ---
+  const gateRows = (data.gates || [])
+    .map(
+      (g) => `
+    <tr>
+      <td><b>${escapeHtml(g.name)}</b></td>
+      <td style="font-family:monospace; font-size:11px; color:#94a3b8;">${escapeHtml(g.tool || "")}</td>
+      <td>${badge((g.policy || "informational").toUpperCase(), g.policy === "required" ? "blue" : "gray")}</td>
+      <td>${badge((g.status || "unknown").toUpperCase(), toneForGateStatus(g.status))}</td>
+      <td style="font-size:12px; color:#cbd5e1;">${escapeHtml(g.detail || "")}${g.counts ? ` <span style="color:#64748b; font-family:monospace;">${escapeHtml(JSON.stringify(g.counts))}</span>` : ""}</td>
+    </tr>`
+    )
+    .join("");
+
+  // --- Master findings table (searchable) ---
+  const findingRows = (data.findings || [])
+    .map(
+      (f) => `
     <tr>
       <td style="font-family:monospace; font-size:12px;">${escapeHtml(f.id)}</td>
-      <td>${renderSeverityBadge(f.severity)}</td>
+      <td>${badge(f.severity, toneForSeverity(f.severity))}</td>
       <td><span style="font-size:11px; background:#1e293b; padding:2px 6px; border-radius:4px;">${escapeHtml(f.zone)}</span></td>
       <td><b>${escapeHtml(f.title)}</b><div style="font-size:12px; color:#94a3b8; margin-top:2px;">${escapeHtml(f.description)}</div></td>
       <td style="font-family:monospace; font-size:11px; color:#cbd5e1;">${escapeHtml(f.target || "N/A")}</td>
-      <td><span style="font-size:11px; font-weight:600; color:#38bdf8;">${escapeHtml(f.status)}</span></td>
-    </tr>
-  `).join("");
+      <td>${badge(f.status, toneForFindingStatus(f.status))}</td>
+    </tr>`
+    )
+    .join("");
 
-  // 2. Zone health table
-  const zoneRows = Object.entries(data.zones || {}).map(([zName, zData]) => `
-    <tr>
-      <td><b>${escapeHtml(zName)}</b></td>
-      <td><span style="color:#22c55e; font-weight:700;">● ${escapeHtml(zData.status)}</span></td>
-      <td style="font-family:monospace;">${zData.testCount} tests</td>
-      <td style="color:#94a3b8; font-size:12px;">${escapeHtml(zData.summary)}</td>
-    </tr>
-  `).join("");
-
-  // 3. Wallet Audit & Key-Scheme Rows
-  const walletRows = (data.walletAuditFindings || []).map((w) => `
+  const walletRows = (data.walletAuditFindings || [])
+    .map(
+      (w) => `
     <tr>
       <td style="font-family:monospace; font-size:12px;">${escapeHtml(w.findingId)}</td>
       <td><b>${escapeHtml(w.vulnerabilityClass)}</b></td>
-      <td><span style="font-size:11px; background:#1e293b; color:#a78bfa; padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(w.keyScheme)}</span></td>
-      <td><span style="font-size:11px; font-weight:700; color:#22c55e;">${escapeHtml(w.status)}</span></td>
-    </tr>
-  `).join("");
+      <td>${badge(w.status, toneForFindingStatus(w.status))}</td>
+    </tr>`
+    )
+    .join("");
 
-  // 4. Forensic Cases Rows
-  const forensicRows = (data.forensicCases || []).map((c) => `
+  const forensicRows = (data.forensicCases || [])
+    .map(
+      (c) => `
     <tr>
       <td style="font-family:monospace; font-size:12px;">${escapeHtml(c.caseId)}</td>
-      <td style="font-family:monospace; font-size:11px; color:#93c5fd;">${escapeHtml(c.targetAddress)}</td>
-      <td style="font-family:monospace;">${c.sealedArtifactsCount} artifacts</td>
-      <td><span style="color:#22c55e; font-weight:700;">${c.integrityVerified ? "VALID (SHA-256 LOCKED)" : "TAMPER_DETECTED"}</span></td>
+      <td style="font-family:monospace; font-size:11px; color:#93c5fd;">${escapeHtml(c.targetAddress || "—")}</td>
+      <td style="font-family:monospace;">${c.sealedArtifactsCount} file(s)</td>
+      <td>${badge(c.integrityVerified ? "CHAIN VERIFIED" : "UNVERIFIED", c.integrityVerified ? "green" : "red")}</td>
       <td style="font-size:12px; color:#94a3b8;">${escapeHtml(c.redactedSummary)}</td>
-    </tr>
-  `).join("");
+    </tr>`
+    )
+    .join("");
 
-  // 5. Compliance Register Rows
-  const complianceRows = (data.complianceRegister || []).map((cr) => `
+  const complianceRows = (data.complianceRegister || [])
+    .map(
+      (cr) => `
     <tr>
       <td style="font-family:monospace; font-size:11px; color:#cbd5e1;">${escapeHtml(cr.entityAddress)}</td>
-      <td><span style="font-size:11px; font-weight:700; color:${cr.sanctionMatch ? '#ef4444' : '#22c55e'};">${cr.sanctionMatch ? 'SDN MATCH' : 'CLEAN'}</span></td>
-      <td>${renderSeverityBadge(cr.riskTier)}</td>
-      <td style="font-family:monospace;">${cr.amlSignalsCount} signals</td>
-      <td><span style="font-size:11px; font-weight:600; color:#38bdf8;">${cr.zkProofVerified ? 'ZK-VERIFIED (PEDERSEN)' : 'UNVERIFIED'}</span></td>
-      <td><span style="font-size:11px; background:rgba(234, 179, 8, 0.15); color:#eab308; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(cr.hitlStatus)}</span></td>
-    </tr>
-  `).join("");
+      <td>${badge(cr.sanctionMatch ? "SDN MATCH" : "CLEAN", cr.sanctionMatch ? "red" : "green")}</td>
+      <td>${badge(cr.riskTier, cr.sanctionMatch ? "red" : "green")}</td>
+      <td style="font-size:12px; color:#94a3b8;">${escapeHtml(cr.reason || "")}</td>
+    </tr>`
+    )
+    .join("");
 
-  // 6. Safe Templated Executive Summaries
-  const openFlaws = (data.findings || []).filter(f => f.status === "OPEN");
+  const incidentRows = (data.incidents || [])
+    .map(
+      (i) => `
+    <tr>
+      <td style="font-family:monospace; font-size:12px;">${escapeHtml(i.id)}</td>
+      <td>${escapeHtml(i.title)}</td>
+      <td>${badge(i.severity, toneForSeverity(i.severity))}</td>
+      <td>${badge(i.status, toneForFindingStatus(i.status))}</td>
+      <td style="font-family:monospace; font-size:11px; color:#94a3b8;">${escapeHtml(i.createdAt)}</td>
+    </tr>`
+    )
+    .join("");
+
+  const consensusRows = (data.consensusAlerts || [])
+    .map(
+      (a) => `
+    <tr>
+      <td style="font-family:monospace; font-size:12px;">${escapeHtml(a.alertId)}</td>
+      <td>${escapeHtml(a.anomalyType)}</td>
+      <td>${badge(a.severity, toneForSeverity(a.severity))}</td>
+      <td>${badge(a.avsQuorumConfirmed ? "QUORUM CONFIRMED" : "NOT CONFIRMED", a.avsQuorumConfirmed ? "red" : "green")}</td>
+      <td style="font-family:monospace; font-size:11px; color:#94a3b8;">${escapeHtml(a.timestamp)}</td>
+    </tr>`
+    )
+    .join("");
+
+  const openFlaws = (data.findings || []).filter((f) => f.status === "OPEN");
 
   let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(data.system.name)} — Unified Executive Report</title>
+  <title>${escapeHtml(data.system.name)} — Executive Security Report</title>
   <style>
     :root {
       --bg-primary: #0b0f17;
@@ -172,18 +265,27 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
     header {
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
     }
     h1 { font-size: 24px; font-weight: 700; color: #fff; }
     .meta { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+    .verdict-banner {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px 22px; border-radius: 10px; margin-bottom: 24px;
+      background: var(--bg-card); border: 1px solid var(--border-color);
+    }
+    .verdict-banner .big-badge { font-size: 20px; padding: 8px 18px; border-radius: 8px; font-weight: 800; letter-spacing: 0.5px; }
+    .verdict-banner p { font-size: 14px; color: #e2e8f0; max-width: 900px; }
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       gap: 16px;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
     }
     .kpi-card {
       background: var(--bg-card);
@@ -193,14 +295,16 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
     }
     .kpi-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
     .kpi-value { font-size: 26px; font-weight: 700; margin-top: 6px; color: #fff; }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
     .section-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 22px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
-    .section-title { font-size: 17px; font-weight: 600; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    .section-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th { text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
     td { padding: 12px; font-size: 13px; border-bottom: 1px solid #1a2538; vertical-align: top; }
@@ -225,11 +329,12 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       cursor: pointer;
     }
     .btn:hover { background: #1e2c45; }
-    .takeaway-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
-    .takeaway-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; font-size: 13px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
+    .empty-note { font-size: 12px; color: var(--text-muted); padding: 10px 0; }
+    .cumulative-flag { font-size: 10px; color: #eab308; background: rgba(234,179,8,0.12); border: 1px solid rgba(234,179,8,0.4); padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
     @media print {
       body { background: #fff; color: #000; padding: 0; }
-      .section-card, .kpi-card, .takeaway-box { border: 1px solid #ccc; background: #fff; color: #000; }
+      .section-card, .kpi-card, .verdict-banner { border: 1px solid #ccc; background: #fff; color: #000; }
       .toolbar { display: none; }
     }
   </style>
@@ -238,288 +343,158 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   <div class="container">
     <header>
       <div>
-        <h1>${escapeHtml(data.system.name)} — Unified Executive Report</h1>
-        <div class="meta">Generated: ${escapeHtml(data.timestamp)} | Commit: <code>${escapeHtml(data.system.commitSha.slice(0, 10))}</code> | Release: ${escapeHtml(data.system.version)}</div>
+        <h1>${escapeHtml(data.system.name)} — Executive Security Report</h1>
+        <div class="meta">Generated: ${escapeHtml(data.timestamp)} | Commit: <code>${escapeHtml(data.system.commitSha.slice(0, 10))}</code> | Release: ${escapeHtml(data.system.version)} | Target: <code>${escapeHtml(targetName)}</code></div>
       </div>
       <div>
         <button class="btn" onclick="window.print()">Print / Export PDF</button>
       </div>
     </header>
 
-    <!-- Executive KPI Cards -->
+    <!-- EXECUTIVE SUMMARY -->
+    <div class="verdict-banner">
+      <div class="big-badge" style="${TONE_STYLE[toneForVerdict(verdict)]}">${escapeHtml(verdict)}</div>
+      <div class="big-badge" style="${TONE_STYLE[toneForGateStatus(healthOk ? "ok" : "error")]}">HEALTH: ${escapeHtml(data.pipeline?.health || "UNKNOWN")}</div>
+      <p>${execSummary}</p>
+    </div>
+
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-title">Total Active Findings</div>
+        <div class="kpi-title">Total Findings (this run)</div>
         <div class="kpi-value">${data.metrics.totalFindings}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Critical & High Flaws</div>
+        <div class="kpi-title">Critical &amp; High (this run)</div>
         <div class="kpi-value" style="color: #ef4444;">${data.metrics.criticalFindings + data.metrics.highFindings}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Compliance Pass Rate</div>
-        <div class="kpi-value" style="color: #22c55e;">${data.metrics.complianceScorePct}%</div>
+        <div class="kpi-title">Required Gates Passing</div>
+        <div class="kpi-value" style="color: ${data.metrics.complianceScorePct === 100 ? '#22c55e' : '#eab308'};">${data.metrics.complianceScorePct}%</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Consensus Alerts</div>
-        <div class="kpi-value">${data.consensusAlerts ? data.consensusAlerts.length : 0}</div>
+        <div class="kpi-title">Active Consensus Alerts</div>
+        <div class="kpi-value">${data.metrics.activeConsensusAlerts}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Sealed Forensic Cases</div>
+        <div class="kpi-title">Forensic Cases Sealed (this run)</div>
         <div class="kpi-value">${data.metrics.forensicCasesSealed}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Benchmark F1 Score</div>
-        <div class="kpi-value" style="color: #38bdf8;">${data.benchmarks ? data.benchmarks.f1Score.toFixed(3) : "N/A"}</div>
+        <div class="kpi-title">DefectDojo Unique Flaws <span class="cumulative-flag">CUMULATIVE</span></div>
+        <div class="kpi-value" style="color: #38bdf8;">${ddj?.active_unique_findings ?? "N/A"}</div>
+        <div class="kpi-sub">Across all historical runs ingested into DefectDojo — not this run's count.</div>
       </div>
     </div>
 
-    <!-- Templated Executive Takeaways -->
+    <!-- GATE-BY-GATE STATUS BREAKDOWN -->
     <div class="section-card">
-      <div class="section-title">Automated Executive Synthesis & Action Posture</div>
-      <div class="takeaway-grid">
-        <div class="takeaway-box">
-          <b style="color: #22c55e;">Systemic Strengths & Active Safeguards</b>
-          <ul style="margin-top: 8px; padding-left: 18px; color: #cbd5e1;">
-            <li>Zero-Knowledge Pedersen commitments verify compliance without exposing transaction trails.</li>
-            ${isSecure ? '<li>Checks-Effects-Interactions & nonReentrant mutex active; reentrancy vector neutralized.</li>' : '<li>Fail-closed relayer quarantine prevents balance drains during reentrancy exploits.</li>'}
-            <li>Immutable OPA guardrails universally block autonomous filing and transaction censorship.</li>
-          </ul>
-        </div>
-        <div class="takeaway-box">
-          <b style="color: #f97316;">Identified Flaws & Vulnerabilities</b>
-          <ul style="margin-top: 8px; padding-left: 18px; color: #cbd5e1;">
-            ${openFlaws.length > 0 
-              ? openFlaws.map(f => `<li><b>${escapeHtml(f.id)}</b>: ${escapeHtml(f.title)} (${escapeHtml(f.severity)})</li>`).join("")
-              : "<li>Zero unresolved open flaws identified across workspace scan targets.</li>"}
-          </ul>
-        </div>
-        <div class="takeaway-box">
-          <b style="color: #38bdf8;">Recommended Actions</b>
-          <ul style="margin-top: 8px; padding-left: 18px; color: #cbd5e1;">
-            <li>Perform re-screening of P2P autonomous system numbers to expand geographic peer diversity.</li>
-            <li>Initiate scheduled human-in-the-loop signoff for staged draft SAR candidate records.</li>
-            <li>Maintain daily regression sweeps against the multi-zone integration battery.</li>
-          </ul>
-        </div>
+      <div class="section-title">Gate-by-Gate Status (this run)</div>
+      <div class="section-sub">Every real scanner/consensus result this pipeline run produced under <code>reports/scanners/*.json</code>. BLUE policy = required for the ship/no-ship verdict; GRAY = informational signal only.</div>
+      <table>
+        <thead><tr><th>Gate</th><th>Tool</th><th>Policy</th><th>Status</th><th>Detail</th></tr></thead>
+        <tbody>${gateRows || `<tr><td colspan="5" class="empty-note">No gate results found for this run.</td></tr>`}</tbody>
+      </table>
+    </div>
+
+    <!-- PER-SUBSYSTEM DETAIL -->
+    <div class="grid-2">
+      <div class="section-card">
+        <div class="section-title">AVS Consensus (3-Node Live EVM Execution)</div>
+        <div class="section-sub">${v104.avs_consensus ? `${escapeHtml(v104.avs_consensus.protocol)} — ${escapeHtml(v104.avs_consensus.topology)}` : "No AVS consensus result this run."}</div>
+        ${
+          v104.avs_consensus
+            ? `<p style="font-size:13px;">Decision: ${badge(v104.avs_consensus.decision, v104.avs_consensus.consensus_reached && v104.avs_consensus.decision?.includes("EXPLOIT") ? "red" : "green")} &nbsp; Agreement: <b>${escapeHtml(v104.avs_consensus.agreement_ratio)}</b> across ports ${escapeHtml((v104.avs_consensus.ports || []).join(", "))}</p>`
+            : ""
+        }
+      </div>
+      <div class="section-card">
+        <div class="section-title">LangGraph 7-Agent Swarm</div>
+        <div class="section-sub">${v104.langgraph_swarm ? `${v104.langgraph_swarm.agents_count} agents via ${escapeHtml(v104.langgraph_swarm.framework)}` : "No swarm result this run."}</div>
+        ${
+          v104.langgraph_swarm
+            ? `<p style="font-size:13px;">Decision: ${badge(v104.langgraph_swarm.decision, v104.langgraph_swarm.decision === "HALT_CONFIRMED" ? "red" : "green")} &nbsp; Votes: ${escapeHtml(JSON.stringify(v104.langgraph_swarm.votes || {}))}</p>`
+            : ""
+        }
+      </div>
+      <div class="section-card">
+        <div class="section-title">Infrastructure: Vault &amp; Kubernetes</div>
+        <table>
+          <tbody>
+            <tr><td>HashiCorp Vault (Transit)</td><td>${v104.hashicorp_vault ? badge(v104.hashicorp_vault.status, toneForGateStatus(v104.hashicorp_vault.status)) : badge("NOT RUN", "gray")}</td><td style="font-size:12px; color:#94a3b8;">${escapeHtml(v104.hashicorp_vault?.detail || "")}</td></tr>
+            <tr><td>K3s Kubernetes</td><td>${v104.k3s_kubernetes ? badge(v104.k3s_kubernetes.status, toneForGateStatus(v104.k3s_kubernetes.status)) : badge("NOT RUN", "gray")}</td><td style="font-size:12px; color:#94a3b8;">${escapeHtml(v104.k3s_kubernetes?.node || "")} ${escapeHtml(v104.k3s_kubernetes?.version || "")} ${escapeHtml(v104.k3s_kubernetes?.detail || "")}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section-card">
+        <div class="section-title">OWASP Smart Contract Coverage</div>
+        <p style="font-size:13px; color:#cbd5e1;">Categories actually triggered this run: <b>${escapeHtml(v104.owasp_sc_top_10 || "none")}</b></p>
+        <p style="font-size:12px; color:#94a3b8; margin-top:8px;">OpenSCAP: ${v104.openscap ? badge(v104.openscap.status, toneForGateStatus(v104.openscap.status === "AUDITED_ACTIVE" ? "ok" : v104.openscap.status === "ERROR" ? "error" : "not_run")) : badge("NOT RUN", "gray")} <span style="margin-left:6px;">${escapeHtml(v104.openscap?.standard || "")}</span></p>
       </div>
     </div>
 
-    <!-- Zone 6: Consensus Attack & Alert Timeline Panel -->
+    <!-- WALLET / FORENSICS / INCIDENTS -->
     <div class="section-card">
-      <div class="section-title">Zone 6: Consensus Attack Monitoring & Alert Timeline</div>
-      ${renderTimelineSvg(data.consensusAlerts || [])}
-    </div>
-
-    <!-- Zone 7: Wallet Audit & Key Scheme Posture -->
-    <div class="section-card">
-      <div class="section-title">Zone 7: Wallet Audit & Key-Scheme Posture</div>
+      <div class="section-title">Wallet Pre-Sign Simulation</div>
       <table>
-        <thead>
-          <tr>
-            <th>Audit ID</th>
-            <th>Vulnerability Classification</th>
-            <th>Cryptographic Scheme</th>
-            <th>Post-Audit Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          ${walletRows}
-        </tbody>
+        <thead><tr><th>Audit ID</th><th>Check</th><th>Status</th></tr></thead>
+        <tbody>${walletRows || `<tr><td colspan="3" class="empty-note">No pre-sign simulation result this run.</td></tr>`}</tbody>
       </table>
     </div>
 
-    <!-- Zone 5: Forensic Case Timeline -->
     <div class="section-card">
-      <div class="section-title">Zone 5: Forensic Cases & Chain of Custody (Redacted Summaries)</div>
+      <div class="section-title">Forensics &amp; Chain of Custody</div>
       <table>
-        <thead>
-          <tr>
-            <th>Case Identifier</th>
-            <th>Target Address</th>
-            <th>Sealed Artifacts</th>
-            <th>Custody Integrity</th>
-            <th>Sanitized Summary</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${forensicRows}
-        </tbody>
+        <thead><tr><th>Case ID</th><th>Related Address</th><th>Sealed Artifacts</th><th>Integrity</th><th>Summary</th></tr></thead>
+        <tbody>${forensicRows || `<tr><td colspan="5" class="empty-note">No evidence seal recorded this run.</td></tr>`}</tbody>
       </table>
     </div>
 
-    <!-- Zone 8: Compliance Register -->
     <div class="section-card">
-      <div class="section-title">Zone 8: Regulatory Compliance Register & Sanctions Screening</div>
+      <div class="section-title">Incident Response Dispatch</div>
       <table>
-        <thead>
-          <tr>
-            <th>Counterparty Address</th>
-            <th>Sanction Status</th>
-            <th>Assessed Tier</th>
-            <th>AML Signals</th>
-            <th>ZK Attestation Status</th>
-            <th>HITL Staging Gate</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${complianceRows}
-        </tbody>
+        <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody>${incidentRows || `<tr><td colspan="5" class="empty-note">No incident dispatched this run.</td></tr>`}</tbody>
       </table>
     </div>
 
-    <!-- Severity Distribution & Verification Health -->
     <div class="section-card">
-      <div class="section-title">Severity Breakdown & Verification Matrix</div>
+      <div class="section-title">Consensus Alerts</div>
+      <table>
+        <thead><tr><th>Alert ID</th><th>Type</th><th>Severity</th><th>AVS Quorum</th><th>Time</th></tr></thead>
+        <tbody>${consensusRows || `<tr><td colspan="5" class="empty-note">No active consensus alerts this run.</td></tr>`}</tbody>
+      </table>
+    </div>
+
+    <!-- OFAC / COMPLIANCE REGISTER -->
+    <div class="section-card">
+      <div class="section-title">OFAC Sanctions Screening</div>
+      <table>
+        <thead><tr><th>Counterparty Address</th><th>Sanction Status</th><th>Risk Tier</th><th>Detail</th></tr></thead>
+        <tbody>${complianceRows || `<tr><td colspan="4" class="empty-note">No addresses screened this run.</td></tr>`}</tbody>
+      </table>
+    </div>
+
+    <!-- SEVERITY BREAKDOWN -->
+    <div class="section-card">
+      <div class="section-title">Severity Breakdown (this run's findings)</div>
       ${renderDonutChart(data.metrics.criticalFindings, data.metrics.highFindings, data.metrics.mediumFindings, data.metrics.lowFindings)}
-      <table style="margin-top: 20px;">
-        <thead>
-          <tr>
-            <th>Security Zone</th>
-            <th>Verification Status</th>
-            <th>Automated Tests</th>
-            <th>Scope Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${zoneRows}
-        </tbody>
-      </table>
     </div>
 
-    <!-- Findings & Flaws Interactive Table -->
+    <!-- TREND / RUN HISTORY -->
+    <div class="section-card">
+      <div class="section-title">Run History / Trend</div>
+      ${renderTrendSparkline(data.trend)}
+    </div>
+
+    <!-- MASTER FINDINGS TABLE -->
     <div class="section-card">
       <div class="section-title">Master Security Findings Register</div>
       <div class="toolbar">
         <input type="text" id="findingSearch" class="search-input" placeholder="Live search title, rule, target..." onkeyup="filterFindings()">
       </div>
       <table id="findingsTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Severity</th>
-            <th>Zone</th>
-            <th>Finding & Details</th>
-            <th>Target Context</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ENTERPRISE TOOLCHAIN & LIVE OBSERVABILITY MATRIX -->
-    <div class="section-card" style="margin-top: 28px; border-top: 3px solid #38bdf8;">
-      <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: #38bdf8;">Enterprise DevSecOps &amp; AI SOC Ecosystem Matrix</span>
-        <span style="font-size: 11px; background: #0284c7; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 700;">UNIFIED ORCHESTRATION</span>
-      </div>
-      <p style="color: #94a3b8; font-size: 12px; margin-bottom: 16px;">Live synchronized status across all integrated static analysis, dynamic verification, on-chain consensus, and telemetry tools.</p>
-      
-      <table>
-        <thead>
-          <tr>
-            <th>Tool / Layer</th>
-            <th>Target Endpoint</th>
-            <th>Execution Artifact / Telemetry</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><b>Langfuse AI Observability</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:3100</td>
-            <td style="font-family: monospace; font-size: 12px;">7-Agent Cognitive Tracing &amp; Prompt Reasoning Visualizer</td>
-            <td><span style="color: #4ade80; font-weight: 700;">ACTIVE (Port 3100)</span></td>
-          </tr>
-          <tr>
-            <td><b>DefectDojo Compliance</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8085</td>
-            <td style="font-family: monospace; font-size: 12px;">Central AppSec &amp; Compliance Hub (${(data as any)?.defectdojo_compliance?.active_unique_findings || 268} Active Findings)</td>
-            <td><span style="color: #4ade80; font-weight: 700;">ACTIVE (Port 8085)</span></td>
-          </tr>
-          <tr>
-            <td><b>OWASP ZAP DAST</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">Containerized (Host Net)</td>
-            <td style="font-family: monospace; font-size: 12px;">Dynamic Baseline AppSec Scan (13 Alerts Cataloged)</td>
-            <td><span style="color: #4ade80; font-weight: 700;">SCANNED / INGESTED</span></td>
-          </tr>
-          <tr>
-            <td><b>HashiCorp Vault</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8200</td>
-            <td style="font-family: monospace; font-size: 12px;">Transit Key Attestation &amp; Dynamic Secret Tokens</td>
-            <td><span style="color: #4ade80; font-weight: 700;">ONLINE (Signed)</span></td>
-          </tr>
-          <tr>
-            <td><b>SonarQube SAST</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:9000</td>
-            <td style="font-family: monospace; font-size: 12px;">Project: blockchain-security-soc (240 files analyzed)</td>
-            <td><span style="color: #4ade80; font-weight: 700;">SCANNED / PERSISTED</span></td>
-          </tr>
-          <tr>
-            <td><b>Jenkins Enterprise</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8082</td>
-            <td style="font-family: monospace; font-size: 12px;">Job: blockchain-soc-audit (Vault Auth)</td>
-            <td><span style="color: #4ade80; font-weight: 700;">BUILD VERIFIED</span></td>
-          </tr>
-          <tr>
-            <td><b>Atlassian Jira</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">Cloud REST API</td>
-            <td style="font-family: monospace; font-size: 12px;">Automated SEV-1 Incident Action: ${(() => {
-              try {
-                const tf = resolve(process.cwd(), "reports/latest-jira-ticket.txt");
-                if (existsSync(tf)) return readFileSync(tf, "utf-8").trim();
-              } catch {}
-              return "KAN-DISPATCHED";
-            })()}</td>
-            <td><span style="color: #4ade80; font-weight: 700;">DISPATCHED</span></td>
-          </tr>
-          <tr>
-            <td><b>LangGraph Swarm</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">192.168.0.189:11434</td>
-            <td style="font-family: monospace; font-size: 12px;">${isSecure ? "7-Agent Consensus: Hardened Invariants Verified" : "7-Agent Cognitive Reasoning (HALT_CONFIRMED)"}</td>
-            <td><span style="color: #4ade80; font-weight: 700;">${isSecure ? "CONSENSUS SIGNED" : "QUORUM ACTIVE"}</span></td>
-          </tr>
-          <tr>
-            <td><b>Anvil AVS Consensus</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">:8545, :8546, :8547</td>
-            <td style="font-family: monospace; font-size: 12px;">${isSecure ? "3-Node BFT Sandbox (100% agreement -> CLEAN_BASELINE)" : "3-Node BFT Sandbox (100% agreement -> EXPLOIT_PROVEN)"}</td>
-            <td><span style="color: ${isSecure ? "#4ade80" : "#f87171"}; font-weight: 700;">${isSecure ? "DEPLOY AUTHORIZED" : "HALT ENFORCED"}</span></td>
-          </tr>
-          <tr>
-            <td><b>Gnosis Safe</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">On-Chain (Local Node)</td>
-            <td style="font-family: monospace; font-size: 12px;">${isSecure ? "Contract Operational - No Emergency Action Required" : "Pause Calldata: 0x8456cb59 (to: 0x5FbDB231...)"}</td>
-            <td><span style="color: #4ade80; font-weight: 700;">${isSecure ? "NOMINAL / ACTIVE" : "CIRCUIT BREAKER ARMED"}</span></td>
-          </tr>
-          <tr>
-            <td><b>Elasticsearch SIEM</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:9200</td>
-            <td style="font-family: monospace; font-size: 12px;">Index: blockchain-soc-audit-logs</td>
-            <td><span style="color: #4ade80; font-weight: 700;">TELEMETRY INDEXED</span></td>
-          </tr>
-          <tr>
-            <td><b>Prometheus &amp; Grafana</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">:9101 / :9090 / :3000</td>
-            <td style="font-family: monospace; font-size: 12px;">19 Real-Time Telemetry Metric Gauges</td>
-            <td><span style="color: #4ade80; font-weight: 700;">HEALTHY (UP)</span></td>
-          </tr>
-          <tr>
-            <td><b>GitLab CE CI/CD</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8929</td>
-            <td style="font-family: monospace; font-size: 12px;">Unified 4-Stage Lockstep Pipeline (soc-docker runner)</td>
-            <td><span style="color: #4ade80; font-weight: 700;">SYNCED / RUNNING</span></td>
-          </tr>
-          <tr>
-            <td><b>Argo CD GitOps</b></td>
-            <td style="color: #38bdf8; font-family: monospace; font-size: 12px;">http://127.0.0.1:8080</td>
-            <td style="font-family: monospace; font-size: 12px;">App: blockchain-soc-pipeline (K3s: saleem)</td>
-            <td><span style="color: #4ade80; font-weight: 700;">HEALTHY / SYNCED</span></td>
-          </tr>
-        </tbody>
+        <thead><tr><th>ID</th><th>Severity</th><th>Zone</th><th>Finding &amp; Details</th><th>Target Context</th><th>Status</th></tr></thead>
+        <tbody>${findingRows || `<tr><td colspan="6" class="empty-note">No findings recorded this run.</td></tr>`}</tbody>
       </table>
     </div>
 
@@ -545,135 +520,12 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   }
 
   const outPath = resolve(outDir, `project-status-${timestamp}.html`);
-  
-  // === INJECT ENTERPRISE V10.4 CLOUD-NATIVE & COMPLIANCE PANEL ===
-  try {
-    const statusCandidate = statusJsonPath ? resolve(statusJsonPath) : resolve(process.cwd(), "reports/status.json");
-    if (existsSync(statusCandidate)) {
-      const rawStatus = readFileSync(statusCandidate, "utf-8");
-      const parsedData = JSON.parse(rawStatus);
-        const v104 = parsedData?.enterprise_v10_4 || {};
-        if (true) {
-        const panel = `
-
-        <section class="card" style="margin-top: 2rem; border-top: 3px solid #38bdf8; padding: 1.5rem; background: #0f172a; border-radius: 0.75rem;">
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: #38bdf8; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            Enterprise V10.4 Infrastructure &amp; Cloud-Native Security
-          </h2>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-            
-            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">HashiCorp Vault (Transit)</div>
-              <div style="font-size: 1.1rem; font-weight: 700; color: #4ade80; margin-top: 0.25rem;">ONLINE (ecdsa-p256)</div>
-              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Engine: ${v104.hashicorp_vault?.engine || 'transit'} | Signing: Active</div>
-            </div>
-
-            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">Kubernetes Orchestration</div>
-              <div style="font-size: 1.1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;">${v104.k3s_kubernetes?.node || 'Node'} (${v104.k3s_kubernetes?.status || 'Ready'})</div>
-              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Core: ${v104.k3s_kubernetes?.version || 'v1.28.8'}</div>
-            </div>
-
-            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">DefectDojo Compliance Hub</div>
-              <div style="font-size: 1.1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;">${(data as any)?.defectdojo_compliance?.active_unique_findings || 268} Unique Flaws</div>
-              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Port 8085 | Deduplicated &amp; Synced</div>
-            </div>
-
-            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">OWASP ZAP DAST</div>
-              <div style="font-size: 1.1rem; font-weight: 700; color: #facc15; margin-top: 0.25rem;">13 DAST Alerts</div>
-              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Dynamic Web Application Scan</div>
-            </div>
-
-            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-
-
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">Aqua Trivy AppSec</div>
-              <div style="font-size: 1.1rem; font-weight: 700; color: #facc15; margin-top: 0.25rem;">${v104.aqua_trivy?.critical || 0} CRIT / ${v104.aqua_trivy?.high || 0} HIGH</div>
-              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Scanned Filesystem &amp; Configs</div>
-            </div>
-
-            <div style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155;">
-              <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600;">OWASP DSOMM Maturity</div>
-              <div style="font-size: 1.1rem; font-weight: 700; color: #a855f7; margin-top: 0.25rem;">Level 4 Maturity</div>
-              <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.25rem;">Continuous Automated Enforcement</div>
-            </div>
-
-          </div>
-
-          <div style="margin-top: 1rem; background: #1e293b; padding: 0.75rem 1rem; border-radius: 0.375rem; border: 1px dashed #475569; font-size: 0.8rem; color: #94a3b8;">
-            <span style="color: #38bdf8; font-weight: 600;">OWASP SC Top 10:</span> ${v104.owasp_sc_top_10 || "SC01 / SC10 Enforced (Slither AST)"} &nbsp;|&nbsp; <span style="color: #4ade80; font-weight: 600;">NIST Profile:</span> ${v104.openscap?.status || "SP 800-53 Rev 5 (OpenSCAP 1.4.4)"} &nbsp;|&nbsp; <span style="color: #facc15; font-weight: 600;">Sanctions:</span> OFAC SDN / FATF (Active)
-          </div>
-        </section>
-
-        <!-- Enterprise Toolchain Status Section -->
-        <section style="margin-top: 2rem; background: #0f172a; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #334155;">
-          <h2 style="color: #f8fafc; font-size: 1.25rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">Enterprise Toolchain Status &amp; Integration Matrix</h2>
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-            <thead>
-              <tr style="border-bottom: 1px solid #475569; color: #94a3b8;">
-                <th style="padding: 0.6rem 0.5rem;">Component</th>
-                <th style="padding: 0.6rem 0.5rem;">Endpoint / Interface</th>
-                <th style="padding: 0.6rem 0.5rem;">Operational Scope</th>
-                <th style="padding: 0.6rem 0.5rem;">Telemetry State</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="border-bottom: 1px solid #1e293b;">
-                <td style="padding: 0.6rem 0.5rem;"><b>Langfuse AI Observability</b></td>
-                <td style="padding: 0.6rem 0.5rem; color: #38bdf8; font-family: monospace;">http://127.0.0.1:3100</td>
-                <td style="padding: 0.6rem 0.5rem;">Full 7-Agent Swarm Reasoning &amp; Token Tracing</td>
-                <td style="padding: 0.6rem 0.5rem;"><span style="color: #4ade80; font-weight: 700;">ACTIVE (Streaming)</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #1e293b;">
-                <td style="padding: 0.6rem 0.5rem;"><b>TheHive 4 Incident Response</b></td>
-                <td style="padding: 0.6rem 0.5rem; color: #38bdf8; font-family: monospace;">http://127.0.0.1:9005</td>
-                <td style="padding: 0.6rem 0.5rem;">Case #18 (Tenant: SOC) | 4 Mitigation Workflows</td>
-                <td style="padding: 0.6rem 0.5rem;"><span style="color: #4ade80; font-weight: 700;">SYNCHRONIZED</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #1e293b;">
-                <td style="padding: 0.6rem 0.5rem;"><b>DefectDojo Compliance Hub</b></td>
-                <td style="padding: 0.6rem 0.5rem; color: #38bdf8; font-family: monospace;">http://127.0.0.1:8085</td>
-                <td style="padding: 0.6rem 0.5rem;">Vulnerability Ingestion &amp; Deduplication</td>
-                <td style="padding: 0.6rem 0.5rem;"><span style="color: #4ade80; font-weight: 700;">175 FLAWS CATALOGED</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #1e293b;">
-                <td style="padding: 0.6rem 0.5rem;"><b>Aqua Trivy Container Security</b></td>
-                <td style="padding: 0.6rem 0.5rem; color: #38bdf8; font-family: monospace;">CLI / JSON Engine</td>
-                <td style="padding: 0.6rem 0.5rem;">Filesystem, Packages, &amp; Docker Base Image Audit</td>
-                <td style="padding: 0.6rem 0.5rem;"><span style="color: #4ade80; font-weight: 700;">AUDIT RECORDED</span></td>
-              </tr>
-              <tr>
-                <td style="padding: 0.6rem 0.5rem;"><b>HashiCorp Vault HSM/Transit</b></td>
-                <td style="padding: 0.6rem 0.5rem; color: #38bdf8; font-family: monospace;">http://127.0.0.1:8200</td>
-                <td style="padding: 0.6rem 0.5rem;">RFC 3227 Chain-of-Custody Cryptographic Signatures</td>
-                <td style="padding: 0.6rem 0.5rem;"><span style="color: #4ade80; font-weight: 700;">SEALED / VERIFIED</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        `;
-        if (html.includes("</body>")) {
-          html = html.replace("</body>", `${panel}\n</body>`);
-        } else if (html.includes("</html>")) {
-          html = html.replace("</html>", `${panel}\n</html>`);
-        } else {
-          html += panel;
-        }
-      }
-    }
-  } catch (err) {
-    console.warn("[-] V10.4 Injection Warning:", err);
-  }
-
-    const latestPath = resolve(outDir, "latest.html");
+  const latestPath = resolve(outDir, "latest.html");
 
   writeFileSync(outPath, html, "utf-8");
   writeFileSync(latestPath, html, "utf-8");
 
-  console.log(`[+] Generated extended executive report: ${outPath}`);
+  console.log(`[+] Generated executive report: ${outPath}`);
   console.log(`[+] Synced latest report: ${latestPath}`);
 
   return outPath;
