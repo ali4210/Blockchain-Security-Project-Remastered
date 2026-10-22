@@ -129,3 +129,17 @@ presentation.
 - Nothing from V10.1 was removed or renamed. All prior TODO(phase-N)
   numbers for Zones 1-5 are unchanged; only the old Phase 11 (Benchmarks)
   was renumbered to Phase 14 to make room.
+
+
+
+
+
+Architecture Decisions: CI/CD & GitOps
+
+This pipeline uses three separate tools deliberately, each with a distinct job rather than overlapping responsibility:
+
+- GitLab CI/CD is the trigger and audit layer. Every pipeline run is tied to a specific commit SHA, giving a verifiable record of exactly what code a given security scan ran against. GitLab verifies pipeline manifests and generates the executive report, then dispatches the heavier security-audit workload to Jenkins and tracks its result.
+- Jenkins runs the actual security workload: SonarQube SAST analysis and the full multi-zone scanning pipeline (Slither, Mythril, SCA, AVS consensus, the agent swarm, etc.). This is intentionally kept separate from GitLab’s own runners so the heavy scanning work can scale and be scheduled independently of the lightweight verification stage.
+- Argo CD is a standing GitOps controller, not a step in the pipeline. It continuously watches this repository’s Kubernetes manifests and reconciles the live K3s cluster to match them, with selfHeal enabled so it self-corrects drift automatically. This is a deliberate design choice: Argo CD’s job only depends on the state of the Git repository, not on whether GitLab or Jenkins are currently running. If either CI tool goes down, new deployments pause — but the cluster that’s already running stays healthy and self-correcting, because Argo CD was never wired to depend on their uptime.
+
+This separation reflects a core GitOps principle: deployment should be pulled by a controller watching Git, not pushed by whatever CI tool happened to finish last. Coupling them tightly would mean a CI outage could cascade into a deployment outage — which this architecture is built to avoid.
