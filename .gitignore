@@ -57,3 +57,6 @@ export-env.sh
 public-dashboard/
 .env
 config/*.env
+.coverage
+.scannerwork/
+coverage.xml
