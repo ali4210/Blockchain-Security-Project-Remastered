@@ -213,7 +213,12 @@ function loadHardhatConfig(path: string): Record<string, unknown> {
   const requireFromConfig = createRequire(path);
   delete requireFromConfig.cache?.[path];
   const loaded = requireFromConfig(path);
-  return requireObject(loaded, "hardhat", "module.exports");
+  const mod = requireObject(loaded, "hardhat", "module.exports");
+  // Hardhat 3's config is an ES module (export default defineConfig({...})),
+  // which Node's CJS/ESM interop returns as {__esModule, default: <config>}
+  // rather than the config object itself -- unwrap it the same way a real
+  // `import` would, instead of validating the interop wrapper.
+  return Object.hasOwn(mod, "default") ? requireObject(mod.default, "hardhat", "module.exports.default") : mod;
 }
 
 function validateHardhat(path: string): IngestionResult["manifests"]["hardhat"] {
@@ -226,6 +231,9 @@ function validateHardhat(path: string): IngestionResult["manifests"]["hardhat"] 
   const settings = requireObject(solidity.settings, "hardhat", "solidity.settings");
   const optimizer = requireObject(settings.optimizer, "hardhat", "solidity.settings.optimizer");
   const paths = requireObject(config.paths, "hardhat", "paths");
+  // Hardhat 3's paths.tests is {mocha, solidity}, not a plain string like
+  // Hardhat 2's -- validate the shape that's actually loaded at runtime.
+  const testsPaths = requireObject(paths.tests, "hardhat", "paths.tests");
 
   const solidityVersion = expectExact(requireString(solidity.version, "hardhat", "solidity.version"), "0.8.24", "hardhat", "solidity.version");
   const enabled = expectExact(requireBoolean(optimizer.enabled, "hardhat", "solidity.settings.optimizer.enabled"), false, "hardhat", "solidity.settings.optimizer.enabled");
@@ -236,7 +244,7 @@ function validateHardhat(path: string): IngestionResult["manifests"]["hardhat"] 
     optimizer: { enabled, runs },
     paths: {
       sources: expectExact(requireString(paths.sources, "hardhat", "paths.sources"), "./contracts/solidity", "hardhat", "paths.sources"),
-      tests: expectExact(requireString(paths.tests, "hardhat", "paths.tests"), "./test/hardhat", "hardhat", "paths.tests"),
+      tests: expectExact(requireString(testsPaths.mocha, "hardhat", "paths.tests.mocha"), "./test/hardhat", "hardhat", "paths.tests.mocha"),
       cache: expectExact(requireString(paths.cache, "hardhat", "paths.cache"), "./cache/hardhat", "hardhat", "paths.cache"),
       artifacts: expectExact(requireString(paths.artifacts, "hardhat", "paths.artifacts"), "./artifacts/hardhat", "hardhat", "paths.artifacts"),
     },
@@ -270,10 +278,10 @@ async function validateMove(path: string): Promise<IngestionResult["manifests"][
 }
 
 const EXPECTED_FILE_HASHES = {
-  "package.json": "e63e857cd6c65618dfdc33261d9423a40dca2cfca960d0db849e01b56db7a560",
-  "package-lock.json": "4caa6098b1ffe73651e0d5e933e6e5969bfc163ead8934cc4d0b561a921a68c9",
+  "package.json": "2b53050204ad0c99e8ebbfa3a16815ca27a6ad9e961a475c2818fdf185904e48",
+  "package-lock.json": "5ae1ce6b1253c0882b05cb5ec7599773fa6939ceb96e5a1573872e4bda70b563",
   "config/foundry.toml": "71c0b047c483a4e0c5aca70b5bc0315a75d2b3d73edd8c86e7c944a2bcb358bf",
-  "config/hardhat.config.js": "9f210a2ce515df82925e28642dfac959cc3f99b7ced3c3a2a23e6fd65f6a62b5",
+  "config/hardhat.config.js": "376c177c094ed304af60ab5746730aa02ad3eabd7facc72ef52315f8f63482c8",
   "config/Move.toml": "52211ca389cb1353cd04c32ba21b2052e62fec320f7de8e4b759ddb4f6671f71",
   "contracts/solidity/DeFiLendingVault.sol": "f3944ffce6755f87b9c7c231c754bad8c723dd8f3381aadb0ba22346f6739b1f",
   "contracts/solidity/PromptInjectionFixture.sol": "17f6fba73823f0ed9c00a9253595cb7249c580fcb4dfc79f1e9b6344c26f47a4",
@@ -368,7 +376,7 @@ async function verifyLockfile(root: string): Promise<number> {
   }
 
   const expectedDependencies = {
-    hardhat: "^2.22.0",
+    hardhat: "^3.21.0",
     tsx: "^4.0.0",
     typescript: "^5.5.0",
   };
@@ -484,9 +492,9 @@ const EXPECTED_ASSET_MAP = {
       "test/foundry/Invariants.t.sol",
     ],
     hardhat: [
-    "test/hardhat/formal-tools.test.js",
-    "test/hardhat/pipeline-entrypoints.test.js",
-    "test/hardhat/placeholder.test.js",
+    "test/hardhat/formal-tools.test.cjs",
+    "test/hardhat/pipeline-entrypoints.test.cjs",
+    "test/hardhat/placeholder.test.cjs",
   ],
   },
 } as const;
@@ -645,7 +653,7 @@ async function emitAssetMap(
 
   const hardhat = await verifyExpectedAssetList(
     root,
-    await listVerifiedDirectoryAssets(root, hardhatTest, ".test.js", "tests.hardhat"),
+    await listVerifiedDirectoryAssets(root, hardhatTest, ".test.cjs", "tests.hardhat"),
     EXPECTED_ASSET_MAP.tests.hardhat,
     "tests.hardhat",
   );

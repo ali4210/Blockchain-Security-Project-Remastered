@@ -474,8 +474,9 @@ describe("IAST state transition regressions", function () {
   });
 
   it("captures real successful and reverted storage transitions", async function () {
-    const hre = require("hardhat");
-    const send = (method, params = []) => hre.network.provider.send(method, params);
+    const { network } = await import("hardhat");
+    const hre = await network.create();
+    const send = (method, params = []) => hre.provider.request({ method, params });
     const target = "0x0000000000000000000000000000000000001000";
     const beforeCode = await send("eth_getCode", [target, "latest"]);
 
@@ -510,12 +511,13 @@ describe("IAST state transition regressions", function () {
   });
 
   it("rejects execution outside an owned local snapshot", async function () {
+    const { network } = await import("hardhat");
     await assert.rejects(
-      captureTransaction(require("hardhat"), {}, {}),
+      captureTransaction(await network.create(), {}, {}),
       /snapshot scope/
     );
     await assert.rejects(withLocalSnapshot(
-      { network: { name: "localhost" } }, async () => {}
+      { networkName: "localhost" }, async () => {}
     ), /in-process/);
   });
 });
@@ -857,9 +859,9 @@ describe("Prompt-injection fixture regressions", function () {
       "config/foundry.toml", "config/hardhat.config.js", "config/Move.toml",
       "contracts/solidity/VulnerableVault.sol", FIXTURE_PATH,
       "test/foundry/Exploit.t.sol", "test/foundry/Invariants.t.sol",
-      "test/hardhat/formal-tools.test.js",
-      "test/hardhat/placeholder.test.js",
-      "test/hardhat/pipeline-entrypoints.test.js",
+      "test/hardhat/formal-tools.test.cjs",
+      "test/hardhat/placeholder.test.cjs",
+      "test/hardhat/pipeline-entrypoints.test.cjs",
     ];
 
     function ingestCopy() {
@@ -883,6 +885,11 @@ describe("Prompt-injection fixture regressions", function () {
         fs.mkdirSync(path.dirname(destination), { recursive: true });
         fs.copyFileSync(path.join(root, name), destination);
       }
+      // config/hardhat.config.js now imports from "hardhat/config" (Hardhat 3's
+      // ESM defineConfig) and the toolbox plugin, so loading it -- even just to
+      // validate its shape -- needs those packages resolvable from the sandbox.
+      // Link to the real node_modules rather than duplicating it into the fixture.
+      fs.symlinkSync(path.join(root, "node_modules"), path.join(sandbox, "node_modules"), "dir");
 
       const valid = ingestCopy();
       assert.equal(valid.error, undefined);

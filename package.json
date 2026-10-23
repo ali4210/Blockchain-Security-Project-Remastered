@@ -2,6 +2,7 @@
   "name": "blockchain-security-soc-skeleton",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "ingest": "echo TODO(phase-2)",
     "normalize": "echo TODO(phase-4)",
@@ -9,12 +10,15 @@
     "report": "tsx scripts/aggregate-status.mts && tsx scripts/generate-html-report.mts"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^4.0.0",
     "@types/node": "^24.19.2",
-    "hardhat": "^2.22.0",
+    "hardhat": "^3.21.0",
+    "solc": "0.8.26",
     "tsx": "^4.0.0",
     "typescript": "^5.5.0"
   },
   "overrides": {
-    "serialize-javascript": "^7.1.1"
+    "serialize-javascript": "^7.1.1",
+    "tmp": "^0.2.7"
   }
 }

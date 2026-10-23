@@ -153,11 +153,15 @@ async function main(args) {
     regularBytes(compiler, COMPILER_HASH);
 
     process.env.HARDHAT_CONFIG = path.join(root, "config/hardhat.config.js");
-    process.env.HARDHAT_NETWORK = "hardhat";
-    const hre = require("hardhat");
-    const send = (method, params = []) => hre.network.provider.send(method, params);
-    assert.equal(hre.network.name, "hardhat");
-    assert.equal(hre.network.config.forking, undefined);
+    // Hardhat 3 has no implicit global HRE/network singleton -- require()
+    // of the ESM "hardhat" package also doesn't work from a .cjs file
+    // (ERR_REQUIRE_ASYNC_MODULE). Load it dynamically and create an
+    // explicit connection instead.
+    const { network } = await import("hardhat");
+    const hre = await network.create();
+    const send = (method, params = []) => hre.provider.request({ method, params });
+    assert.equal(hre.networkName, "default");
+    assert.equal(hre.networkConfig.forking, undefined);
 
     const target = "0x0000000000000000000000000000000000001000";
     const records = [];

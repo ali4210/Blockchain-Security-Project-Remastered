@@ -26,6 +26,12 @@ forensics.db
 *.ewf
 reports/
 artifacts/
+# Hardhat 3 build cache + TypeChain output (new top-level locations; Hardhat 2
+# resolved paths.cache/artifacts relative to the config file's own directory,
+# landing under config/cache -- Hardhat 3 resolves them relative to the
+# project root instead)
+/cache/
+/types/
 
 # Node / Python / build output
 node_modules/

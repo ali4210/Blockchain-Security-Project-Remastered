@@ -125,14 +125,20 @@ async function withCleanup(operation, cleanup) {
   return value;
 }
 
-function requireLocal(hre) {
-  if (hre !== require("hardhat") || hre.network.name !== "hardhat" ||
-      hre.network.config.forking !== undefined ||
-      !hre.network.provider ||
-      typeof hre.network.provider.send !== "function") {
+// Hardhat 3 has no implicit global HRE/network singleton (unlike Hardhat 2,
+// where require("hardhat") always returned one already wired to the active
+// network) -- callers must create an explicit connection via
+// `(await import("hardhat")).network.create()` and pass that here instead
+// of an hre. "default" is this project's unconfigured default network name;
+// "edr-simulated" is Hardhat 3's in-process simulated-chain connection type.
+function requireLocal(connection) {
+  if (!connection || connection.networkName !== "default" ||
+      connection.networkConfig.forking !== undefined ||
+      connection.networkConfig.type !== "edr-simulated" ||
+      !connection.provider || typeof connection.provider.request !== "function") {
     throw new Error("only the in-process, non-forked Hardhat runtime is supported");
   }
-  return (method, params = []) => hre.network.provider.send(method, params);
+  return (method, params = []) => connection.provider.request({ method, params });
 }
 
 async function withLocalSnapshot(hre, operation) {
