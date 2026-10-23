@@ -61,6 +61,19 @@ else
   [ -n "${LANGFUSE_SECRET_KEY:-}" ] && seed_if_missing langfuse \
     "{\"data\":{\"public_key\":\"${LANGFUSE_PUBLIC_KEY:-}\",\"secret_key\":\"${LANGFUSE_SECRET_KEY}\",\"password\":\"${LANGFUSE_PASSWORD:-}\"}}" secret_key
 
+  # Jira lives at secret/data/soc/jira (not secret/data/<name> like the five
+  # above), and its real credentials come from the project .env rather than
+  # this seed file, so it re-seeds via the existing provisioning script
+  # instead of an inline seed_if_missing payload. Its token is a static,
+  # long-lived Atlassian API token (unlike TheHive's, which mints a new key
+  # every provision run), so re-seeding it whenever empty carries no
+  # stale-rotation risk -- same "only if missing" semantics as seed_if_missing.
+  if [ -z "$(curl -s -m 5 -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/soc/jira" | jq -r '.data.data.token // empty')" ]; then
+    echo "    [*] [VAULT AUTO-HEAL] Re-seeding secret/data/soc/jira..."
+    python3 scripts/provision-jira-vault.py >/dev/null 2>&1 \
+      || echo "    [!] provision-jira-vault.py failed (JIRA_URL/JIRA_USER/JIRA_TOKEN missing from .env?)"
+  fi
+
   for p in jenkins sonarqube defectdojo slack langfuse; do
     if [ -z "$(curl -s -m 5 -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/$p" | jq -r '.data.data | to_entries[0].value // empty')" ]; then
       echo "    [!] secret/data/$p is still empty. Add it to ${SEED_FILE} once, then rerun."
