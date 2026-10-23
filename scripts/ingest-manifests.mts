@@ -288,6 +288,7 @@ const EXPECTED_FILE_HASHES = {
     "contracts/solidity/StakingRewardsVault.sol": "e3aa8dbc8b51be9fdfc41ddb83309406c753945444164ce8fba346abf481a91e",
   "contracts/solidity/SecureVault.sol": "817b8d2575e24cd5276fb8414323b0c2f5c22ee538523ca648a5ea9b89adea87",
   "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
+  "contracts/solidity/RandomTestVault.sol": "b25bd2f3ce7523f608c51955cfd355847f328b094a0cccd1ffe4f36ca7aada83",
 } as const;
 
 const EXPECTED_COMPILER_TOOLCHAINS = {
@@ -475,6 +476,7 @@ const EXPECTED_ASSET_MAP = {
     solidity: [
       "contracts/solidity/DeFiLendingVault.sol",
       "contracts/solidity/PromptInjectionFixture.sol",
+      "contracts/solidity/RandomTestVault.sol",
       "contracts/solidity/StakingRewardsVault.sol",
       "contracts/solidity/SecureVault.sol",
       "contracts/solidity/VulnerableVault.sol",
