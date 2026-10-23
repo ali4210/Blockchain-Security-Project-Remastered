@@ -115,6 +115,113 @@ function voteStrip(segments: { label: string; value: number; color: string }[]):
     <div class="vote-legend">${legend}</div>`;
 }
 
+// --- OWASP DSOMM: real evidence coverage, never a single collapsed number.
+// Reads reports/scanners/dsomm.json directly (not via the v104 passthrough,
+// which this report's other subsystem cards show is not currently populated)
+// so this section always reflects what compute-dsomm-maturity.py actually
+// computed this run, pass/fail per activity plus the honest "not_assessed"
+// gap for everything no scanner here can speak to. ---
+interface DsommActivity {
+  dimension: string;
+  subdimension: string;
+  name: string;
+  uuid: string;
+  level: number;
+  status: "pass" | "fail";
+}
+interface DsommSubdimension {
+  dimension: string;
+  level: number;
+  assessed: number;
+  total: number;
+  coverage: number | null;
+}
+interface DsommResult {
+  counts?: { activities_assessed?: number; activities_total?: number; subdimensions_with_signal?: number };
+  detail?: string;
+  subdimensions?: Record<string, DsommSubdimension>;
+  activities?: DsommActivity[];
+  model_totals?: Record<string, Record<string, number>>;
+}
+
+function renderDsommSection(dsomm: DsommResult | null): string {
+  if (!dsomm) {
+    return `
+      <div id="dsomm" class="section-card">
+        <div class="section-title"><span class="title-icon">${ICON.shield}</span>OWASP DSOMM Maturity</div>
+        <div class="empty-note">No DSOMM evidence computed this run (compute-dsomm-maturity.py did not run).</div>
+      </div>`;
+  }
+
+  const assessed = dsomm.counts?.activities_assessed ?? 0;
+  const total = dsomm.counts?.activities_total ?? 0;
+  const activitiesBySubdim = new Map<string, DsommActivity[]>();
+  for (const a of dsomm.activities || []) {
+    const list = activitiesBySubdim.get(a.subdimension) || [];
+    list.push(a);
+    activitiesBySubdim.set(a.subdimension, list);
+  }
+
+  const assessedCards = Object.entries(dsomm.subdimensions || {})
+    .sort(([, a], [, b]) => (b.coverage ?? 0) - (a.coverage ?? 0))
+    .map(([sub, data]) => {
+      const pct = Math.round((data.coverage ?? 0) * 100);
+      const acts = (activitiesBySubdim.get(sub) || [])
+        .sort((a, b) => a.level - b.level)
+        .map(
+          (a) =>
+            `<div class="infra-row" style="margin-top:4px;">
+               <div class="infra-name" style="font-size:12px;">L${a.level} · ${escapeHtml(a.name)}</div>
+               ${badge(a.status.toUpperCase(), a.status === "pass" ? "green" : "red")}
+             </div>`
+        )
+        .join("");
+      return `
+        <div class="section-card" style="margin-bottom:10px;">
+          <div class="sub-card-head">
+            <div class="section-title" style="margin-bottom:0; font-size:14px;">${escapeHtml(sub)}</div>
+            ${badge(`Claimed Level ${data.level}`, data.level > 0 ? "blue" : "amber")}
+          </div>
+          <div class="section-sub">${escapeHtml(data.dimension)} — ${data.assessed} of ${data.total} activities assessed (${pct}% coverage)</div>
+          ${miniBar(pct, TONE_HEX.blue)}
+          ${acts}
+        </div>`;
+    })
+    .join("");
+
+  // Dimensions/subdimensions with zero real signal -- the honest "we never
+  // checked this" half, shown with equal visual weight, not buried.
+  const assessedSubdimNames = new Set(Object.keys(dsomm.subdimensions || {}));
+  const notAssessedRows: string[] = [];
+  for (const [dim, subs] of Object.entries(dsomm.model_totals || {})) {
+    for (const [sub, count] of Object.entries(subs)) {
+      if (!assessedSubdimNames.has(sub)) {
+        notAssessedRows.push(
+          `<tr><td>${escapeHtml(dim)}</td><td>${escapeHtml(sub)}</td><td>${count}</td><td>${badge("NOT ASSESSED", "gray")}</td></tr>`
+        );
+      }
+    }
+  }
+
+  return `
+      <div id="dsomm" class="section-card">
+        <div class="section-title"><span class="title-icon">${ICON.shield}</span>OWASP DSOMM Maturity — Real Evidence Coverage</div>
+        <div class="section-sub">${escapeHtml(
+          dsomm.detail ||
+            `${assessed} of ${total} official DSOMM v5.0.2 activities have automated evidence this run.`
+        )} This is deliberately not one score: a single number here would hide exactly how partial this coverage is.</div>
+
+        <p style="font-size:13px; color:#cbd5e1; margin-top:14px;">Assessed this run — real pass/fail evidence, with the subdimension's claimed level capped below any failed activity:</p>
+        ${assessedCards || `<div class="empty-note">No activities assessed this run.</div>`}
+
+        <p style="font-size:13px; color:#cbd5e1; margin-top:18px;">Not assessed — no tooling in this pipeline can check these; they require manual or organizational evidence (e.g. security champions programs, training records, threat-modeling process, access reviews):</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Dimension</th><th>Subdimension</th><th>Activities</th><th>Status</th></tr></thead>
+          <tbody>${notAssessedRows.join("") || `<tr><td colspan="4" class="empty-note">Everything in the model was assessed.</td></tr>`}</tbody>
+        </table></div>
+      </div>`;
+}
+
 function kpiCard(icon: string, title: string, value: string | number, sub?: string, color = "#fff", flag?: string, gaugePct?: number): string {
   const numericPct = gaugePct !== undefined ? gaugePct : null;
   return `
@@ -168,6 +275,10 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   const data: StatusJsonOutput = JSON.parse(readFileSync(targetJsonPath, "utf-8"));
   const v104 = data.enterprise_v10_4 || {};
   const ddj = data.defectdojo_compliance;
+  const dsommPath = resolve(process.cwd(), "reports/scanners/dsomm.json");
+  const dsommResult: DsommResult | null = existsSync(dsommPath)
+    ? JSON.parse(readFileSync(dsommPath, "utf-8"))
+    : null;
   const targetName = (data.pipeline?.target || "").split("/").pop() || data.pipeline?.target || "unknown";
 
   // --- Executive summary paragraph, generated from this run's real verdict ---
@@ -662,6 +773,8 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           <div class="infra-detail" style="text-align:left; max-width:100%;">${escapeHtml(v104.openscap?.standard || "")}</div>
         </div>
       </div>
+
+      ${renderDsommSection(dsommResult)}
 
       <div id="wallet" class="section-card">
         <details class="collapsible" open>
