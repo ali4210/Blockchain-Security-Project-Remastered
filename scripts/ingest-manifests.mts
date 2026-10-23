@@ -593,11 +593,28 @@ async function verifyExpectedAssetList(
   const expectedSet = new Set(expected);
 
   // If any file on disk is not in the authorized expected set, reject with asset inventory mismatch
-  const hasUnexpected = actual.some((p) => !expectedSet.has(p));
-  if (hasUnexpected || (expected.length > 0 && actual.length === 0)) {
+  const unexpected = actual.filter((p) => !expectedSet.has(p));
+  if (unexpected.length > 0 || (expected.length > 0 && actual.length === 0)) {
+    let hint = "";
+    if (unexpected.length > 0) {
+      // A new, unregistered file (e.g. a new contract added to contracts/solidity/)
+      // is the single most common reason this fails -- compute its real hash and
+      // print the exact line to add, instead of leaving the reader to diff two
+      // JSON arrays by hand to find the one new path and then hunt for sha256sum.
+      const suggestions = await Promise.all(unexpected.map(async (p) => {
+        try {
+          const hash = sha256(await readFile(resolve(root, p)));
+          return `"${p}": "${hash}"`;
+        } catch {
+          return `"${p}": <could not read file to compute its hash>`;
+        }
+      }));
+      hint = ` -- unregistered file(s) found; add to EXPECTED_FILE_HASHES and ` +
+        `EXPECTED_ASSET_MAP.${component} in scripts/ingest-manifests.mts: ${suggestions.join(", ")}`;
+    }
     throw new AssetMapValidationError(
       component,
-      `asset inventory mismatch: expected ${JSON.stringify([...expected].sort())}, received ${JSON.stringify(actual)}`,
+      `asset inventory mismatch: expected ${JSON.stringify([...expected].sort())}, received ${JSON.stringify(actual)}${hint}`,
     );
   }
 

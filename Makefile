@@ -1,10 +1,23 @@
 # ==============================================================================
 # DYNAMIC SMART CONTRACT SELECTION TOGGLE
 # Usage:
-#   make pipeline-all            -> Scans contracts/solidity/VulnerableVault.sol (Default Exploit Path)
-#   make pipeline-all -- --secure -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
-#   make pipeline-all SECURE=1   -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
+#   make pipeline-all                       -> Scans contracts/solidity/VulnerableVault.sol (Default Exploit Path)
+#   make pipeline-all -- --secure            -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
+#   make pipeline-all SECURE=1               -> Scans contracts/solidity/SecureVault.sol     (Remediated Safe Path)
+#   make pipeline-all CONTRACT=<filename>    -> Scans contracts/solidity/<filename> (any registered contract)
+#   make pipeline-all TARGET_CONTRACT=<path> -> Scans <path> directly (unchanged, still works)
+# CONTRACT= is just a filename-only convenience over TARGET_CONTRACT=; it still
+# needs the file registered in scripts/ingest-manifests.mts's EXPECTED_FILE_HASHES/
+# EXPECTED_ASSET_MAP (Zone 1 manifest ingestion rejects unregistered files) --
+# see that file's own error message for the exact lines to add.
 # ==============================================================================
+ifdef CONTRACT
+  ifeq ($(wildcard contracts/solidity/$(CONTRACT)),)
+    $(error CONTRACT=$(CONTRACT) not found at contracts/solidity/$(CONTRACT) -- check the filename)
+  endif
+  export TARGET_CONTRACT := contracts/solidity/$(CONTRACT)
+endif
+
 ifeq ($(SECURE), 1)
   export SECURE := 1
   export TARGET_CONTRACT ?= contracts/solidity/SecureVault.sol
