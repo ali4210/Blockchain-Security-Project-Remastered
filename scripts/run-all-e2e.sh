@@ -250,6 +250,11 @@ print(f'    -> Forensic record sealed: {rec[\"evidence_id\"]} | {seal[\"file_cou
 echo -e "\n[+] [COMPLIANCE] Ingesting Multi-Scanner Telemetry into DefectDojo (Port 8085)..."
 python3 scripts/ingest-defectdojo.py || true
 
+# Real OWASP DSOMM maturity scoring: must run after DefectDojo ingestion
+# (reports/scanners/defectdojo.json is one of its real signals) and before
+# ship-siem-telemetry.py / generate-html-report.mts, which both read its output.
+python3 scripts/compute-dsomm-maturity.py
+
 # Step 8: Zone 9 Status Aggregator & HTML Report Compilation
 echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."
 ./node_modules/.bin/tsx --no-cache scripts/aggregate-status.mts

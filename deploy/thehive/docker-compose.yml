@@ -1,0 +1,12 @@
+services:
+  thehive:
+    image: thehiveproject/thehive4:4.1.24-1
+    container_name: soc-thehive-enterprise
+    restart: unless-stopped
+    ports:
+      - "9005:9000"
+    environment:
+      - JVM_OPTIONS=-Xms512m -Xmx1024m
+    volumes:
+      - ./conf/application.conf:/etc/thehive/application.conf:ro
+      - ./data:/opt/thp/data

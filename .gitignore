@@ -60,3 +60,4 @@ config/*.env
 .coverage
 .scannerwork/
 coverage.xml
+deploy/thehive/data/
