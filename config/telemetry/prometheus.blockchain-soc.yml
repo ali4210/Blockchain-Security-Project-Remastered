@@ -1,24 +1,33 @@
 # Blockchain SOC Scrape Targets for Host-Mode Prometheus
+#
+# Reconciled against the live running Prometheus container's actual config
+# (confirmed via its own /api/v1/status/config, not guessed): the real
+# deployment is driven by /srv/devsecops/prometheus/prometheus.yml on the
+# host, outside this repo, and had drifted from what's checked in here --
+# different job names, different target counts, and a dead "cross-node-
+# exporter:9100" target with no DNS record anywhere reachable from this
+# host. This file now matches the real, reachable targets so it stops being
+# stale documentation of infrastructure that no longer exists.
 global:
   scrape_interval: 5s
   evaluation_interval: 5s
 
 scrape_configs:
-  - job_name: "blockchain-soc-agents"
+  - job_name: "prometheus"
     static_configs:
-      - targets: ["localhost:9100"]
-    metrics_path: "/metrics"
+      - targets: ["localhost:9090"]
 
-  - job_name: "blockchain-soc-consensus-avs"
+  - job_name: "node_exporter"
     static_configs:
-      - targets: ["localhost:9101"]
-    metrics_path: "/metrics"
+      # "cross-node-exporter:9100" removed: no DNS record resolves it from
+      # this host (confirmed live: dial tcp: lookup cross-node-exporter on
+      # 8.8.8.8:53: no such host). localhost:9100 and 172.17.0.1:9100 are
+      # both confirmed reachable and serving real node_exporter metrics.
+      - targets: ["localhost:9100", "172.17.0.1:9100"]
 
-  - job_name: "blockchain-soc-rasp"
+  - job_name: "blockchain-soc-metrics"
     static_configs:
-      - targets: ["localhost:9102"]
+      # The real pipeline exporter (scripts/ship-siem-telemetry.py's HTTP
+      # server), confirmed reachable and serving real per-run metrics.
+      - targets: ["172.17.0.1:9101"]
     metrics_path: "/metrics"
-
-  - job_name: "node-exporter"
-    static_configs:
-      - targets: ["localhost:9100"]
