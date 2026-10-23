@@ -69,11 +69,15 @@ def ship_to_elasticsearch(status_data):
     es_url = os.getenv("ELASTICSEARCH_URL", "http://127.0.0.1:9200/blockchain-soc-audit-logs/_doc")
     auth = get_elastic_auth()
     v104 = status_data.get("enterprise_v10_4", {})
-    
+    # Same pattern ingest-granular-siem.py already uses correctly for
+    # blockchain-soc-events: real target from TARGET_CONTRACT, not a fixed string.
+    target_contract = os.getenv("TARGET_CONTRACT", "contracts/solidity/VulnerableVault.sol")
+    target_name = target_contract.split("/")[-1]
+
     doc = {
         "@timestamp": datetime.now(timezone.utc).isoformat(),
         "pipeline_status": "COMPLETED",
-        "contract": "VulnerableVault.sol",
+        "contract": target_name,
         "dread_score": _compute_dread_score(),
         "gitleaks_leaks_count": v104.get("gitleaks", {}).get("findings_count", 0),
         "openscap_status": v104.get("openscap", {}).get("status", "PASS"),
