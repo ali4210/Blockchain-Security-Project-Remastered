@@ -4,14 +4,40 @@ import requests
 from pathlib import Path
 from datetime import datetime, timezone
 
+
+def _vault_jira_secret():
+    """Reads secret/data/soc/jira, same Vault-first convention as the Slack,
+    TheHive and DefectDojo integrations. Returns the secret dict, or None if
+    VAULT_TOKEN isn't set, Vault is unreachable, or the secret doesn't exist
+    -- callers fall back to os.getenv() in that case."""
+    vault_addr = os.getenv("VAULT_ADDR", "http://127.0.0.1:8200")
+    vault_token = os.getenv("VAULT_TOKEN")
+    if not vault_token:
+        return None
+    try:
+        resp = requests.get(
+            f"{vault_addr}/v1/secret/data/soc/jira",
+            headers={"X-Vault-Token": vault_token}, timeout=5,
+        )
+        if resp.status_code == 200:
+            return resp.json().get("data", {}).get("data") or None
+    except Exception:
+        pass
+    return None
+
+
 class JiraIncidentDispatcher:
     """Dispatches automated SEV-1 emergency response tickets to Jira upon critical exploit detection."""
 
     def __init__(self, jira_url: str = None, username: str = None, api_token: str = None, project_key: str = None):
-        self.jira_url = jira_url or os.getenv("JIRA_INSTANCE_URL", "https://saleemalimohammad211126.atlassian.net")
-        self.username = username or os.getenv("JIRA_USER_EMAIL", "saleemali.mohammad@gmail.com")
-        self.api_token = api_token or os.getenv("JIRA_API_TOKEN", "")
-        self.project_key = project_key or os.getenv("JIRA_PROJECT_KEY", "KAN")
+        # Vault (secret/data/soc/jira) first, same as every other credential
+        # in this pipeline; os.getenv() (.env's JIRA_URL/JIRA_USER/JIRA_TOKEN
+        # names) is only a fallback for when Vault itself is unreachable.
+        vault = _vault_jira_secret() or {}
+        self.jira_url = jira_url or vault.get("url") or os.getenv("JIRA_URL", "https://saleemalimohammad211126.atlassian.net")
+        self.username = username or vault.get("user") or os.getenv("JIRA_USER", "saleemali.mohammad@gmail.com")
+        self.api_token = api_token or vault.get("token") or os.getenv("JIRA_TOKEN", "")
+        self.project_key = project_key or vault.get("project_key") or os.getenv("JIRA_PROJECT_KEY", "KAN")
 
     def dispatch_sev1_ticket(
         self,
