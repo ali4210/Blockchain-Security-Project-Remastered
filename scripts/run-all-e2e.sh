@@ -17,11 +17,14 @@ export TARGET_CONTRACT
 
 if [[ "$TARGET_CONTRACT" == *"SecureVault"* ]]; then
     export SECURE="1"
-    TARGET_NAME="SecureVault"
 else
     export SECURE="0"
-    TARGET_NAME="VulnerableVault"
 fi
+# Real contract filename (no .sol), not a binary SecureVault/VulnerableVault
+# guess -- this feeds the Vault-signed attestation message below, and a
+# wrong label there would be a real, cryptographically-signed false claim
+# about which contract this run actually targeted.
+TARGET_NAME="$(basename "$TARGET_CONTRACT" .sol)"
 
 
 echo "========================================================================"
@@ -63,27 +66,54 @@ python3 src/observability/threat_intel.py
 
 echo -e "\n[+] [ZONE 3] Constructing Knowledge Graph & DREAD Scoring..."
 python3 - <<'PYEOF'
+import json
 import os
+from pathlib import Path
 from src.storage.broker_store import BrokerStore
 from src.storage.attack_path_graph import AttackPathGraph
 
-sec_env = os.getenv("SECURE", "0")
+# Real target name and real top finding, read from Zone 2's own SAST report
+# (already written by run-sast-symbolic.py, which runs before this step) --
+# previously this picked between two hardcoded canned findings based on a
+# binary secure/vulnerable guess, with zero real computation regardless of
+# contract or actual scan result.
 target_env = os.getenv("TARGET_CONTRACT", "")
-is_sec = (sec_env == "1") or ("SecureVault" in target_env)
-t_name = "SecureVault" if is_sec else "VulnerableVault"
+t_name = Path(target_env).stem if target_env else "unknown"
+
+IMPACT_RANK = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "INFORMATIONAL": 1, "INFO": 1}
+IMPACT_DREAD = {"CRITICAL": 9.5, "HIGH": 8.0, "MEDIUM": 5.5, "LOW": 3.0, "INFORMATIONAL": 1.0, "INFO": 1.0}
+
+sast_findings = []
+report_path = Path("reports/sast-symbolic-report.json")
+if report_path.is_file():
+    try:
+        sast_findings = json.loads(report_path.read_text()).get("findings", [])
+    except (OSError, ValueError):
+        sast_findings = []
 
 store = BrokerStore('data/broker_store.db')
 graph = AttackPathGraph()
 
 t_id = graph.add_target_node(t_name, target_type='contract')
 
-finding = {
-    'finding_id': 'AUDIT-001' if is_sec else 'FIND-001',
-    'title': 'ChecksEffectsGuarded' if is_sec else 'ReentrancyExternalCall',
-    'severity': 'INFO' if is_sec else 'CRITICAL',
-    'dread_score': 0.0 if is_sec else 8.5,
-    'target_contract': t_name
-}
+if sast_findings:
+    top = max(sast_findings, key=lambda f: IMPACT_RANK.get((f.get("impact") or "").upper(), 0))
+    impact = (top.get("impact") or "INFORMATIONAL").upper()
+    finding = {
+        'finding_id': f"SAST-{top.get('check', 'unknown')}",
+        'title': top.get('check', 'unknown'),
+        'severity': impact,
+        'dread_score': IMPACT_DREAD.get(impact, 0.0),
+        'target_contract': t_name,
+    }
+else:
+    finding = {
+        'finding_id': 'NO-FINDING',
+        'title': 'no-sast-finding-this-run',
+        'severity': 'INFORMATIONAL',
+        'dread_score': 0.0,
+        'target_contract': t_name,
+    }
 
 graph.build_from_findings([finding])
 paths = graph.list_attack_paths()
