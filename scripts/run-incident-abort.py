@@ -16,7 +16,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from src.incident.safe_pause_builder import SafeEmergencyPauseBuilder
 from src.incident.jira_dispatcher import JiraIncidentDispatcher
 from src.forensics.stix_exporter import Stix21BundleExporter
 from src.forensics.evidence_sealer import seal_run_evidence
@@ -70,9 +69,11 @@ def main():
     print(f"\n[+] [ZONE 4] Incident response for {target_name} (incident {incident_id})")
     print(f"    -> top finding: {vuln_title} [{impact}] | pipeline verdict: {verdict.get('verdict', 'UNKNOWN')}")
 
-    # 1. Gnosis Safe emergency pause calldata (real builder)
-    safe_tx = SafeEmergencyPauseBuilder().build_pause_calldata()
-    print(f"    -> Gnosis Safe pause payload: to={safe_tx.get('to')} data={safe_tx.get('data')}")
+    # 1. Gnosis Safe emergency pause -- no real Safe is deployed or configured
+    # anywhere in this project (no Safe address, no Transaction Service URL,
+    # no deployment record), so this doesn't fake a pause payload; it says so.
+    print("    -> Gnosis Safe pause: NOT CONFIGURED for this environment "
+          "(no Safe deployment or Transaction Service URL configured)")
 
     # 2. Seal this run's REAL evidence -> real root digest (changes with content)
     seal = seal_run_evidence(REPO_ROOT, incident_id)
@@ -103,13 +104,20 @@ def main():
     # 4. Jira SEV-1 dispatch — report the REAL result, no fabricated success
     findings_summary = (f"{vuln_title} [{impact}] in {target_name}; "
                         f"pipeline verdict {verdict.get('verdict', 'UNKNOWN')}")
+    # readiness_gate_halted: only true when this run's REAL halt_reasons (not
+    # just the readiness scanner running at all) actually cite the readiness
+    # gate -- it only becomes a halt reason when ENFORCE_READINESS=1 was set.
+    readiness_gate_halted = any("readiness" in r.lower() for r in verdict.get("halt_reasons", []))
     ticket = JiraIncidentDispatcher().dispatch_sev1_ticket(
         incident_id=incident_id, contract=target_name, dread_score=dread,
         findings_summary=findings_summary,
-        safe_pause_payload=safe_tx.get("data"),
+        vuln_title=(tf.get("check") if tf else None),
+        owasp_category=(tf.get("owasp_category") if tf else None),
+        safe_configured=False,
         avs_quorum=bool((_read_json("reports/scanners/avs-consensus.json") or {})
                         .get("supermajority_exploit")),
-        stix_bundle_path=str(stix_path))
+        stix_bundle_path=str(stix_path),
+        readiness_gate_halted=readiness_gate_halted)
     print(f"    -> Jira: status={ticket.get('status')} key={ticket.get('key')}"
           + (f" url={ticket.get('url')}" if ticket.get("url") else " (no live dispatch; recorded locally)"))
 

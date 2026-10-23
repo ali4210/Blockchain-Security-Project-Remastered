@@ -26,6 +26,41 @@ def _vault_jira_secret():
     return None
 
 
+# Concrete, vulnerability-class-specific remediation guidance, keyed by the
+# same SC0x OWASP smart-contract categories run-sast-symbolic.py already
+# assigns (SC01 Reentrancy, SC02 Access Control, SC03 Unprotected
+# Upgrade/Delegatecall). SC10 is that script's catch-all default for anything
+# else, so it has no single fix to recommend -- it falls through to the
+# honest "no specific mapping" text below instead of guessing.
+_REMEDIATION_BY_OWASP = {
+    "SC01": "Apply the checks-effects-interactions pattern (update this contract's "
+            "state before making the external call) and/or add a reentrancy guard "
+            "(e.g. OpenZeppelin ReentrancyGuard / nonReentrant) on the affected function(s).",
+    "SC02": "Add explicit access control (e.g. onlyOwner or role-based modifiers) to "
+            "the affected function(s) so privileged operations cannot be invoked by "
+            "an arbitrary caller.",
+    "SC03": "Restrict the upgrade/delegatecall entry point to a trusted, "
+            "access-controlled admin path (e.g. a timelocked proxy admin) and "
+            "validate the delegatecall target to prevent arbitrary code execution "
+            "in this contract's storage context.",
+}
+
+
+def _remediation_line(vuln_title, owasp_category):
+    """Real, vulnerability-specific guidance for this run's actual top finding,
+    or an honest statement when there's no finding or no mapping to recommend
+    one from -- never generic "review your code" text standing in for either."""
+    if not vuln_title:
+        return "- No vulnerability finding this run -- nothing vulnerability-specific to remediate."
+    code = (owasp_category or "").split(":")[0].strip()
+    specific = _REMEDIATION_BY_OWASP.get(code)
+    if specific:
+        return f"- *{vuln_title}* ({owasp_category}): {specific}"
+    return (f"- *{vuln_title}* has no specific OWASP smart-contract category mapping "
+            f"in this pipeline (category: {owasp_category or 'unclassified'}); manual "
+            f"review of this finding is recommended.")
+
+
 class JiraIncidentDispatcher:
     """Dispatches automated SEV-1 emergency response tickets to Jira upon critical exploit detection."""
 
@@ -46,13 +81,44 @@ class JiraIncidentDispatcher:
         contract: str = None,
         dread_score: float = 8.4,
         findings_summary: str = "High-severity vulnerability confirmed by multi-zone consensus.",
+        vuln_title: str = None,
+        owasp_category: str = None,
+        safe_configured: bool = False,
         safe_pause_payload: str = None,
         avs_quorum: bool = True,
         stix_bundle_path: str = None,
+        readiness_gate_halted: bool = False,
         **kwargs
     ) -> dict:
         target_contract = contract_name or contract or "VulnerableVault.sol"
         summary = f"[SEV-1 AUTO-HALT] Exploitation Prevented on {target_contract} (DREAD {dread_score})"
+
+        # No Gnosis Safe is deployed or configured anywhere in this project
+        # (no Safe address, no Transaction Service URL, no deployment
+        # record) -- SafeEmergencyPauseBuilder's hardcoded to/data/nonce
+        # produced the identical "pause proposed" claim on every ticket
+        # regardless of contract, so that fake claim is never shown; the
+        # ticket states the real absence of a Safe instead.
+        if safe_configured and safe_pause_payload:
+            mitigation_lines = [f"- Gnosis Safe emergency pause proposed: `{safe_pause_payload}`"]
+        else:
+            mitigation_lines = ["- Gnosis Safe pause: NOT CONFIGURED for this environment "
+                                 "(no Safe deployment or Transaction Service URL configured)."]
+
+        # Only claimed when the readiness gate was actually enforced AND it
+        # actually contributed to this run's real halt_reasons -- never
+        # printed as a blanket claim about something that may not have
+        # happened. Correct component name (Zone 9 is the HTML report
+        # layer, not a readiness gate).
+        if readiness_gate_halted:
+            mitigation_lines.append("- Autonomous execution halted deployment at the "
+                                     "production-readiness policy gate "
+                                     "(src/deployment/readiness_policy_gate.py).")
+
+        mitigation_lines.append("- Forensic evidence bundle sealed with a SHA-256 manifest "
+                                 "hash (flat hash over the manifest, not a Merkle tree).")
+        mitigation_lines.append(_remediation_line(vuln_title, owasp_category))
+
         desc = (
             f"*Autonomous Blockchain SOC — Emergency Halt Consensus Event*\n\n"
             f"*Incident ID:* `{incident_id}`\n"
@@ -61,9 +127,7 @@ class JiraIncidentDispatcher:
             f"*AVS Byzantine Consensus:* `{'VERIFIED (100% agreement)' if avs_quorum else 'PENDING'}`\n\n"
             f"h3. Technical Triage & Findings\n{findings_summary}\n\n"
             f"h3. Recommended Immediate Mitigation Actions\n"
-            f"- Gnosis Safe emergency pause proposed: `{safe_pause_payload or 'N/A'}`\n"
-            f"- Autonomous execution halted deployment at Zone 9 deny-by-default readiness gate.\n"
-            f"- Forensic volatile memory state bundle sealed with Merkle verification.\n"
+            + "\n".join(mitigation_lines) + "\n"
         )
         if stix_bundle_path:
             desc += f"\n*STIX 2.1 Threat Indicator Bundle:* `{stix_bundle_path}`\n"
@@ -127,7 +191,8 @@ if __name__ == "__main__":
         contract="VulnerableVault.sol",
         dread_score=8.4,
         findings_summary="Reentrancy exploit path verified via Slither AST and Mythril symbolic solver.",
-        safe_pause_payload="0x8456cb59",
+        vuln_title="reentrancy-eth",
+        owasp_category="SC01: Reentrancy Exploitation",
         avs_quorum=True,
         stix_bundle_path="reports/stix/latest-incident-stix.json"
     )
