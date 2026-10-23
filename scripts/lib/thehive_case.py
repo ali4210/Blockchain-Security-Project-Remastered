@@ -93,12 +93,22 @@ def build_case_payload(evidence):
     }
 
 
+def _ollama_relayer_ip():
+    """The real, currently-configured LangGraph inference host (same
+    OLLAMA_BASE_URL/OLLAMA_HOST precedence as src/agents/swarm_orchestrator.py),
+    not a hardcoded literal duplicated here -- SonarQube correctly flagged the
+    old hardcoded "192.168.0.189" (a real address, but a second, driftable
+    copy of swarm_orchestrator.py's own default) as a hotspot."""
+    host = os.getenv("OLLAMA_BASE_URL", os.getenv("OLLAMA_HOST", "http://192.168.0.189:11434"))
+    return host.split("://")[-1].split(":")[0].split("/")[0]
+
+
 def build_observables(evidence):
     ofac_flag = evidence["ofac_flag"]
     top_finding = evidence["top_finding"]
     observables = [
         {"dataType": "hash", "data": evidence["bundle_hash"], "message": "RFC 3227 STIX 2.1 Bundle SHA-256 Digest", "ioc": True, "tags": ["rfc-3227"]},
-        {"dataType": "ip", "data": "192.168.0.189", "message": "LangGraph 7-Agent Inference Relayer Node", "ioc": False, "tags": ["langgraph"]},
+        {"dataType": "ip", "data": _ollama_relayer_ip(), "message": "LangGraph 7-Agent Inference Relayer Node (OLLAMA_BASE_URL)", "ioc": False, "tags": ["langgraph"]},
         {"dataType": "other", "data": evidence["safe_tx"]["data"], "message": "Gnosis Safe Multi-Sig Pause Calldata (real pause() selector)", "ioc": False, "tags": ["gnosis-safe"]},
     ]
     if ofac_flag:
