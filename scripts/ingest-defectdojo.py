@@ -3,7 +3,13 @@ import os
 import sys
 import requests
 import json
+import tempfile
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from scanner_result import write_result  # noqa: E402
 
 def scanner_ok(name):
     """Only ingest evidence from scanners that really ran in THIS run."""
@@ -27,6 +33,7 @@ DEFECTDOJO_URL = os.getenv("DEFECTDOJO_URL", "http://127.0.0.1:8085")
 DEFECTDOJO_TOKEN = os.environ.get("DEFECTDOJO_TOKEN")
 if not DEFECTDOJO_TOKEN:
     print("[-] [DEFECTDOJO] DEFECTDOJO_TOKEN not set (env or config/.defectdojo.env); skipping ingestion")
+    write_result("defectdojo", "defectdojo", "not_run", detail="no DEFECTDOJO_TOKEN (env or config/.defectdojo.env)")
     sys.exit(0)
 
 HEADERS = {"Authorization": f"Token {DEFECTDOJO_TOKEN}"}
@@ -65,6 +72,170 @@ def upload_scan(engagement_id, scan_type, file_path):
             print(f"[-] [DEFECTDOJO] Import failed for {scan_type} ({res.status_code}): {res.text}")
             return False
 
+def _scanner_json(name):
+    """Read a real reports/scanners/<name>.json result, or None if absent."""
+    p = os.path.join(PROJECT_ROOT, "reports", "scanners", name + ".json")
+    try:
+        return json.load(open(p))
+    except (OSError, ValueError):
+        return None
+
+
+def _severity_label(impact):
+    """Normalize this pipeline's various impact spellings to DefectDojo's
+    Critical/High/Medium/Low/Info severity choices."""
+    s = (impact or "").upper()
+    return {"CRITICAL": "Critical", "HIGH": "High", "MEDIUM": "Medium",
+            "LOW": "Low", "INFORMATIONAL": "Info", "INFO": "Info"}.get(s, "Info")
+
+
+def build_mythril_findings():
+    """Real Mythril findings already present in reports/sast-symbolic-report.json
+    (the same file pipeline-verdict.py reads) -- never uploaded until now
+    because only Slither's SARIF was wired into DefectDojo."""
+    sast_path = os.path.join(PROJECT_ROOT, "reports/sast-symbolic-report.json")
+    if not os.path.isfile(sast_path):
+        return []
+    sast = json.load(open(sast_path))
+    out = []
+    for f in sast.get("findings", []):
+        if f.get("engine") != "Mythril":
+            continue
+        out.append({
+            "title": f"[Mythril] {f.get('check')}",
+            "description": f.get("description") or "",
+            "severity": _severity_label(f.get("impact")),
+            "references": f.get("swc", ""),
+        })
+    return out
+
+
+def build_openscap_findings():
+    """Real failed SCAP rules from the raw results XML. Only ever produces
+    anything on a host where OpenSCAP genuinely scored rules (status == ok);
+    on a platform/profile mismatch (this host) there is nothing to report,
+    same honest gating as every other scanner_ok()-gated upload here."""
+    raw_path = os.path.join(PROJECT_ROOT, "reports/raw/oscap-results.xml")
+    if not os.path.isfile(raw_path):
+        return []
+    out = []
+    try:
+        root = ET.parse(raw_path).getroot()
+        for rr in root.findall(".//{*}rule-result"):
+            if (rr.findtext("{*}result") or "").strip() != "fail":
+                continue
+            rule_id = rr.get("idref", "unknown-rule")
+            out.append({
+                "title": f"[OpenSCAP] {rule_id}",
+                "description": f"SCAP rule {rule_id} failed evaluation.",
+                "severity": "Medium",
+            })
+    except ET.ParseError:
+        pass
+    return out
+
+
+def build_sca_findings():
+    """One summary finding from the real counts in reports/scanners/sca.json
+    (no itemized per-package advisory list exists in this pipeline's output,
+    only aggregate counts -- so that's what gets reported, honestly)."""
+    res = _scanner_json("sca") or {}
+    counts = res.get("counts", {})
+    crit = counts.get("npmAuditCritical", 0)
+    high = counts.get("npmAuditHigh", 0)
+    if crit + high == 0:
+        return []
+    return [{
+        "title": f"npm audit: {crit} critical / {high} high advisories",
+        "description": (f"{counts.get('activeAdvisories', 0)} active advisories across "
+                        f"{counts.get('matchedPackages', 0)} matched package(s)."),
+        "severity": "Critical" if crit else "High",
+    }]
+
+
+def build_sonar_findings():
+    """One summary finding when the real SonarQube quality gate is ERROR."""
+    res = _scanner_json("sonar") or {}
+    if res.get("gate") != "ERROR":
+        return []
+    return [{
+        "title": f"SonarQube quality gate: ERROR ({res.get('project', 'unknown project')})",
+        "description": res.get("detail") or "",
+        "severity": "Medium",
+    }]
+
+
+def build_readiness_findings():
+    """One summary finding when the real production-readiness gate blocks."""
+    res = _scanner_json("readiness") or {}
+    if res.get("decision") != "block":
+        return []
+    return [{
+        "title": "Production readiness gate: BLOCK",
+        "description": res.get("detail") or "",
+        "severity": "High",
+    }]
+
+
+def build_avs_findings():
+    """One finding when the real 3-node AVS consensus confirms an exploit."""
+    res = _scanner_json("avs-consensus") or {}
+    if not res.get("supermajority_exploit"):
+        return []
+    return [{
+        "title": f"AVS consensus: {res.get('final_verdict', 'EXPLOIT_PROVEN')}",
+        "description": res.get("detail") or "",
+        "severity": "Critical",
+    }]
+
+
+def build_swarm_findings():
+    """One finding when the real 7-agent LangGraph swarm confirms a halt."""
+    res = _scanner_json("swarm") or {}
+    if res.get("decision") != "HALT_CONFIRMED":
+        return []
+    return [{
+        "title": f"LangGraph swarm consensus: {res.get('decision')}",
+        "description": res.get("detail") or "",
+        "severity": "High",
+    }]
+
+
+def build_ofac_findings():
+    """One finding per real OFAC SDN match from this run's screening."""
+    p = os.path.join(PROJECT_ROOT, "reports/ofac-screening-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    out = []
+    for row in data.get("screened", []):
+        if not row.get("flagged"):
+            continue
+        out.append({
+            "title": f"OFAC SDN match: {row.get('entity') or 'unknown entity'}",
+            "description": row.get("reason") or "",
+            "severity": "Critical",
+        })
+    return out
+
+
+def upload_generic_findings(engagement_id, name, findings):
+    """Write this run's real findings to DefectDojo's Generic Findings Import
+    endpoint (verified live: scan_type="Generic Findings Import" accepts
+    {"findings": [{"title","description","severity"}, ...]})."""
+    if not findings:
+        print(f"[*] [DEFECTDOJO] {name}: ran ok, nothing to report this run (clean).")
+        return None
+    print(f"[+] [DEFECTDOJO] {name}: {len(findings)} real finding(s) to report via Generic Findings Import...")
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tf:
+        json.dump({"findings": findings}, tf, indent=2)
+        tmp_path = tf.name
+    try:
+        return upload_scan(engagement_id, "Generic Findings Import", tmp_path)
+    finally:
+        os.unlink(tmp_path)
+
+
 def main():
     print(f"[+] [DEFECTDOJO] Connecting to compliance dashboard at {DEFECTDOJO_URL}...")
     try:
@@ -89,16 +260,53 @@ def main():
         if scanner_ok("slither"):
             # Slither's own SARIF (written by run-sast-symbolic.py); never a stale or hand-built file
             results["slither"] = upload_scan(eng_id, "SARIF", os.path.join(PROJECT_ROOT, "reports/sast-symbolic-report.sarif"))
-        skipped = [n for n in ("trivy", "zap", "slither") if n not in results]
+
+        # Generic-findings scanners: real per-run data, built from whatever
+        # reports/scanners/<name>.json (or the raw report it points at) this
+        # run actually produced. A scanner that ran ok but had nothing to
+        # report (e.g. readiness passed, no OFAC match) is "clean", not
+        # "skipped" or "failed" -- those are three different real states.
+        generic_scanners = [
+            ("mythril", build_mythril_findings),
+            ("openscap", build_openscap_findings),
+            ("sca", build_sca_findings),
+            ("sonar", build_sonar_findings),
+            ("readiness", build_readiness_findings),
+            ("avs-consensus", build_avs_findings),
+            ("swarm", build_swarm_findings),
+            ("ofac-screening", build_ofac_findings),
+        ]
+        not_run, clean = [], []
+        for name, builder in generic_scanners:
+            if not scanner_ok(name):
+                not_run.append(name)
+                continue
+            r = upload_generic_findings(eng_id, name, builder())
+            if r is None:
+                clean.append(name)
+            else:
+                results[name] = r
+
+        skipped = [n for n in ("trivy", "zap", "slither") if n not in results] + not_run
         failed = [n for n, ok in results.items() if not ok]
+        if clean:
+            print(f"[*] [DEFECTDOJO] Clean (ran ok, nothing to report): {', '.join(clean)}")
         if skipped:
             print(f"[!] [DEFECTDOJO] Skipped (scanner did not run ok this run): {', '.join(skipped)}")
         if failed:
             print(f"[-] [DEFECTDOJO] Upload FAILED for: {', '.join(failed)}")
+            write_result("defectdojo", "defectdojo", "error",
+                         detail=f"upload failed for: {', '.join(failed)}",
+                         extra={"engagement_id": eng_id})
             sys.exit(1)
         print("[+] [DEFECTDOJO] Ingestion cycle finished (see skipped/failed lines above).")
+        write_result("defectdojo", "defectdojo", "ok",
+                     counts={"uploaded": len(results), "clean": len(clean), "skipped": len(skipped)},
+                     detail=f"uploaded={list(results)}; clean={clean}; skipped={skipped}",
+                     extra={"engagement_id": eng_id})
     except Exception as exc:
         print(f"[-] [DEFECTDOJO] Error communicating with DefectDojo: {exc}")
+        write_result("defectdojo", "defectdojo", "error", detail=f"error communicating with DefectDojo: {exc}")
 
 if __name__ == "__main__":
     main()
