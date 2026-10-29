@@ -235,6 +235,102 @@ def build_sar_findings():
     }]
 
 
+def _consensus_severity(sev):
+    """CRITICAL_FINALITY_VIOLATION / CRITICAL_ATTACK / etc aren't in
+    _severity_label's exact word set, so map on substring instead."""
+    s = (sev or "").upper()
+    if "CRITICAL" in s:
+        return "Critical"
+    if "WARNING" in s or "SUSPECTED" in s or "SHALLOW" in s:
+        return "Medium"
+    return "High"
+
+
+def build_consensus_attack_findings():
+    """One finding per real triggered check from chain_attack_monitor.py's
+    reports/consensus-attack-findings.json (Section A: reorg / concentration /
+    eclipse / selfish-mining, fed from a real forced Anvil reorg)."""
+    p = os.path.join(PROJECT_ROOT, "reports/consensus-attack-findings.json")
+    if not os.path.isfile(p):
+        return []
+    out = []
+    for f in json.load(open(p)):
+        if not f.get("triggered"):
+            continue
+        sev = f.get("severity") or f.get("threat_level") or ""
+        out.append({
+            "title": f"Consensus-attack: {f.get('metric')} triggered",
+            "description": f"observed={f.get('observed_value')} threshold={f.get('threshold')} "
+                           f"{f.get('note', '')}".strip(),
+            "severity": _consensus_severity(sev),
+        })
+    return out
+
+
+def build_flashloan_findings():
+    """One finding per real flash-loan-shape / front-running finding from
+    src/defi/flashloan_detector.py's reports/flashloan-findings.json (Section B)."""
+    p = os.path.join(PROJECT_ROOT, "reports/flashloan-findings.json")
+    if not os.path.isfile(p):
+        return []
+    out = []
+    for t in json.load(open(p)).get("targets", []):
+        for f in t.get("flashloan_findings", []):
+            out.append({"title": f"Flash-loan attack shape: {f.get('function')}()",
+                        "description": f.get("detail", ""), "severity": "High"})
+        for f in t.get("frontrunning_findings", []):
+            out.append({"title": f"Front-running exposure: {f.get('function')}()",
+                        "description": f.get("detail", ""), "severity": "Medium"})
+    return out
+
+
+def build_rugpull_findings():
+    """One finding per real FAILING rug-pull check from
+    src/defi/rugpull_detector.py's reports/rugpull-findings.json (Section C).
+    NOT_APPLICABLE/pass checks are not findings -- only genuine fails are."""
+    p = os.path.join(PROJECT_ROOT, "reports/rugpull-findings.json")
+    if not os.path.isfile(p):
+        return []
+    out = []
+    for t in json.load(open(p)).get("targets", []):
+        for c in t.get("checks", []):
+            if c.get("result") != "fail":
+                continue
+            out.append({"title": f"Rug-pull risk: {c.get('check')}",
+                        "description": c.get("justification", ""), "severity": "High"})
+    return out
+
+
+def build_echidna_findings():
+    """One finding per real FALSIFIED Echidna property from this run's actual
+    reports/echidna-report.json (Section F). A real, fuzzer-found
+    counterexample on the intentionally vulnerable default fixture is an
+    expected result, same honesty bar as avs-consensus/swarm above."""
+    p = os.path.join(PROJECT_ROOT, "reports/echidna-report.json")
+    if not os.path.isfile(p):
+        return []
+    out = []
+    for prop in json.load(open(p)).get("properties", []):
+        if prop.get("passed"):
+            continue
+        out.append({"title": f"Echidna property falsified: {prop.get('name')}",
+                    "description": prop.get("detail", ""), "severity": "High"})
+    return out
+
+
+def build_vyper_findings():
+    """One finding per real reentrancy-shaped finding from this run's actual
+    reports/vyper-check-report.json (Section E)."""
+    p = os.path.join(PROJECT_ROOT, "reports/vyper-check-report.json")
+    if not os.path.isfile(p):
+        return []
+    out = []
+    for f in json.load(open(p)).get("reentrancy_shaped_findings", []):
+        out.append({"title": f"Vyper reentrancy-shaped exposure: {f.get('function')}()",
+                    "description": f.get("detail", ""), "severity": "High"})
+    return out
+
+
 def upload_generic_findings(engagement_id, name, findings):
     """Write this run's real findings to DefectDojo's Generic Findings Import
     endpoint (verified live: scan_type="Generic Findings Import" accepts
@@ -292,6 +388,11 @@ def main():
             ("swarm", build_swarm_findings),
             ("ofac-screening", build_ofac_findings),
             ("sar-draft", build_sar_findings),
+            ("consensus-attack", build_consensus_attack_findings),
+            ("flashloan-detector", build_flashloan_findings),
+            ("rugpull-detector", build_rugpull_findings),
+            ("echidna", build_echidna_findings),
+            ("vyper-check", build_vyper_findings),
         ]
         not_run, clean = [], []
         for name, builder in generic_scanners:

@@ -138,6 +138,8 @@ def export_prometheus_metrics(status_data, es_ok=False):
     trivy_res = _read_json("reports/scanners/trivy.json")
     dsomm_res = _read_json("reports/scanners/dsomm.json")
     k3s_res = _read_json("reports/scanners/k3s.json")
+    slither_res = _read_json("reports/scanners/slither.json")
+    mythril_res = _read_json("reports/scanners/mythril.json")
 
     def _ok(res):
         return 1 if (res and res.get("status") == "ok") else 0
@@ -185,6 +187,24 @@ def export_prometheus_metrics(status_data, es_ok=False):
         "# TYPE blockchain_soc_trivy_vulns gauge",
         f'blockchain_soc_trivy_vulns{{severity="critical"}} {(trivy_res or {}).get("counts", {}).get("critical", 0)}',
         f'blockchain_soc_trivy_vulns{{severity="high"}} {(trivy_res or {}).get("counts", {}).get("high", 0)}',
+        "# HELP blockchain_soc_slither_findings_total Real Slither findings this run "
+        "(sum of reports/scanners/slither.json's real counts, whatever severities are "
+        "actually present -- 0 if slither did not run ok)",
+        "# TYPE blockchain_soc_slither_findings_total gauge",
+        f"blockchain_soc_slither_findings_total {sum((slither_res or {}).get('counts', {}).values())}",
+        "# HELP blockchain_soc_mythril_findings_total Real Mythril findings this run "
+        "(sum of reports/scanners/mythril.json's real counts -- 0 if mythril did not run ok)",
+        "# TYPE blockchain_soc_mythril_findings_total gauge",
+        f"blockchain_soc_mythril_findings_total {sum((mythril_res or {}).get('counts', {}).values())}",
+        "# HELP blockchain_soc_sast_findings_by_severity Real per-severity SAST finding "
+        "counts this run, same tool/severity-labeled pattern as blockchain_soc_trivy_vulns "
+        "-- the real counts in slither.json/mythril.json are severity-keyed, not a flat "
+        "total, so this is the genuinely more useful breakdown alongside the two totals above",
+        "# TYPE blockchain_soc_sast_findings_by_severity gauge",
+        *[f'blockchain_soc_sast_findings_by_severity{{tool="slither",severity="{sev}"}} {n}'
+          for sev, n in (slither_res or {}).get("counts", {}).items()],
+        *[f'blockchain_soc_sast_findings_by_severity{{tool="mythril",severity="{sev}"}} {n}'
+          for sev, n in (mythril_res or {}).get("counts", {}).items()],
         "# HELP blockchain_soc_tool_status Multi-layer enterprise ecosystem status (1=OK/Active, 2=Halt/Tripped, 0=Down or no result this run)",
         "# TYPE blockchain_soc_tool_status gauge",
         *tool_status_lines,
@@ -206,6 +226,50 @@ def export_prometheus_metrics(status_data, es_ok=False):
         f"blockchain_soc_dsomm_activities_total "
         f"{(dsomm_res or {}).get('counts', {}).get('activities_total', 0)}",
     ]
+    # Sections A-C (reorg/concentration/eclipse/selfish-mining, flash-loan/
+    # front-running, rug-pull): real per-run counts, 0 when the scanner did
+    # not run this cycle or genuinely found nothing -- never a fixed value.
+    consensus_res = _read_json("reports/scanners/consensus-attack.json")
+    flashloan_res = _read_json("reports/scanners/flashloan-detector.json")
+    rugpull_res = _read_json("reports/scanners/rugpull-detector.json")
+    hsm_res = _read_json("reports/scanners/hsm-signer.json")
+    quorum_res = _read_json("reports/scanners/quorum-signer.json")
+    vyper_res = _read_json("reports/scanners/vyper-check.json")
+    echidna_res = _read_json("reports/scanners/echidna.json")
+    metrics += [
+        "# HELP blockchain_soc_consensus_attack_checks_triggered Real triggered "
+        "reorg/concentration/eclipse/selfish-mining checks this run (Section A)",
+        "# TYPE blockchain_soc_consensus_attack_checks_triggered gauge",
+        f"blockchain_soc_consensus_attack_checks_triggered "
+        f"{(consensus_res or {}).get('counts', {}).get('triggered', 0)}",
+        "# HELP blockchain_soc_flashloan_findings Real flash-loan-shape + "
+        "front-running findings this run (Section B)",
+        "# TYPE blockchain_soc_flashloan_findings gauge",
+        f'blockchain_soc_flashloan_findings{{kind="flashloan"}} '
+        f"{(flashloan_res or {}).get('counts', {}).get('flashloan_findings', 0)}",
+        f'blockchain_soc_flashloan_findings{{kind="frontrunning"}} '
+        f"{(flashloan_res or {}).get('counts', {}).get('frontrunning_findings', 0)}",
+        "# HELP blockchain_soc_rugpull_failing_checks Real failing rug-pull checks this run (Section C)",
+        "# TYPE blockchain_soc_rugpull_failing_checks gauge",
+        f"blockchain_soc_rugpull_failing_checks "
+        f"{(rugpull_res or {}).get('counts', {}).get('failing_checks', 0)}",
+        "# HELP blockchain_soc_hsm_signer_ok Real SoftHSM2 PKCS#11 round-trip sign+verify status this run (Section D)",
+        "# TYPE blockchain_soc_hsm_signer_ok gauge",
+        f"blockchain_soc_hsm_signer_ok {_ok(hsm_res)}",
+        "# HELP blockchain_soc_quorum_signer_ok Real k-of-n Shamir quorum -> 2-party MPC "
+        "joint-signature sign+verify status this run (Stage 5 third signing layer)",
+        "# TYPE blockchain_soc_quorum_signer_ok gauge",
+        f"blockchain_soc_quorum_signer_ok {_ok(quorum_res)}",
+        "# HELP blockchain_soc_vyper_reentrancy_findings Real Vyper reentrancy-shaped findings this run (Section E)",
+        "# TYPE blockchain_soc_vyper_reentrancy_findings gauge",
+        f"blockchain_soc_vyper_reentrancy_findings "
+        f"{(vyper_res or {}).get('counts', {}).get('reentrancy_shaped_findings', 0)}",
+        "# HELP blockchain_soc_echidna_properties_failing Real falsified Echidna properties this run (Section F)",
+        "# TYPE blockchain_soc_echidna_properties_failing gauge",
+        f"blockchain_soc_echidna_properties_failing "
+        f"{(echidna_res or {}).get('counts', {}).get('properties_failing', 0)}",
+    ]
+
     for sub, data in (dsomm_res or {}).get("subdimensions", {}).items():
         sub_label = sub.replace('"', "")
         metrics.append(f'blockchain_soc_dsomm_level{{subdimension="{sub_label}"}} {data["level"]}')
