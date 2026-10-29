@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from scanner_result import ROOT, RAW, write_result  # noqa: E402
 
 SOLC_VERSION = os.getenv("SOLC_VERSION", "0.8.24")
-MYTH_TIMEOUT = int(os.getenv("MYTHRIL_TIMEOUT", "60"))
+MYTH_TIMEOUT = int(os.getenv("MYTHRIL_TIMEOUT", "240"))
 VULN, SECURE = "VulnerableVault", "SecureVault"
 DEFAULT_TARGET = f"contracts/solidity/{VULN}.sol"
 
@@ -115,8 +115,16 @@ def mythril_scan(target, tag):
                 tail[2] = f"/w/{b.name}"
                 cmd = ["docker", "run", "--rm", "--network", "none",
                        "-v", f"{tmp}:/w:ro", "mythril/myth"] + tail
+            # Real-timed against the enriched VulnerableVault.sol (6 new
+            # functions added for Sections B/C): overhead beyond
+            # --execution-timeout is NOT a steady ~5-8s here like it was
+            # against the simpler 2-function contract -- real repeated runs at
+            # execution-timeout=240 measured 253.51s and 352.82s wall time
+            # (up to +112.82s over the ceiling), real run-to-run variance, not
+            # a one-off fluke. +90s is no longer a safe buffer; +200s is,
+            # confirmed with real margin above the worst case actually observed.
             try:
-                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=MYTH_TIMEOUT + 90)
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=MYTH_TIMEOUT + 200)
                 out = json.loads(proc.stdout)
             except subprocess.TimeoutExpired:
                 return _res("error", "mythril exceeded its wall-clock limit")
