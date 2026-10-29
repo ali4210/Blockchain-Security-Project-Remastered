@@ -33,7 +33,7 @@ class TestAgentAAuditor(unittest.TestCase):
         state = SwarmState(target_contract="contracts/solidity/VulnerableVault.sol")
         purged = []
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
+            with patch("src.agents.agent_a_auditor.chat", return_value="[OFFLINE_FALLBACK] host offline"):
                 next_state = audit_contract_node(state)
 
         self.assertEqual(next_state["current_step"], "agent_a_completed")

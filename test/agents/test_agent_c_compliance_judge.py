@@ -48,7 +48,7 @@ class TestAgentCComplianceJudge(unittest.TestCase):
 
         purged = []
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
+            with patch("src.agents.agent_c_compliance_judge.chat", return_value="[OFFLINE_FALLBACK] host offline"):
                 next_state = compliance_judge_node(state)
 
         self.assertEqual(next_state["current_step"], "agent_c_completed")

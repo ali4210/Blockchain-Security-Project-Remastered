@@ -48,7 +48,7 @@ class TestAgentDRedTeamer(unittest.TestCase):
 
         purged = []
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
+            with patch("src.agents.agent_d_red_teamer.chat", return_value="[OFFLINE_FALLBACK] host offline"):
                 next_state = red_teamer_node(state)
 
         self.assertEqual(next_state["current_step"], "agent_d_completed")

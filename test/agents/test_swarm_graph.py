@@ -1,3 +1,4 @@
+import contextlib
 import unittest
 from unittest.mock import patch
 
@@ -26,9 +27,20 @@ class TestSwarmGraph(unittest.TestCase):
     def test_sequential_graph_execution(self):
         graph = build_graph()
         purged = []
-        with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
-                result = graph.run({"target_contract": "contracts/solidity/VulnerableVault.sol"})
+        agent_modules = [
+            "src.agents.agent_a_auditor",
+            "src.agents.agent_b_threat_hunter",
+            "src.agents.agent_c_compliance_judge",
+            "src.agents.agent_d_red_teamer",
+            "src.agents.agent_e_incident_commander",
+            "src.agents.agent_f_logic_analyzer",
+            "src.agents.agent_g_guardrail",
+        ]
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)))
+            for module in agent_modules:
+                stack.enter_context(patch(f"{module}.chat", return_value="[OFFLINE_FALLBACK] host offline"))
+            result = graph.run({"target_contract": "contracts/solidity/VulnerableVault.sol"})
 
         self.assertEqual(result["current_stage"], "COMPLETED")
         self.assertTrue(result["metadata"].get("agent_a_executed"))

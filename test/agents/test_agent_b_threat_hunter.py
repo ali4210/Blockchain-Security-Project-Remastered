@@ -37,7 +37,7 @@ class TestAgentBThreatHunter(unittest.TestCase):
 
         purged = []
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
+            with patch("src.agents.agent_b_threat_hunter.chat", return_value="[OFFLINE_FALLBACK] host offline"):
                 next_state = threat_hunter_node(state)
 
         self.assertEqual(next_state["current_step"], "agent_b_completed")

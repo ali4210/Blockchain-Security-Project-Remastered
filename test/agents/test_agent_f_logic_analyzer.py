@@ -48,7 +48,7 @@ class TestAgentFLogicAnalyzer(unittest.TestCase):
 
         purged = []
         with patch("src.llm_client.ollama_client.purge_model", side_effect=lambda m: purged.append(m)):
-            with patch("src.llm_client.ollama_client.chat", return_value="[OFFLINE_FALLBACK] host offline"):
+            with patch("src.agents.agent_f_logic_analyzer.chat", return_value="[OFFLINE_FALLBACK] host offline"):
                 next_state = logic_analyzer_node(state)
 
         self.assertEqual(next_state["current_step"], "agent_f_completed")
