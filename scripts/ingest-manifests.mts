@@ -278,16 +278,16 @@ async function validateMove(path: string): Promise<IngestionResult["manifests"][
 }
 
 const EXPECTED_FILE_HASHES = {
-  "package.json": "2b53050204ad0c99e8ebbfa3a16815ca27a6ad9e961a475c2818fdf185904e48",
-  "package-lock.json": "5ae1ce6b1253c0882b05cb5ec7599773fa6939ceb96e5a1573872e4bda70b563",
+  "package.json": "34dbc226472356351304b98c6467c260b6b003c5113c48b2fdf8d9a6d6de06ea",
+  "package-lock.json": "482d8ae664e29091632e0e2d21c7ebf4d8048a0c215bfa05dc3a419c15824aa9",
   "config/foundry.toml": "71c0b047c483a4e0c5aca70b5bc0315a75d2b3d73edd8c86e7c944a2bcb358bf",
   "config/hardhat.config.js": "376c177c094ed304af60ab5746730aa02ad3eabd7facc72ef52315f8f63482c8",
   "config/Move.toml": "52211ca389cb1353cd04c32ba21b2052e62fec320f7de8e4b759ddb4f6671f71",
   "contracts/solidity/DeFiLendingVault.sol": "f3944ffce6755f87b9c7c231c754bad8c723dd8f3381aadb0ba22346f6739b1f",
   "contracts/solidity/PromptInjectionFixture.sol": "17f6fba73823f0ed9c00a9253595cb7249c580fcb4dfc79f1e9b6344c26f47a4",
     "contracts/solidity/StakingRewardsVault.sol": "e3aa8dbc8b51be9fdfc41ddb83309406c753945444164ce8fba346abf481a91e",
-  "contracts/solidity/SecureVault.sol": "817b8d2575e24cd5276fb8414323b0c2f5c22ee538523ca648a5ea9b89adea87",
-  "contracts/solidity/VulnerableVault.sol": "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a",
+  "contracts/solidity/SecureVault.sol": "655971102dc017f5f852007e78d90e368ae34e5c23dafe9924d834ccd467f4ee",
+  "contracts/solidity/VulnerableVault.sol": "22bd44caf4a18d8df4559ed5e72de58e6a18abe477fbdfb4603ad3149f45dcf6",
   "contracts/solidity/RandomTestVault.sol": "b25bd2f3ce7523f608c51955cfd355847f328b094a0cccd1ffe4f36ca7aada83",
 } as const;
 

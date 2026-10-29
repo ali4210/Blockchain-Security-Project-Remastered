@@ -7,7 +7,7 @@ const {
   verifySha256, classifyScanner, classifySmt,
 } = require("./formal-tool-results.cjs");
 
-const FIXTURE_HASH = "31a68c972361a3e537cd9b6107eb4efb7f47b77236958098db61dbefa184354a";
+const FIXTURE_HASH = "22bd44caf4a18d8df4559ed5e72de58e6a18abe477fbdfb4603ad3149f45dcf6";
 const COMPILER_HASH = "fb03a29a517452b9f12bcf459ef37d0a543765bb3bbc911e70a87d6a37c30d5f";
 const MYTHRIL_OUTER_TIMEOUT_MS = 360000;
 const IMAGE = "mythril/myth@sha256:49e11758e359d0b410f648df5bbcba28a52e091a78e4772b5c02b9043666b4ff";
