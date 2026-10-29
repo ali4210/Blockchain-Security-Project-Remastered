@@ -35,6 +35,7 @@ from langgraph.graph import END, StateGraph
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts" / "lib"))
 from scanner_result import ROOT, write_result  # noqa: E402
+from src.agents.swarm_memory import record_run, retrieve_similar  # noqa: E402
 
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", os.getenv("OLLAMA_HOST", "http://192.168.0.189:11434"))
 DEFAULT_MODEL = os.getenv("OLLAMA_MODEL", os.getenv("OLLAMA_DEFAULT_MODEL", "qwen3.5:9b"))
@@ -58,17 +59,24 @@ class AgentState(TypedDict):
     contract_name: str
     contract_source: str
     findings_block: str
+    retrieval_context: str
     swarm_decisions: Annotated[List[Dict[str, Any]], lambda a, b: a + b]
 
 
 def _prompt(role: str, state: AgentState) -> str:
+    # retrieval_context is "" on the honest-degrade path (no embedding model,
+    # empty store, or a failed embedding call) -- the prompt below is then
+    # byte-identical to the pre-RAG version, never a fabricated retrieved
+    # example. See src/agents/swarm_memory.py's module docstring.
+    retrieval_section = f"\n{state['retrieval_context']}\n" if state.get("retrieval_context") else ""
     return (
         f"You are the {role} agent in an automated smart-contract security SOC.\n"
         f"Decide whether deploying this contract must HALT (an exploitable HIGH or "
         f"CRITICAL risk exists) or is CLEAR (no exploitable high/critical risk).\n\n"
         f"CONTRACT: {state['contract_name']}\n"
         f"```solidity\n{state['contract_source']}\n```\n\n"
-        f"STATIC + SYMBOLIC FINDINGS (Slither + Mythril):\n{state['findings_block']}\n\n"
+        f"STATIC + SYMBOLIC FINDINGS (Slither + Mythril):\n{state['findings_block']}\n"
+        f"{retrieval_section}\n"
         f"Respond with EXACTLY one line, nothing else:\n"
         f"VERDICT: HALT | REASON: <one short sentence>\n"
         f"or\n"
@@ -193,9 +201,16 @@ def run_swarm():
                             detail=f"SAST report is for {Path(finding_target).name}, not {name}; "
                                    f"run run-sast-symbolic.py for this target first")
 
+    # Phase 3a RAG: retrieve real similar past cases from this pipeline's own
+    # history (src/agents/swarm_memory.py), once per run, shared by all 7
+    # agents -- never fabricated, never silently skipped without saying so.
+    retrieval_context, rag_retrieval_status = retrieve_similar(source, findings_block)
+    print(f"    -> [RAG] retrieval: {rag_retrieval_status['status']} :: {rag_retrieval_status.get('detail', '')}")
+
     app = build_soc_graph()
     final = app.invoke({"contract_name": name, "contract_source": source,
-                        "findings_block": findings_block, "swarm_decisions": []})
+                        "findings_block": findings_block, "retrieval_context": retrieval_context,
+                        "swarm_decisions": []})
     decisions = final["swarm_decisions"]
 
     halt = sum(1 for d in decisions if d["vote"] == "HALT")
@@ -228,6 +243,16 @@ def run_swarm():
     else:
         status = "error"
 
+    # Phase 3a RAG write-back: only ever store a genuinely completed run --
+    # status=="ok" means a real quorum (majority of 7) actually voted. A
+    # not_run/error run has nothing real worth remembering and is never
+    # written (see src/agents/swarm_memory.py's record_run() docstring for
+    # why embedding failure alone does not also block this).
+    rag_write_status = None
+    if status == "ok":
+        rag_write_status = record_run(name, source, findings_block, decision)
+        print(f"    -> [RAG] store: {rag_write_status['status']} :: {rag_write_status.get('detail', '')}")
+
     report = {
         "target": target,
         "contract": name,
@@ -236,6 +261,7 @@ def run_swarm():
         "votes": {"halt": halt, "clear": clear, "abstain": abstain, "not_run": not_run},
         "decision": decision,
         "agents": decisions,
+        "rag": {"retrieval": rag_retrieval_status, "write": rag_write_status},
     }
     out = ROOT / "reports" / "swarm-execution-report.json"
     out.parent.mkdir(parents=True, exist_ok=True)
