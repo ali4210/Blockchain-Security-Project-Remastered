@@ -44,10 +44,45 @@ echo -e "\n[+] [ZONE 1] Validating Manifest Topologies & Asset Maps..."
 echo -e "\n[+] [ZONE 2] Running Multi-Tier SAST & Symbolic Analysis..."
 python3 scripts/run-sast-symbolic.py
 
+echo -e "\n[+] [ZONE 2] Running Echidna property-based fuzzing..."
+# Section F: real echidna docker run (ghcr.io/crytic/echidna/echidna, same
+# docker-heavy pattern as run-sonar.sh) against test/echidna/VaultEchidnaHarness.sol.
+# A genuine fuzzer-found counterexample on the intentionally vulnerable default
+# fixture is an EXPECTED result, not a pipeline failure -- see run-echidna.sh's
+# own comments. Purely additive -- NOT in pipeline-verdict's REQUIRED list.
+bash scripts/run-echidna.sh
+
+echo -e "\n[+] [ZONE 2] Running Vyper compile + basic static check..."
+# Section E: a real vyper compile (pipx-installed, same pattern as slither/solc)
+# plus one basic, honestly-scoped AST heuristic -- see run-vyper-check.py's own
+# docstring for exactly what is and isn't real here. Purely additive -- NOT in
+# pipeline-verdict's REQUIRED list.
+python3 scripts/run-vyper-check.py
+
+echo -e "\n[+] [ZONE 2] Running flash-loan attack-shape + front-running detection..."
+# Cross-references Stage 2's existing Slither output; adds one lightweight real
+# solc AST call of its own (Slither's JSON has no full AST to reuse -- see
+# flashloan_detector.py's HONEST SCOPE NOTE). Purely additive/informational,
+# like avs-consensus and ofac-screening -- NOT in pipeline-verdict's REQUIRED list.
+python3 src/defi/flashloan_detector.py
+
+echo -e "\n[+] [ZONE 2] Running rug-pull risk-pattern detection..."
+# Purely additive/informational, like avs-consensus and ofac-screening -- NOT in
+# pipeline-verdict's REQUIRED list.
+python3 src/defi/rugpull_detector.py
+
 echo -e "\n[+] [ZONE 2] Running AST String-Literal Masking..."
 ./node_modules/.bin/tsx --no-cache scripts/ast-mask.mts --approved-local-fixture
 
 echo -e "\n[+] [ZONE 2] Running SCA Dependency Verification..."
+# Offline NVD/OSV lookups here depend on ~/.local/state/nvd-mirror/index.sqlite,
+# which this pipeline does NOT build automatically -- building it from scratch
+# means fetching the full NVD/OSV corpora (10+ minutes) and is a one-time/refresh
+# step, not something to run on every hot-path invocation. Before offline SCA
+# lookups will work, run once (and periodically to refresh):
+#   bash scripts/mirror-nvd.sh          # downloads NVD CVE pages to ~/.local/state/nvd-mirror
+#   node scripts/build-offline-index.cjs  # must run AFTER mirror-nvd.sh; builds index.sqlite
+# Without index.sqlite, run-sca.cjs falls back to live NVD/OSV API calls automatically.
 python3 scripts/run-sca-gate.py
 
 ./scripts/run-trivy.sh
@@ -141,6 +176,12 @@ listener = ConsensusNetworkListener()
 listener.register_peer('peer-01', '198.51.100.12', 30303, 13335, 'Geth/v1.14', 24.5)
 print('    -> P2P Peer registered.')
 "
+# Consensus-attack detection: real reorg-depth / validator-concentration / eclipse
+# checks (src/consensus/chain_attack_monitor.py). Purely additive/informational,
+# like avs-consensus and ofac-screening below -- NOT in pipeline-verdict's REQUIRED
+# list, so it cannot regress pipeline HEALTH even if it finds something or errors.
+python3 src/consensus/chain_attack_monitor.py
+
 # Real OFAC SDN screening (writes reports/scanners/ofac-screening.json). Screens
 # TARGET_SCREEN_ADDRESS if set, else a documented demonstration canary.
 python3 scripts/run-ofac-screening.py
@@ -216,6 +257,24 @@ else:
     except Exception as e:
         write_result('vault-sign', 'vault-transit', 'error', detail=str(e)[:120])
 "
+
+echo -e "\n[+] [ZONE 7] PKCS#11 HSM signing (SoftHSM2 -- additional to, not instead of, Vault)..."
+# Section D: a second, independently real signing backend alongside Vault
+# Transit above -- not a replacement. Needs softhsm2 + python3-pkcs11 (apt) and
+# a one-time-per-environment token init; see src/wallet/hsm_signer.py's own
+# docstring for the exact setup commands. Purely additive/informational -- NOT
+# in pipeline-verdict's REQUIRED list.
+python3 src/wallet/hsm_signer.py
+
+echo -e "\n[+] [ZONE 7] k-of-n quorum-approval threshold signing (Shamir -> 2-party MPC)..."
+# Third signing/approval layer over the SAME attestation Vault + HSM just
+# signed: a real 2-of-3 Shamir quorum reconstructs a secret that becomes the
+# master key for a real 2-party MPC joint ECDSA signature (src/wallet/
+# shamir_engine.py + mpc_relayer_cluster.py + mpc_joint_signer.py). Needs a
+# one-time ceremony (scripts/provision-quorum-shares.py) -- never re-run at
+# signing time; see src/wallet/quorum_signer.py's own docstring. Purely
+# additive/informational -- NOT in pipeline-verdict's REQUIRED list.
+python3 src/wallet/quorum_signer.py
 
 # Step 4B & 5B: Zone 4 Incident Abort, Jira Dispatch & Zone 5 STIX 2.1 DFIR Bundle
 python3 scripts/run-incident-abort.py

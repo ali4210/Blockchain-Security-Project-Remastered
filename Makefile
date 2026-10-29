@@ -50,6 +50,13 @@ status-report:
 enterprise-integration:
 	@./scripts/orchestrate-enterprise-integrations.sh
 
+# pipeline-e2e's SCA step (scripts/run-sca-gate.py -> run-sca.cjs) uses an offline
+# NVD/OSV mirror at ~/.local/state/nvd-mirror/index.sqlite when present, built by:
+#   bash scripts/mirror-nvd.sh && node scripts/build-offline-index.cjs
+# (in that order -- the index build reads what the mirror fetch writes). This is
+# deliberately NOT run automatically here: the mirror fetch alone takes 10+ minutes
+# against live NVD/OSV, so it does not belong in the hot pipeline path. Without it,
+# SCA falls back to live API lookups transparently.
 pipeline-e2e: enterprise-integration
 	@bash scripts/run-all-e2e.sh
 
