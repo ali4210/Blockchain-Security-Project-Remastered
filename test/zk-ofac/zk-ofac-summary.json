@@ -1,0 +1,27 @@
+{
+  "status": "standalone-proof-of-pattern",
+  "wired_into_pipeline": false,
+  "note": "Real, working minimal ZK circuit demonstrating the compliance-privacy pattern, not a production-scale compliance ZK system. Not wired into run-all-e2e.sh -- reproducible from the committed circuit/setup source in this directory.",
+  "circuit": {
+    "file": "test/zk-ofac/ofac_clean.circom",
+    "protocol": "groth16",
+    "curve": "bn128",
+    "non_linear_constraints": 239,
+    "linear_constraints": 208,
+    "total_constraints": 447,
+    "public_inputs": 8,
+    "private_inputs": 1,
+    "flagged_set_size": 8,
+    "ptau_source": "locally-generated 2^12 Powers-of-Tau (single toy contribution, no network download)"
+  },
+  "clean_address_proof": {
+    "address_source": "documented clean canary, same as scripts/run-ofac-screening.py",
+    "verification_result": "OK",
+    "address_revealed_in_proof_or_public_signals": false
+  },
+  "flagged_address_proof": {
+    "address_source": "real OFAC SDN snapshot entry (Lazarus Group), same documented canary as scripts/run-ofac-screening.py",
+    "witness_generation_result": "FAILED",
+    "failure_reason": "Assert Failed in template OfacCleanProof -- the hard constraint notFlagged[n] === 1 cannot be satisfied, so no witness and therefore no proof can be computed at all"
+  }
+}
