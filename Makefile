@@ -32,7 +32,7 @@ endif
 --secure:
 	@:
 
-.PHONY: deploy-soc-pipeline test lint status-report pipeline-e2e enterprise-integration pipeline-all gitops-publish argocd-sync dast-scan
+.PHONY: deploy-soc-pipeline test lint status-report pipeline-e2e enterprise-integration pipeline-all gitops-publish argocd-sync dast-scan echidna vyper-check
 
 deploy-soc-pipeline:
 	python3 scripts/deploy-soc-demo.py
@@ -110,6 +110,18 @@ argocd-sync:
 # ----------------------------------------------------------------------
 dast-scan:
 	@./scripts/run-dast.sh
+
+# ----------------------------------------------------------------------
+# Standalone Echidna fuzzing / Vyper check -- same real target resolution
+# (TARGET_CONTRACT / SECURE=1 / CONTRACT=<filename>) as pipeline-all,
+# via the top-level export block above. Both also still run as part of
+# the default run-all-e2e.sh path.
+# ----------------------------------------------------------------------
+echidna:
+	@bash scripts/run-echidna.sh
+
+vyper-check:
+	@python3 scripts/run-vyper-check.py
 
 # ----------------------------------------------------------------------
 # Central Compliance Orchestration - DefectDojo (Port 8085)
