@@ -220,6 +220,13 @@ else:
 # Step 4B & 5B: Zone 4 Incident Abort, Jira Dispatch & Zone 5 STIX 2.1 DFIR Bundle
 python3 scripts/run-incident-abort.py
 
+echo -e "\n[+] [ZONE 5] Draft SAR (Suspicious Activity Report) generation..."
+# Real trigger: only generates a draft when THIS run's reports/verdict.json
+# verdict is genuinely HALT (the same real signal Jira/TheHive above already
+# key off) -- see scripts/generate-sar-draft.py's own HONEST SCOPE note for
+# exactly what real data feeds it and what stays empty rather than fabricated.
+python3 scripts/generate-sar-draft.py
+
 # Stream this run's real verdict/swarm/AVS/OFAC data to Langfuse as one real
 # trace (runs after run-incident-abort.py so the Jira ticket this run
 # produced, if any, is already on disk). Non-fatal: skips cleanly if

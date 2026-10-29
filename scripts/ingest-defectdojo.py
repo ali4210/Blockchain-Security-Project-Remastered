@@ -219,6 +219,22 @@ def build_ofac_findings():
     return out
 
 
+def build_sar_findings():
+    """One finding for the real draft SAR this run produced (only exists when
+    the real pipeline verdict was HALT -- see scripts/generate-sar-draft.py)."""
+    p = os.path.join(PROJECT_ROOT, "reports/sar-draft-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    return [{
+        "title": f"Draft SAR generated: {data.get('report_id')}",
+        "description": (f"{data.get('case_summary')} Status={data.get('status')}, "
+                        f"filing_channel={data.get('filing_channel')} (requires human review "
+                        "before any external filing)."),
+        "severity": "High",
+    }]
+
+
 def upload_generic_findings(engagement_id, name, findings):
     """Write this run's real findings to DefectDojo's Generic Findings Import
     endpoint (verified live: scan_type="Generic Findings Import" accepts
@@ -275,6 +291,7 @@ def main():
             ("avs-consensus", build_avs_findings),
             ("swarm", build_swarm_findings),
             ("ofac-screening", build_ofac_findings),
+            ("sar-draft", build_sar_findings),
         ]
         not_run, clean = [], []
         for name, builder in generic_scanners:

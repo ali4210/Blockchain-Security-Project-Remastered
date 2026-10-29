@@ -263,6 +263,33 @@ function renderTrendSparkline(trend: StatusJsonOutput["trend"]): string {
     </table></div>`;
 }
 
+function renderSarDraftSection(): string {
+  const p = resolve(process.cwd(), "reports/scanners/sar-draft.json");
+  if (!existsSync(p)) {
+    return `<div id="sar-draft" class="section-card"><div class="section-title"><span class="title-icon">${ICON.shield}</span>Draft SAR (Suspicious Activity Report)</div><div class="empty-note">Not run this cycle, or this run's verdict was not HALT (no suspicious-activity case).</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  const draftPath = resolve(process.cwd(), "reports/sar-draft-report.json");
+  const draft = existsSync(draftPath) ? JSON.parse(readFileSync(draftPath, "utf-8")) : null;
+  const typologyRows = (draft?.typologies_detected || [])
+    .map((t: string) => `<tr><td class="mono">${escapeHtml(t)}</td></tr>`)
+    .join("");
+  return `
+    <div id="sar-draft" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.shield}</span>Draft SAR (Suspicious Activity Report)</div>
+      <div class="section-sub">Triggered only when this run's real pipeline verdict was HALT, the same signal Zone 4's Jira/TheHive incident response keys off (<code>src/compliance/sar_generator.py</code>). Stays ${escapeHtml(draft?.status || "DRAFT_PENDING_REVIEW")} / ${escapeHtml(draft?.filing_channel || "LOCAL_STAGING_ONLY")} — nothing here files externally without human review.</div>
+      <div class="infra-row">
+        <div class="infra-name"><span class="infra-dot" style="color:${r.status === "ok" ? TONE_HEX.green : TONE_HEX.red};"></span>${escapeHtml(draft?.report_id || "")}</div>
+        ${badge((r.status || "unknown").toUpperCase(), toneForGateStatus(r.status))}
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Typology Detected</th></tr></thead>
+        <tbody>${typologyRows || `<tr><td class="empty-note">No typologies.</td></tr>`}</tbody>
+      </table></div>
+      <div class="infra-detail" style="text-align:left; max-width:100%;">${escapeHtml(r.detail || "")}</div>
+    </div>`;
+}
+
 export async function generateHtmlReport(statusJsonPath?: string): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const defaultPath = resolve(process.cwd(), "reports/status.json");
@@ -641,6 +668,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       <a href="#charts">Visual Overview</a>
       <a href="#gates">Gate-by-Gate Status</a>
       <a href="#subsystems">AVS / Swarm / Infra</a>
+      <a href="#sar-draft">Draft SAR</a>
       <a href="#wallet">Wallet Simulation</a>
       <a href="#forensics">Forensics &amp; Custody</a>
       <a href="#incidents">Incident Response</a>
@@ -775,6 +803,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       </div>
 
       ${renderDsommSection(dsommResult)}
+      ${renderSarDraftSection()}
 
       <div id="wallet" class="section-card">
         <details class="collapsible" open>
