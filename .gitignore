@@ -35,6 +35,7 @@ artifacts/
 
 # Node / Python / build output
 node_modules/
+crytic-export/
 .venv/
 venv/
 __pycache__/
