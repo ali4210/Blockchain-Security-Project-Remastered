@@ -85,6 +85,60 @@ def main():
                        f"({results['swarm'].get('counts', {}).get('halt', '?')}/"
                        f"{results['swarm'].get('counts', {}).get('agents', '?')} agents)")
 
+    # flashloan-detector / rugpull-detector (src/defi/): both are genuinely
+    # TARGET_CONTRACT-specific (real solc AST per target, verified directly:
+    # VulnerableVault.sol produces 1 flash-loan + 1 front-running finding and
+    # 2 failing rug-pull checks; SecureVault.sol produces zero of either).
+    # Any real non-zero finding count HALTs, same "status==ok + real content
+    # condition" pattern as avs-consensus/swarm above.
+    if results.get("flashloan-detector", {}).get("status") == "ok":
+        n_flash = count("flashloan-detector", "flashloan_findings")
+        n_front = count("flashloan-detector", "frontrunning_findings")
+        if n_flash + n_front > 0:
+            reasons.append(f"flashloan-detector: {n_flash} flash-loan-shape + "
+                           f"{n_front} front-running finding(s)")
+    if results.get("rugpull-detector", {}).get("status") == "ok":
+        n = count("rugpull-detector", "failing_checks")
+        if n > 0:
+            reasons.append(f"rugpull-detector: {n} failing rug-pull check(s)")
+
+    # chain_attack_monitor.py (consensus-attack) is DELIBERATELY NOT gated
+    # here, even though it reports real CRITICAL-level findings on every
+    # single run: verified directly against reports/scanners/consensus-
+    # attack.json, its reorg/concentration/eclipse/selfish-mining checks are
+    # a fixed, scripted single-node Anvil demo scenario (see that module's
+    # own HONEST SCOPE NOTE) that never reads TARGET_CONTRACT at all -- it
+    # fires identically (7/7 checks triggered, all CRITICAL/CRITICAL_ATTACK)
+    # whether the target is VulnerableVault.sol or SecureVault.sol. Gating
+    # on it would HALT every run unconditionally and tell a ship/no-ship
+    # decision nothing about the actual contract under test -- this
+    # exclusion is intentional, not an oversight.
+
+    # Echidna (run-echidna.sh): gate ONLY on
+    # echidna_internal_balance_never_exceeds_contract_eth, the one property
+    # confirmed (by actually running Echidna against both harnesses) to
+    # measure real solvency and pass on both targets today -- a genuine,
+    # currently-dormant safety net, not a vacuous always-pass gate: if a
+    # future contract's checked-math didn't mask an insolvency path, this
+    # would catch it for real.
+    # echidna_withdraw_never_reentered is deliberately EXCLUDED: verified by
+    # actually running Echidna against SecureVaultEchidnaHarness.sol, it
+    # fails there too (real counterexample: fuzzDeposit() -> fuzzAttack(1)),
+    # because neither harness installs a reentrancy mutex -- SecureVault
+    # only fixes the checks-effects-interactions ORDER. The property counts
+    # whether withdraw() was ever recursed into at all, not whether that
+    # recursion was exploitable, so it is structurally guaranteed to fail on
+    # every target regardless of real safety and would make a vacuous
+    # always-HALT gate.
+    echidna_report_path = ROOT / "reports" / "echidna-report.json"
+    if results.get("echidna", {}).get("status") == "ok" and echidna_report_path.is_file():
+        echidna_data = json.loads(echidna_report_path.read_text(encoding="utf-8"))
+        balance_prop = next((p for p in echidna_data.get("properties", [])
+                             if p.get("name") == "echidna_internal_balance_never_exceeds_contract_eth"), None)
+        if balance_prop is not None and not balance_prop.get("passed", True):
+            reasons.append("echidna: echidna_internal_balance_never_exceeds_contract_eth FALSIFIED "
+                           "(real fuzzer-found insolvency counterexample)")
+
     health = "OK" if not health_problems else "FAILED"
     # PASS may only be claimed when everything really ran; otherwise the safe answer is UNKNOWN.
     verdict = "HALT" if reasons else ("PASS" if health == "OK" else "UNKNOWN")
