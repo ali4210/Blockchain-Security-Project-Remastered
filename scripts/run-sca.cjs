@@ -8,29 +8,37 @@ const { verifySha256 } = require("./formal-tool-results.cjs");
 
 const MAX_BODY = 8 * 1024 * 1024;
 const EXPECTED = {
-  "package.json": "2b53050204ad0c99e8ebbfa3a16815ca27a6ad9e961a475c2818fdf185904e48",
-  "package-lock.json": "5ae1ce6b1253c0882b05cb5ec7599773fa6939ceb96e5a1573872e4bda70b563",
+  "package.json": "34dbc226472356351304b98c6467c260b6b003c5113c48b2fdf8d9a6d6de06ea",
+  "package-lock.json": "482d8ae664e29091632e0e2d21c7ebf4d8048a0c215bfa05dc3a419c15824aa9",
   "requirements.txt": "ef5f065c8c5dbfe00b50fd834b5c372b278fb39fb950ed83b8f2493bbfbc7faa",
 };
 
-// --- offline mirrors: loaded once, used to skip live network calls when possible ---
-function loadJSON(file, fallback) {
-  try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch {
-    return fallback;
-  }
-}
+// --- offline mirror: a SQLite index, queried per-CVE/per-advisory instead of loaded
+// whole into memory (the full corpus does not fit in a single JS string) ---
+const Database = require("better-sqlite3");
+
 const NVD_MIRROR_DIR = path.join(os.homedir(), ".local/state/nvd-mirror");
-const OSV_MIRROR_DIR = path.join(os.homedir(), ".local/state/osv-mirror");
-const OFFLINE_NVD = loadJSON(path.join(NVD_MIRROR_DIR, "index.json"), {});
-const OFFLINE_OSV_BY_ID = loadJSON(path.join(OSV_MIRROR_DIR, "index-by-id.json"), {});
-const OFFLINE_AVAILABLE =
-  Object.keys(OFFLINE_NVD).length > 0 || Object.keys(OFFLINE_OSV_BY_ID).length > 0;
+const OFFLINE_DB_PATH = path.join(NVD_MIRROR_DIR, "index.sqlite");
+
+let getCve = null;
+let getOsv = null;
+let nvdCount = 0;
+let osvCount = 0;
+
+try {
+  const offlineDb = new Database(OFFLINE_DB_PATH, { readonly: true, fileMustExist: true });
+  getCve = offlineDb.prepare("SELECT data FROM cves WHERE cve_id = ?");
+  getOsv = offlineDb.prepare("SELECT data FROM osv WHERE id = ?");
+  nvdCount = offlineDb.prepare("SELECT COUNT(*) AS n FROM cves").get().n;
+  osvCount = offlineDb.prepare("SELECT COUNT(*) AS n FROM osv").get().n;
+} catch {
+  // no offline index yet -- fall through to live lookups
+}
+
+const OFFLINE_AVAILABLE = nvdCount > 0 || osvCount > 0;
 if (OFFLINE_AVAILABLE) {
   console.error(
-    `[+] offline mirrors loaded: ${Object.keys(OFFLINE_NVD).length} NVD CVEs, ` +
-    `${Object.keys(OFFLINE_OSV_BY_ID).length} OSV advisories`
+    `[+] offline mirror loaded: ${nvdCount} NVD CVEs, ${osvCount} OSV advisories`
   );
 } else {
   console.error("[!] no offline mirrors found; all lookups will hit the live network");
@@ -75,18 +83,22 @@ function offlineAnswer(url, payload) {
 
   if (url.hostname === "api.osv.dev" && url.pathname.startsWith("/v1/vulns/")) {
     const id = decodeURIComponent(url.pathname.slice("/v1/vulns/".length));
-    if (OFFLINE_OSV_BY_ID[id]) return OFFLINE_OSV_BY_ID[id];
+    const row = getOsv?.get(id);
+    if (row) return JSON.parse(row.data);
     return undefined; // not in mirror -- fall through to live fetch
   }
 
   if (url.hostname === "services.nvd.nist.gov") {
     const ids = url.searchParams.get("cveIds").split(",");
-    const have = ids.filter((id) => OFFLINE_NVD[id]);
-    if (have.length === ids.length) {
+    const records = ids.map((id) => {
+      const row = getCve?.get(id);
+      return row ? JSON.parse(row.data) : undefined;
+    });
+    if (records.every(Boolean)) {
       return {
-        totalResults: have.length,
+        totalResults: records.length,
         startIndex: Number(url.searchParams.get("startIndex")),
-        vulnerabilities: have.map((id) => ({ cve: OFFLINE_NVD[id] })),
+        vulnerabilities: records.map((cve) => ({ cve })),
       };
     }
     return undefined; // some CVEs missing from mirror -- fall through to live fetch
