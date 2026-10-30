@@ -66,6 +66,14 @@ def log_inference_to_mlflow(clf, target_rel, prediction):
 
 def main():
     print("[+] [ZONE 2] ML triage/prioritization scoring (Phase 4c)...")
+    report_file = ROOT / "reports" / "triage-classifier-report.json"
+    # Delete any stale report from a previous successful run FIRST, before any
+    # non-success path can return early -- a prior run's real prediction must
+    # never be left behind to be mistaken for this run's result (same pattern
+    # as run-sast-symbolic.py's sarif_out.unlink(missing_ok=True) for Slither's
+    # SARIF). Only a genuine new success below rewrites it.
+    report_file.unlink(missing_ok=True)
+
     target_path = Path(os.getenv("TARGET_CONTRACT", DEFAULT_TARGET))
     target_path = target_path if target_path.is_absolute() else ROOT / target_path
     if not target_path.is_file():
@@ -122,7 +130,6 @@ def main():
                          "src/ml/feature_extraction.py. This field only records whether Mythril "
                          "itself ran ok this cycle, for human context."),
     }
-    report_file = ROOT / "reports" / "triage-classifier-report.json"
     report_file.parent.mkdir(parents=True, exist_ok=True)
     report_file.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 

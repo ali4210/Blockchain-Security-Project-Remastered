@@ -96,19 +96,47 @@ def _iter_nodes(node: Any):
             yield from _iter_nodes(item)
 
 
+def _supports_base_path(solc_version: str) -> bool:
+    """--base-path/--include-path (needed to resolve node_modules-style
+    imports like @openzeppelin/...) don't exist at all on pre-0.6 solc --
+    confirmed empirically: `solc-0.4.9 --help` and `solc-0.5.0 --help` have
+    no such flags, while `solc-0.8.24 --help` does. SmartBugs-curated's own
+    143 training contracts are all 0.4.x/0.5.0 and self-contained (no
+    imports), so this never needs the flags; a live TARGET_CONTRACT that
+    imports OpenZeppelin (e.g. SecureVault.sol) is always scored against a
+    modern solc (0.8.x by default) that does support them. Gating on the
+    real version avoids crashing the >=1 legacy case that could otherwise
+    hit this function with an unrecognized-flag error."""
+    try:
+        major, minor = (int(p) for p in solc_version.split(".")[:2])
+    except ValueError:
+        return False
+    return (major, minor) >= (0, 6)
+
+
 def get_ast_for_version(target: Path, solc_version: str, root: Path) -> dict:
     """Real solc AST for one contract file, using the solc-select artifact
     binary pinned to solc_version directly -- NOT the global `solc` shim,
     so this never mutates the host's global solc-select version (the
     SmartBugs-curated training set spans 16 distinct 0.4.x/0.5.0 pragmas;
     switching the global version per-call would be a real, if reversible,
-    side effect on a shared tool every other pipeline step also uses)."""
+    side effect on a shared tool every other pipeline step also uses).
+
+    Resolves node_modules-style imports (e.g. @openzeppelin/contracts/...)
+    the same way run-sast-symbolic.py's slither_scan() and
+    src/defi/flashloan_detector.py's own get_ast() already do -- confirmed
+    broken without this: SecureVault.sol's real `import
+    "@openzeppelin/contracts/access/Ownable.sol"` failed AST extraction
+    outright before this fix (live-verified 2026-10-30)."""
     solc_bin = Path.home() / ".solc-select" / "artifacts" / f"solc-{solc_version}" / f"solc-{solc_version}"
     if not solc_bin.is_file():
         raise RuntimeError(f"solc {solc_version} not installed via solc-select at {solc_bin}")
+    cmd = [str(solc_bin), "--combined-json", "ast"]
+    if _supports_base_path(solc_version):
+        cmd += ["--base-path", str(root), "--include-path", str(root / "node_modules")]
+    cmd.append(str(target))
     proc = subprocess.run(
-        [str(solc_bin), "--combined-json", "ast", str(target)],
-        capture_output=True, text=True, timeout=60, cwd=str(root),
+        cmd, capture_output=True, text=True, timeout=60, cwd=str(root),
     )
     if proc.returncode != 0:
         raise RuntimeError(f"solc {solc_version} failed: {proc.stderr.strip()[:300]}")

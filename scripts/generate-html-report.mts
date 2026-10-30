@@ -42,6 +42,27 @@ function toneForGateStatus(status: string): Tone {
   return "gray";
 }
 
+// A section whose real data lives in its own reports/<x>-report.json file
+// (triage-classifier, kyc-screening, gitleaks, ...) must not trust that
+// file's mere existence -- a prior successful run's report can still be
+// sitting on disk after a LATER run's scanner step genuinely failed and
+// correctly declined to write a fresh one. The producer scripts now delete
+// their own stale report on any non-success path, but checking the real
+// scanner_result status here too is a second, independent safeguard against
+// exactly that staleness (confirmed live, 2026-10-30: SecureVault's page
+// showed VulnerableVault's leftover triage-classifier prediction because
+// nothing cross-checked reports/scanners/triage-classifier.json's own
+// "error" status before trusting the old report file).
+function scannerOk(name: string): boolean {
+  const p = resolve(process.cwd(), `reports/scanners/${name}.json`);
+  if (!existsSync(p)) return false;
+  try {
+    return JSON.parse(readFileSync(p, "utf-8")).status === "ok";
+  } catch {
+    return false;
+  }
+}
+
 function toneForVerdict(verdict: string): Tone {
   const v = (verdict || "").toUpperCase();
   if (v === "PASS") return "green";
@@ -357,8 +378,8 @@ function redactSecret(raw: string | null | undefined): string {
 
 function renderGitleaksSection(): string {
   const p = resolve(process.cwd(), "reports/gitleaks-report.json");
-  if (!existsSync(p)) {
-    return `<div id="gitleaks" class="section-card"><div class="section-title"><span class="title-icon">${ICON.lock}</span>Gitleaks Secret/Key Leak Detection</div><div class="empty-note">Not run this cycle.</div></div>`;
+  if (!existsSync(p) || !scannerOk("gitleaks")) {
+    return `<div id="gitleaks" class="section-card"><div class="section-title"><span class="title-icon">${ICON.lock}</span>Gitleaks Secret/Key Leak Detection</div><div class="empty-note">Not run this cycle, or this run's own gitleaks scanner result was not ok -- see reports/scanners/gitleaks.json.</div></div>`;
   }
   const leaks: any[] = JSON.parse(readFileSync(p, "utf-8")) || [];
   const rows = leaks
@@ -385,8 +406,8 @@ function renderGitleaksSection(): string {
 
 function renderKycSection(): string {
   const p = resolve(process.cwd(), "reports/kyc-screening-report.json");
-  if (!existsSync(p)) {
-    return `<div id="kyc-screening" class="section-card"><div class="section-title"><span class="title-icon">${ICON.shield}</span>KYC/AML Name Screening (OpenSanctions)</div><div class="empty-note">Not run this cycle.</div></div>`;
+  if (!existsSync(p) || !scannerOk("kyc-screening")) {
+    return `<div id="kyc-screening" class="section-card"><div class="section-title"><span class="title-icon">${ICON.shield}</span>KYC/AML Name Screening (OpenSanctions)</div><div class="empty-note">Not run this cycle, or this run's own kyc-screening scanner result was not ok -- see reports/scanners/kyc-screening.json.</div></div>`;
   }
   const data = JSON.parse(readFileSync(p, "utf-8"));
   const screened: any[] = data.screened || [];
@@ -429,8 +450,8 @@ function renderKycSection(): string {
 
 function renderTriageClassifierSection(): string {
   const p = resolve(process.cwd(), "reports/triage-classifier-report.json");
-  if (!existsSync(p)) {
-    return `<div id="triage-classifier" class="section-card"><div class="section-title"><span class="title-icon">${ICON.layers}</span>ML Triage / Prioritization Hint (Phase 4c)</div><div class="empty-note">Not run this cycle, or this run's own Slither result was not ok -- see scripts/run-triage-classifier.py's honest-skip conditions.</div></div>`;
+  if (!existsSync(p) || !scannerOk("triage-classifier")) {
+    return `<div id="triage-classifier" class="section-card"><div class="section-title"><span class="title-icon">${ICON.layers}</span>ML Triage / Prioritization Hint (Phase 4c)</div><div class="empty-note">Not run this cycle, or this run's own triage-classifier scanner result was not ok -- see reports/scanners/triage-classifier.json and scripts/run-triage-classifier.py's honest-skip conditions.</div></div>`;
   }
   const data = JSON.parse(readFileSync(p, "utf-8"));
   const probs: Record<string, number> = data.class_probabilities || {};

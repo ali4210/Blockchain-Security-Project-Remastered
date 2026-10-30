@@ -25,6 +25,28 @@ INDEX_NAME = "blockchain-soc-events"
 def get_timestamp():
     return datetime.now(timezone.utc).isoformat()
 
+
+def scanner_ok(name):
+    """A block whose real data lives in its own reports/<x>-report.json file
+    (gitleaks, kyc-screening, triage-classifier) must not trust that file's
+    mere existence -- a prior successful run's report can still be sitting
+    on disk after a LATER run's scanner step genuinely failed and correctly
+    declined to write a fresh one. The producer scripts now delete their own
+    stale report on any non-success path, but checking the real
+    scanner_result status here too is a second, independent safeguard
+    (confirmed live, 2026-10-30: a stale triage-classifier prediction from a
+    VulnerableVault run was shipped into this same ES index tagged with a
+    SecureVault run's pipeline_target, because nothing here cross-checked
+    reports/scanners/triage-classifier.json's own "error" status)."""
+    p = f"reports/scanners/{name}.json"
+    if not os.path.exists(p):
+        return False
+    try:
+        with open(p) as f:
+            return json.load(f).get("status") == "ok"
+    except (OSError, ValueError):
+        return False
+
 def bulk_index_docs(documents):
     if not documents:
         print("[*] No documents collected.")
@@ -66,7 +88,7 @@ def collect_events():
 
     # 1. Zone 1: Gitleaks Individual Leaks
     gl_file = "reports/gitleaks-report.json"
-    if os.path.exists(gl_file):
+    if os.path.exists(gl_file) and scanner_ok("gitleaks"):
         try:
             with open(gl_file) as f:
                 gl_data = json.load(f)
@@ -482,7 +504,7 @@ def collect_events():
     # INCONCLUSIVE is WARN, same severity split DefectDojo already uses
     # (Critical vs Medium) for this same data.
     kyc_file = "reports/kyc-screening-report.json"
-    if os.path.exists(kyc_file):
+    if os.path.exists(kyc_file) and scanner_ok("kyc-screening"):
         try:
             with open(kyc_file) as f:
                 for row in json.load(f).get("screened", []):
@@ -511,7 +533,7 @@ def collect_events():
     # predicted category with no context, same rule as the HTML report and
     # DefectDojo finding for this same data.
     triage_file = "reports/triage-classifier-report.json"
-    if os.path.exists(triage_file):
+    if os.path.exists(triage_file) and scanner_ok("triage-classifier"):
         try:
             with open(triage_file) as f:
                 triage = json.load(f)

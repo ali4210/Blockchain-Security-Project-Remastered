@@ -57,6 +57,12 @@ def targets():
 
 def main():
     print("[+] [COMPLIANCE] OpenSanctions KYC/AML name screening...")
+    report_file = ROOT / "reports" / "kyc-screening-report.json"
+    # Delete any stale report from a previous successful run FIRST, before any
+    # non-success path can return early -- same stale-data fix applied to
+    # run-triage-classifier.py (see its own comment for the full rationale).
+    report_file.unlink(missing_ok=True)
+
     try:
         screener = KycScreener()
     except OpenSanctionsSnapshotUnavailable as exc:
@@ -101,7 +107,6 @@ def main():
         "screened": results,
         "draft_reviews": reviews,
     }
-    report_file = ROOT / "reports" / "kyc-screening-report.json"
     report_file.parent.mkdir(parents=True, exist_ok=True)
     report_file.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
