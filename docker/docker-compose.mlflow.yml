@@ -1,0 +1,37 @@
+# MLflow tracking server for the Phase 4c triage-classifier ML pipeline
+# (scripts/train-triage-classifier.py / scripts/run-triage-classifier.py).
+#
+# No single shared compose file manages this project's other dashboards --
+# verified live: the cross-*/soc-* containers (Grafana, Prometheus,
+# Elasticsearch, Kibana, Jenkins, GitLab, SonarQube, Vault, TheHive) are
+# plain `docker run` instances with zero docker-compose labels, and
+# DefectDojo is its own separate official compose project outside this repo
+# (/home/kali/defectdojo/docker-compose.yml). The one real precedent for a
+# project-owned observability backend living in THIS repo is Langfuse
+# (docker/docker-compose.langfuse.yml, referenced by langfuse-server's own
+# compose labels) -- this file follows that same pattern and naming style.
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.17.2
+    container_name: mlflow
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/data/mlflow.db
+      --default-artifact-root mlflow-artifacts:/
+      --artifacts-destination /mlflow/artifacts
+      --serve-artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  mlflow_data:

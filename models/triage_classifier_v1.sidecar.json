@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-10-30T15:33:21+00:00",
+  "trained_at": "2026-10-30T18:12:57+00:00",
   "n_training_samples": 143,
   "class_distribution": {
     "access_control": 18,
@@ -559,6 +559,11 @@
       0.0125148984913087
     ]
   ],
+  "mlflow_tracking_uri": "http://localhost:5000",
+  "mlflow_run_id": "06452421613742339d2d53498aa13f78",
+  "mlflow_experiment_id": "1",
+  "mlflow_experiment": "triage-classifier-training",
+  "mlflow_run_url": "http://localhost:5000/#/experiments/1/runs/06452421613742339d2d53498aa13f78",
   "honest_caveats": [
     "n=143 across 10 DASP categories; one category (short_addresses) has exactly 1 real example.",
     "LOOCV accuracy/macro-F1 reported above, with a real 95% CI -- treat both as noisy point estimates, not production-grade accuracy.",

@@ -442,6 +442,13 @@ function renderTriageClassifierSection(): string {
       return `<tr><td class="mono dim2 detail-cell">${escapeHtml(cat)}${isTop ? " " + badge("MOST LIKELY", "amber") : ""}</td><td>${miniBar(pct, isTop ? TONE_HEX.amber : TONE_HEX.gray)}</td><td class="dim">${pct}%</td></tr>`;
     })
     .join("");
+  const mlflowLinks = [
+    data.mlflow_training_run_url ? `<a href="${escapeHtml(data.mlflow_training_run_url)}" target="_blank" rel="noopener">Training run (metrics, confusion matrix, feature importances)</a>` : null,
+    data.mlflow_inference_run_url ? `<a href="${escapeHtml(data.mlflow_inference_run_url)}" target="_blank" rel="noopener">This scoring run</a>` : null,
+  ].filter(Boolean).join(" &nbsp;|&nbsp; ");
+  const mlflowNote = mlflowLinks
+    ? `<div class="dim" style="margin-top:8px; font-size:12px;">${ICON.pulse} MLflow (live training/inference history, not a static snapshot): ${mlflowLinks}</div>`
+    : `<div class="dim" style="margin-top:8px; font-size:12px;">MLflow logging was not available when this ran -- see <code>reports/triage-classifier-report.json</code>'s own mlflow_* fields.</div>`;
   return `
     <div id="triage-classifier" class="section-card">
       <div class="section-title"><span class="title-icon">${ICON.layers}</span>ML Triage / Prioritization Hint (Phase 4c)</div>
@@ -450,6 +457,7 @@ function renderTriageClassifierSection(): string {
         <thead><tr><th>DASP category (nearest-match)</th><th>Likelihood</th><th></th></tr></thead>
         <tbody>${rows || `<tr><td colspan="3" class="empty-note">No class probabilities in this run's report.</td></tr>`}</tbody>
       </table></div>
+      ${mlflowNote}
     </div>`;
 }
 

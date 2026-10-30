@@ -21,6 +21,7 @@ Honest status via scanner_result:
 import json
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -31,6 +32,36 @@ from src.ml.triage_classifier import TriageClassifier, TriageModelUnavailable  #
 
 SOLC_VERSION = os.getenv("SOLC_VERSION", "0.8.24")
 DEFAULT_TARGET = "contracts/solidity/VulnerableVault.sol"
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+
+
+def log_inference_to_mlflow(clf, target_rel, prediction):
+    """Real per-scoring-run MLflow logging, additive only -- a down tracking
+    server must never block a real pipeline scan from completing (same
+    posture as scripts/train-triage-classifier.py). Returns the run's real
+    URL on success, None if logging was skipped."""
+    try:
+        import mlflow
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        mlflow.set_experiment("triage-classifier-inference")
+        top3 = sorted(prediction.class_probabilities.items(), key=lambda kv: -kv[1])[:3]
+        with mlflow.start_run(run_name=f"infer-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}") as run:
+            mlflow.log_params({
+                "target_contract": target_rel,
+                "training_run_id": clf.sidecar.get("mlflow_run_id") or "unknown",
+                "model_feature_schema_hash": clf.sidecar.get("feature_schema_hash"),
+                "model_trained_at": clf.sidecar.get("trained_at"),
+            })
+            mlflow.log_metrics({
+                "cv_accuracy_of_scoring_model": prediction.cv_accuracy,
+                "cv_macro_f1_of_scoring_model": prediction.cv_macro_f1,
+                **{f"prob_{cat}": p for cat, p in top3},
+            })
+            mlflow.set_tag("predicted_category", prediction.predicted_category)
+            return f"{MLFLOW_TRACKING_URI}/#/experiments/{run.info.experiment_id}/runs/{run.info.run_id}"
+    except Exception as exc:  # noqa: BLE001
+        print(f"    ! MLflow inference logging skipped ({MLFLOW_TRACKING_URI} unreachable or errored: {exc})")
+        return None
 
 
 def main():
@@ -71,8 +102,11 @@ def main():
     except Exception as exc:  # noqa: BLE001
         return write_result("triage-classifier", "triage-classifier", "error", detail=str(exc)[:300])
 
+    target_rel = str(target_path.relative_to(ROOT))
+    mlflow_inference_url = log_inference_to_mlflow(clf, target_rel, prediction)
+
     report = {
-        "target": str(target_path.relative_to(ROOT)),
+        "target": target_rel,
         "predicted_category": prediction.predicted_category,
         "class_probabilities": prediction.class_probabilities,
         "caveat": prediction.caveat,
@@ -81,6 +115,9 @@ def main():
         "cv_accuracy_95pct_ci": prediction.cv_accuracy_ci,
         "n_training_samples": prediction.n_training_samples,
         "mythril_this_run": mythril_status,
+        "mlflow_tracking_uri": MLFLOW_TRACKING_URI,
+        "mlflow_training_run_url": clf.sidecar.get("mlflow_run_url"),
+        "mlflow_inference_run_url": mlflow_inference_url,
         "mythril_note": ("Mythril is NOT part of this model's training or scoring -- see "
                          "src/ml/feature_extraction.py. This field only records whether Mythril "
                          "itself ran ok this cycle, for human context."),

@@ -28,12 +28,17 @@ Writes:
 import csv
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
+import matplotlib
+matplotlib.use("Agg")  # headless -- this script runs on the Kali host with no display
+import matplotlib.pyplot as plt
+import mlflow
 import sklearn
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
@@ -51,6 +56,45 @@ DATASET_DIR = ROOT / "data" / "smartbugs-curated"
 VERSIONS_CSV = DATASET_DIR / "versions.csv"
 MODELS_DIR = ROOT / "models"
 SOLC_TIMEOUT = 60
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+DATASET_COMMIT = "230e649123477eff332742a59a1c7cc6dc286cab"
+
+
+def plot_confusion_matrix(cm, labels, out_path: Path):
+    """A real matplotlib confusion-matrix heatmap over this run's actual
+    LOOCV predictions -- not a placeholder image."""
+    fig, ax = plt.subplots(figsize=(8, 7))
+    im = ax.imshow(cm, cmap="Blues")
+    ax.set_xticks(range(len(labels)))
+    ax.set_yticks(range(len(labels)))
+    ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
+    ax.set_yticklabels(labels, fontsize=8)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("True")
+    ax.set_title("Triage classifier -- real LOOCV confusion matrix (n=%d)" % sum(sum(r) for r in cm))
+    for i in range(len(labels)):
+        for j in range(len(labels)):
+            if cm[i][j] > 0:
+                ax.text(j, i, str(cm[i][j]), ha="center", va="center",
+                        color="white" if cm[i][j] > (max(max(r) for r in cm) / 2) else "black", fontsize=7)
+    fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=120)
+    plt.close(fig)
+
+
+def plot_feature_importances(importances, out_path: Path):
+    """A real matplotlib bar chart of this run's actual fitted feature
+    importances -- not a placeholder image."""
+    names = [n for n, _ in importances]
+    values = [v for _, v in importances]
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.barh(names[::-1], values[::-1], color="#2563eb")
+    ax.set_xlabel("Importance")
+    ax.set_title("Triage classifier -- real fitted feature importances")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=120)
+    plt.close(fig)
 
 
 def dataset_content_sha256() -> str:
@@ -199,13 +243,68 @@ def main():
         w.writeheader()
         w.writerows(audit_rows)
 
+    cm_path = MODELS_DIR / "triage_confusion_matrix.png"
+    fi_path = MODELS_DIR / "triage_feature_importances.png"
+    plot_confusion_matrix(results[chosen]["confusion_matrix"], results[chosen]["labels"], cm_path)
+    if importances:
+        plot_feature_importances(importances, fi_path)
+    print(f"\n[+] Wrote real plots: {cm_path.name}, {fi_path.name if importances else '(no feature_importances_)'}")
+
+    # MLflow is additive visibility, never a hard dependency for this script's
+    # real job (producing the model/sidecar) -- a tracking server that's down
+    # must not block training, same "informational, not required" posture as
+    # every other dashboard integration in this project.
+    mlflow_run_id = None
+    mlflow_experiment_id = None
+    try:
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        mlflow.set_experiment("triage-classifier-training")
+        with mlflow.start_run(run_name=f"train-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}") as run:
+            mlflow_run_id = run.info.run_id
+            mlflow_experiment_id = run.info.experiment_id
+            mlflow.log_params({
+                "n_training_samples": n,
+                "dataset_source": "https://github.com/smartbugs/smartbugs-curated",
+                "dataset_commit": DATASET_COMMIT,
+                "chosen_model": chosen,
+                "cv_method": "leave-one-out",
+                "feature_schema_version": FEATURE_SCHEMA_VERSION,
+                "sklearn_version": sklearn.__version__,
+                **{f"hparam_{k}": v for k, v in final_clf.get_params().items()},
+            })
+            metrics = {
+                "cv_accuracy": results[chosen]["accuracy"],
+                "cv_macro_f1": results[chosen]["macro_f1"],
+                "cv_accuracy_ci_low": ci[0],
+                "cv_accuracy_ci_high": ci[1],
+                "random_forest_macro_f1": results["random_forest"]["macro_f1"],
+                "gradient_boosting_macro_f1": results["gradient_boosting"]["macro_f1"],
+            }
+            for cls, rep in results[chosen]["report"].items():
+                if isinstance(rep, dict) and "f1-score" in rep:
+                    safe_cls = cls.replace(" ", "_")
+                    metrics[f"class_{safe_cls}_precision"] = rep["precision"]
+                    metrics[f"class_{safe_cls}_recall"] = rep["recall"]
+                    metrics[f"class_{safe_cls}_f1"] = rep["f1-score"]
+            mlflow.log_metrics(metrics)
+            mlflow.log_artifact(str(model_path))
+            mlflow.log_artifact(str(cm_path))
+            if importances:
+                mlflow.log_artifact(str(fi_path))
+            mlflow.log_artifact(str(audit_csv))
+        print(f"\n[+] Logged real MLflow run {mlflow_run_id} to {MLFLOW_TRACKING_URI} "
+              f"(experiment 'triage-classifier-training')")
+    except Exception as exc:  # noqa: BLE001
+        print(f"\n[!] MLflow logging skipped (tracking server at {MLFLOW_TRACKING_URI} unreachable or "
+              f"errored: {exc}) -- the real model/sidecar above were still produced and saved locally.")
+
     sidecar = {
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "n_training_samples": n,
         "class_distribution": dict(Counter(y_arr)),
         "dataset_source": "https://github.com/smartbugs/smartbugs-curated",
         "dataset_license": "Apache-2.0",
-        "dataset_commit_recorded_at_fetch": "230e649123477eff332742a59a1c7cc6dc286cab",
+        "dataset_commit_recorded_at_fetch": DATASET_COMMIT,
         "training_data_sha256": dataset_content_sha256(),
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
         "feature_names": FEATURE_NAMES,
@@ -219,6 +318,12 @@ def main():
                            "labels": v["labels"]} for k, v in results.items()},
         "accuracy_95pct_wilson_ci": list(ci),
         "feature_importances": importances,
+        "mlflow_tracking_uri": MLFLOW_TRACKING_URI,
+        "mlflow_run_id": mlflow_run_id,
+        "mlflow_experiment_id": mlflow_experiment_id,
+        "mlflow_experiment": "triage-classifier-training",
+        "mlflow_run_url": (f"{MLFLOW_TRACKING_URI}/#/experiments/{mlflow_experiment_id}/runs/{mlflow_run_id}"
+                           if mlflow_run_id else None),
         "honest_caveats": [
             "n=143 across 10 DASP categories; one category (short_addresses) has exactly 1 real example.",
             "LOOCV accuracy/macro-F1 reported above, with a real 95% CI -- treat both as noisy point estimates, not production-grade accuracy.",
