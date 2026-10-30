@@ -1,0 +1,568 @@
+{
+  "trained_at": "2026-10-30T15:33:21+00:00",
+  "n_training_samples": 143,
+  "class_distribution": {
+    "access_control": 18,
+    "arithmetic": 15,
+    "bad_randomness": 8,
+    "denial_of_service": 6,
+    "front_running": 4,
+    "other": 3,
+    "reentrancy": 31,
+    "short_addresses": 1,
+    "time_manipulation": 5,
+    "unchecked_low_level_calls": 52
+  },
+  "dataset_source": "https://github.com/smartbugs/smartbugs-curated",
+  "dataset_license": "Apache-2.0",
+  "dataset_commit_recorded_at_fetch": "230e649123477eff332742a59a1c7cc6dc286cab",
+  "training_data_sha256": "9d3f3638eb7ab9bed605950aaacc13142644693c4858571848a68f5ee36b3678",
+  "feature_schema_version": 1,
+  "feature_names": [
+    "slither_total_findings",
+    "slither_high",
+    "slither_medium",
+    "slither_low",
+    "slither_informational",
+    "slither_unique_checks",
+    "function_count",
+    "external_function_count",
+    "payable_function_count",
+    "modifier_def_count",
+    "modifier_use_count",
+    "state_var_count",
+    "external_call_count",
+    "total_function_calls",
+    "cyclomatic_complexity",
+    "source_lines"
+  ],
+  "feature_schema_hash": "f3c9a3c9c01ced91abec3a9b6aeb2c5bf606045a22fb76fb99c1d5799232e722",
+  "chosen_model": "random_forest",
+  "model_params": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": null,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 200,
+    "n_jobs": null,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "sklearn_version": "1.9.1",
+  "cv_method": "leave-one-out",
+  "cv_results": {
+    "random_forest": {
+      "accuracy": 0.6153846153846154,
+      "macro_f1": 0.38938713493426846,
+      "per_class_report": {
+        "access_control": {
+          "precision": 0.375,
+          "recall": 0.3333333333333333,
+          "f1-score": 0.35294117647058826,
+          "support": 18.0
+        },
+        "arithmetic": {
+          "precision": 0.6111111111111112,
+          "recall": 0.7333333333333333,
+          "f1-score": 0.6666666666666666,
+          "support": 15.0
+        },
+        "bad_randomness": {
+          "precision": 0.09090909090909091,
+          "recall": 0.125,
+          "f1-score": 0.10526315789473684,
+          "support": 8.0
+        },
+        "denial_of_service": {
+          "precision": 0.3333333333333333,
+          "recall": 0.5,
+          "f1-score": 0.4,
+          "support": 6.0
+        },
+        "front_running": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 4.0
+        },
+        "other": {
+          "precision": 0.5,
+          "recall": 0.3333333333333333,
+          "f1-score": 0.4,
+          "support": 3.0
+        },
+        "reentrancy": {
+          "precision": 0.8888888888888888,
+          "recall": 0.7741935483870968,
+          "f1-score": 0.8275862068965517,
+          "support": 31.0
+        },
+        "short_addresses": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 1.0
+        },
+        "time_manipulation": {
+          "precision": 0.2857142857142857,
+          "recall": 0.4,
+          "f1-score": 0.3333333333333333,
+          "support": 5.0
+        },
+        "unchecked_low_level_calls": {
+          "precision": 0.851063829787234,
+          "recall": 0.7692307692307693,
+          "f1-score": 0.8080808080808081,
+          "support": 52.0
+        },
+        "accuracy": 0.6153846153846154,
+        "macro avg": {
+          "precision": 0.3936020539743944,
+          "recall": 0.3968424317617866,
+          "f1-score": 0.38938713493426846,
+          "support": 143.0
+        },
+        "weighted avg": {
+          "precision": 0.653030668020997,
+          "recall": 0.6153846153846154,
+          "f1-score": 0.6303292834985335,
+          "support": 143.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          6,
+          2,
+          2,
+          1,
+          1,
+          0,
+          1,
+          1,
+          0,
+          4
+        ],
+        [
+          1,
+          11,
+          1,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0
+        ],
+        [
+          3,
+          0,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          2,
+          3,
+          1,
+          0,
+          24,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          2,
+          1,
+          4,
+          0,
+          1,
+          0,
+          1,
+          0,
+          3,
+          40
+        ]
+      ],
+      "labels": [
+        "access_control",
+        "arithmetic",
+        "bad_randomness",
+        "denial_of_service",
+        "front_running",
+        "other",
+        "reentrancy",
+        "short_addresses",
+        "time_manipulation",
+        "unchecked_low_level_calls"
+      ]
+    },
+    "gradient_boosting": {
+      "accuracy": 0.6083916083916084,
+      "macro_f1": 0.28299548362560784,
+      "per_class_report": {
+        "access_control": {
+          "precision": 0.47619047619047616,
+          "recall": 0.5555555555555556,
+          "f1-score": 0.5128205128205128,
+          "support": 18.0
+        },
+        "arithmetic": {
+          "precision": 0.5555555555555556,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.6060606060606061,
+          "support": 15.0
+        },
+        "bad_randomness": {
+          "precision": 0.1111111111111111,
+          "recall": 0.125,
+          "f1-score": 0.11764705882352941,
+          "support": 8.0
+        },
+        "denial_of_service": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 6.0
+        },
+        "front_running": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 4.0
+        },
+        "other": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 3.0
+        },
+        "reentrancy": {
+          "precision": 0.8387096774193549,
+          "recall": 0.8387096774193549,
+          "f1-score": 0.8387096774193549,
+          "support": 31.0
+        },
+        "short_addresses": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 1.0
+        },
+        "time_manipulation": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 5.0
+        },
+        "unchecked_low_level_calls": {
+          "precision": 0.7407407407407407,
+          "recall": 0.7692307692307693,
+          "f1-score": 0.7547169811320755,
+          "support": 52.0
+        },
+        "accuracy": 0.6083916083916084,
+        "macro avg": {
+          "precision": 0.27223075610172387,
+          "recall": 0.29551626688723465,
+          "f1-score": 0.28299548362560784,
+          "support": 143.0
+        },
+        "weighted avg": {
+          "precision": 0.5756095756095756,
+          "recall": 0.6083916083916084,
+          "f1-score": 0.590965998679262,
+          "support": 143.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          10,
+          2,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5
+        ],
+        [
+          2,
+          10,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1,
+          1,
+          0,
+          0,
+          3
+        ],
+        [
+          3,
+          1,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2
+        ],
+        [
+          0,
+          1,
+          1,
+          0,
+          2,
+          0,
+          26,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2
+        ],
+        [
+          4,
+          0,
+          3,
+          0,
+          0,
+          0,
+          2,
+          0,
+          3,
+          40
+        ]
+      ],
+      "labels": [
+        "access_control",
+        "arithmetic",
+        "bad_randomness",
+        "denial_of_service",
+        "front_running",
+        "other",
+        "reentrancy",
+        "short_addresses",
+        "time_manipulation",
+        "unchecked_low_level_calls"
+      ]
+    }
+  },
+  "accuracy_95pct_wilson_ci": [
+    0.5336183508362926,
+    0.691113605230653
+  ],
+  "feature_importances": [
+    [
+      "total_function_calls",
+      0.11054688341955779
+    ],
+    [
+      "slither_total_findings",
+      0.09491728395201537
+    ],
+    [
+      "source_lines",
+      0.09415059730379997
+    ],
+    [
+      "slither_unique_checks",
+      0.08709033417067334
+    ],
+    [
+      "cyclomatic_complexity",
+      0.07143731820633742
+    ],
+    [
+      "state_var_count",
+      0.06994181312554705
+    ],
+    [
+      "slither_informational",
+      0.06746395990692074
+    ],
+    [
+      "external_call_count",
+      0.06372359464858467
+    ],
+    [
+      "external_function_count",
+      0.061583361785062914
+    ],
+    [
+      "function_count",
+      0.06084264431249734
+    ],
+    [
+      "slither_medium",
+      0.054308882185470926
+    ],
+    [
+      "payable_function_count",
+      0.05228509680699541
+    ],
+    [
+      "slither_high",
+      0.050009843479138325
+    ],
+    [
+      "slither_low",
+      0.032315337239575
+    ],
+    [
+      "modifier_def_count",
+      0.016868150966515123
+    ],
+    [
+      "modifier_use_count",
+      0.0125148984913087
+    ]
+  ],
+  "honest_caveats": [
+    "n=143 across 10 DASP categories; one category (short_addresses) has exactly 1 real example.",
+    "LOOCV accuracy/macro-F1 reported above, with a real 95% CI -- treat both as noisy point estimates, not production-grade accuracy.",
+    "This is a prioritization/triage hint layered on Slither's own findings, not an independent vulnerability classifier.",
+    "Mythril was NOT part of training (see src/ml/feature_extraction.py docstring) -- myth is not installed natively on this host and real symbolic execution over 143 contracts was judged disproportionate to this step's scope."
+  ]
+}

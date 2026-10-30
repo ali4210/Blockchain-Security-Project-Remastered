@@ -344,6 +344,115 @@ function renderFlashLoanSection(): string {
     </div>`;
 }
 
+function redactSecret(raw: string | null | undefined): string {
+  // Real secret values (API tokens, webhook URLs, private keys) come
+  // straight out of gitleaks' own JSON report -- this report HTML may get
+  // archived, printed, or shared, so it must never render them in full.
+  // Keep enough to recognize/triage WHICH secret this is without exposing
+  // the usable value itself.
+  const s = raw || "";
+  if (s.length <= 8) return "*".repeat(s.length);
+  return `${s.slice(0, 4)}${"*".repeat(Math.min(s.length - 8, 20))}${s.slice(-4)}`;
+}
+
+function renderGitleaksSection(): string {
+  const p = resolve(process.cwd(), "reports/gitleaks-report.json");
+  if (!existsSync(p)) {
+    return `<div id="gitleaks" class="section-card"><div class="section-title"><span class="title-icon">${ICON.lock}</span>Gitleaks Secret/Key Leak Detection</div><div class="empty-note">Not run this cycle.</div></div>`;
+  }
+  const leaks: any[] = JSON.parse(readFileSync(p, "utf-8")) || [];
+  const rows = leaks
+    .map(
+      (l: any) => `
+    <tr>
+      <td class="mono dim2 detail-cell">${escapeHtml(l.File)}:${escapeHtml(String(l.StartLine))}</td>
+      <td>${badge(l.RuleID, "red")}</td>
+      <td class="mono">${escapeHtml((l.Entropy ?? 0).toFixed ? l.Entropy.toFixed(2) : String(l.Entropy))}</td>
+      <td class="mono dim detail-cell">${escapeHtml(redactSecret(l.Secret))}</td>
+    </tr>`
+    )
+    .join("");
+  return `
+    <div id="gitleaks" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.lock}</span>Gitleaks Secret/Key Leak Detection</div>
+      <div class="section-sub">${leaks.length} real finding(s) from this run's native <code>gitleaks detect</code> scan of the working tree. Secret values are redacted here (first/last 4 characters only) -- see <code>reports/gitleaks-report.json</code> directly, under appropriate access control, for the full value if remediating.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>File:Line</th><th>Rule</th><th>Entropy</th><th>Secret (redacted)</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="4" class="empty-note">No secrets detected this run.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderKycSection(): string {
+  const p = resolve(process.cwd(), "reports/kyc-screening-report.json");
+  if (!existsSync(p)) {
+    return `<div id="kyc-screening" class="section-card"><div class="section-title"><span class="title-icon">${ICON.shield}</span>KYC/AML Name Screening (OpenSanctions)</div><div class="empty-note">Not run this cycle.</div></div>`;
+  }
+  const data = JSON.parse(readFileSync(p, "utf-8"));
+  const screened: any[] = data.screened || [];
+  const reviews: any[] = data.draft_reviews || [];
+  // draft_reviews is built in run-kyc-screening.py in the same iteration
+  // order as screened's flagged subset (one review per CONFIRMED/INCONCLUSIVE
+  // match, in order) -- zip them back together by that real ordering, not a
+  // shared id (the report carries none).
+  let reviewIdx = 0;
+  const rows = screened
+    .map((row: any) => {
+      const review = row.flagged ? reviews[reviewIdx++] : null;
+      const reviewCell = review
+        ? `${badge(review.status, review.status === "DRAFT_PENDING_REVIEW" ? "amber" : "green")}${review.requires_human_approval ? " " + badge("NEEDS HUMAN", "red") : ""}`
+        : `<span class="dim">n/a</span>`;
+      return `
+    <tr>
+      <td class="mono dim2 detail-cell">${escapeHtml(row.queried_name)}</td>
+      <td>${badge(row.flagged ? "MATCH" : "CLEAN", row.flagged ? "red" : "green")}</td>
+      <td>${badge(row.confidence, row.confidence === "CONFIRMED" ? "red" : row.confidence === "INCONCLUSIVE" ? "amber" : "green")}</td>
+      <td>${reviewCell}</td>
+      <td class="dim detail-cell">${escapeHtml(row.reason || "")}</td>
+    </tr>`;
+    })
+    .join("");
+  const snap = data.snapshot || {};
+  const modeNote = data.mode === "demonstration-canary"
+    ? "DEMONSTRATION canary (no real counterparty in this fixture pipeline)"
+    : "operator-supplied name(s)";
+  return `
+    <div id="kyc-screening" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.shield}</span>KYC/AML Name Screening (OpenSanctions)</div>
+      <div class="section-sub">${escapeHtml(modeNote)}. Screened against the real OpenSanctions sanctions/PEP snapshot (${escapeHtml(String(snap.entity_count ?? "?"))} entities, downloaded ${escapeHtml(snap.downloaded_at || "unknown")}). Any CONFIRMED/INCONCLUSIVE match produces a DraftKycReview requiring human approval -- this module never auto-blocks or auto-clears on its own.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Queried Name</th><th>Status</th><th>Confidence</th><th>Review</th><th>Detail</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="5" class="empty-note">No names screened this run.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderTriageClassifierSection(): string {
+  const p = resolve(process.cwd(), "reports/triage-classifier-report.json");
+  if (!existsSync(p)) {
+    return `<div id="triage-classifier" class="section-card"><div class="section-title"><span class="title-icon">${ICON.layers}</span>ML Triage / Prioritization Hint (Phase 4c)</div><div class="empty-note">Not run this cycle, or this run's own Slither result was not ok -- see scripts/run-triage-classifier.py's honest-skip conditions.</div></div>`;
+  }
+  const data = JSON.parse(readFileSync(p, "utf-8"));
+  const probs: Record<string, number> = data.class_probabilities || {};
+  const rows = Object.entries(probs)
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
+    .map(([cat, prob]) => {
+      const pct = Math.round((prob as number) * 100);
+      const isTop = cat === data.predicted_category;
+      return `<tr><td class="mono dim2 detail-cell">${escapeHtml(cat)}${isTop ? " " + badge("MOST LIKELY", "amber") : ""}</td><td>${miniBar(pct, isTop ? TONE_HEX.amber : TONE_HEX.gray)}</td><td class="dim">${pct}%</td></tr>`;
+    })
+    .join("");
+  return `
+    <div id="triage-classifier" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.layers}</span>ML Triage / Prioritization Hint (Phase 4c)</div>
+      <div class="section-sub"><b>This is a prioritization hint layered on Slither's own findings for <code>${escapeHtml(data.target)}</code> -- it is NOT an independent vulnerability classifier.</b> A real scikit-learn model (<code>models/triage_classifier_v1.joblib</code>), trained on SmartBugs curated's real n=${data.n_training_samples} human-labeled contracts (10 real, badly imbalanced DASP categories -- one with a single training example). Real leave-one-out cross-validated accuracy=${(data.cv_accuracy ?? 0).toFixed(3)} (95% CI [${(data.cv_accuracy_95pct_ci?.[0] ?? 0).toFixed(3)}, ${(data.cv_accuracy_95pct_ci?.[1] ?? 0).toFixed(3)}]), macro-F1=${(data.cv_macro_f1 ?? 0).toFixed(3)}. Treat the category below as "most structurally similar to," not "confirmed as." Mythril ran ${escapeHtml(data.mythril_this_run || "unknown")} this cycle but is not part of this model's training or scoring.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>DASP category (nearest-match)</th><th>Likelihood</th><th></th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="3" class="empty-note">No class probabilities in this run's report.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
 function renderRugpullSection(): string {
   const p = resolve(process.cwd(), "reports/rugpull-findings.json");
   if (!existsSync(p)) {
@@ -920,6 +1029,9 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       <a href="#subsystems">AVS / Swarm / Infra</a>
       <a href="#consensus-attack">Consensus-Attack Detection</a>
       <a href="#flashloan">Flash-Loan / Front-Running</a>
+      <a href="#gitleaks">Gitleaks Secret Scan</a>
+      <a href="#kyc-screening">KYC/AML Screening</a>
+      <a href="#triage-classifier">ML Triage Hint</a>
       <a href="#rugpull">Rug-Pull Detection</a>
       <a href="#hsm">SoftHSM2 Signing</a>
       <a href="#quorum-signing">Quorum Threshold Signing</a>
@@ -1065,6 +1177,12 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
 
       ${renderConsensusAttackSection()}
       ${renderFlashLoanSection()}
+
+      ${renderGitleaksSection()}
+
+      ${renderKycSection()}
+
+      ${renderTriageClassifierSection()}
       ${renderRugpullSection()}
       ${renderHsmSection()}
       ${renderQuorumSigningSection()}

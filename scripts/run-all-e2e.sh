@@ -44,6 +44,18 @@ echo -e "\n[+] [ZONE 1] Validating Manifest Topologies & Asset Maps..."
 echo -e "\n[+] [ZONE 2] Running Multi-Tier SAST & Symbolic Analysis..."
 python3 scripts/run-sast-symbolic.py
 
+echo -e "\n[+] [ZONE 2] Running ML triage/prioritization scoring (Phase 4c)..."
+# Real scikit-learn classifier (models/triage_classifier_v1.joblib), trained on
+# SmartBugs curated's real 143 human-labeled contracts -- see
+# scripts/train-triage-classifier.py and src/ml/feature_extraction.py's own
+# docstrings for the full honest-scope writeup. Depends on this run's own
+# Slither result above (reports/raw/slither-<tag>.json), so it must run after
+# run-sast-symbolic.py. Purely additive/informational, like avs-consensus and
+# ofac-screening -- NOT in pipeline-verdict's REQUIRED list, and it is a
+# prioritization hint layered on Slither's findings, never an independent
+# vulnerability classifier.
+python3 scripts/run-triage-classifier.py
+
 echo -e "\n[+] [ZONE 2] Running Echidna property-based fuzzing..."
 # Section F: real echidna docker run (ghcr.io/crytic/echidna/echidna, same
 # docker-heavy pattern as run-sonar.sh) against test/echidna/VaultEchidnaHarness.sol.

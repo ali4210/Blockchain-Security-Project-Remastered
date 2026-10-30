@@ -475,6 +475,61 @@ def collect_events():
         except Exception as e:
             print(f"[!] Parsing {ofac_file}: {e}")
 
+    # 16b. kyc-screening -- one real event per genuinely FLAGGED name from this
+    # run's actual OpenSanctions screening (same convention as
+    # ingest-defectdojo.py's build_kyc_findings: CONFIRMED and INCONCLUSIVE
+    # both surface here, never a clean NO_MATCH). CONFIRMED is ERROR;
+    # INCONCLUSIVE is WARN, same severity split DefectDojo already uses
+    # (Critical vs Medium) for this same data.
+    kyc_file = "reports/kyc-screening-report.json"
+    if os.path.exists(kyc_file):
+        try:
+            with open(kyc_file) as f:
+                for row in json.load(f).get("screened", []):
+                    if not row.get("flagged"):
+                        continue
+                    events.append({
+                        "@timestamp": ts, "event_category": "kyc-screening", "event_kind": "alert",
+                        "log_level": "ERROR" if row.get("confidence") == "CONFIRMED" else "WARN",
+                        "pipeline_run_id": run_id, "pipeline_target": target_name,
+                        "tool_name": "opensanctions-kyc", "screened_name": row.get("queried_name"),
+                        "match_confidence": row.get("confidence"),
+                        "message": f"OpenSanctions KYC match ({row.get('confidence')}): "
+                                   f"{row.get('entity') or 'unknown entity'} ({row.get('reason', '')})"
+                    })
+        except Exception as e:
+            print(f"[!] Parsing {kyc_file}: {e}")
+
+    # 16c. triage-classifier (Phase 4c) -- one real event per successful run's
+    # actual ML triage score. Unlike ofac/kyc screening above, there is no
+    # "clean" state to filter on here: every successful run produces a real
+    # prediction, so this uses "event" (always-emit telemetry, same shape as
+    # the ai-swarm/avs-consensus blocks above), not "alert" -- log_level stays
+    # INFO regardless of predicted_category, since inflating it to WARN/ERROR
+    # would fabricate urgency this n=143, accuracy=0.615 model cannot honestly
+    # claim. The real CV caveat is always inlined into message -- never a bare
+    # predicted category with no context, same rule as the HTML report and
+    # DefectDojo finding for this same data.
+    triage_file = "reports/triage-classifier-report.json"
+    if os.path.exists(triage_file):
+        try:
+            with open(triage_file) as f:
+                triage = json.load(f)
+                probs = triage.get("class_probabilities", {})
+                top3 = sorted(probs.items(), key=lambda kv: -kv[1])[:3]
+                top3_str = ", ".join(f"{k}={v:.2f}" for k, v in top3)
+                events.append({
+                    "@timestamp": ts, "event_category": "triage-classifier", "event_kind": "event",
+                    "log_level": "INFO", "pipeline_run_id": run_id, "pipeline_target": target_name,
+                    "tool_name": "ml-triage-classifier", "predicted_category": triage.get("predicted_category"),
+                    "cv_accuracy": triage.get("cv_accuracy"), "cv_macro_f1": triage.get("cv_macro_f1"),
+                    "n_training_samples": triage.get("n_training_samples"),
+                    "message": f"ML triage hint: {triage.get('predicted_category')} (top-3: {top3_str}). "
+                               f"{triage.get('caveat', '')}"
+                })
+        except Exception as e:
+            print(f"[!] Parsing {triage_file}: {e}")
+
     # 17-21. Infra/attestation checks (vault-signing, k8s-k3s, wallet-presign,
     # llm-langfuse, hsm-signing, quorum-signing): these have no per-item
     # findings list -- a single real status IS the signal. A real FAILURE is

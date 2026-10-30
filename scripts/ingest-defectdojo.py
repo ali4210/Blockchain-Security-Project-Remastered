@@ -307,6 +307,25 @@ def build_flashloan_findings():
     return out
 
 
+def build_triage_findings():
+    """One informational finding per real triage/prioritization score from
+    this run's scripts/run-triage-classifier.py (Phase 4c) -- ALWAYS includes
+    the real n=143 LOOCV accuracy/macro-F1 caveat inline; this is a
+    prioritization hint layered on Slither's own findings, never rendered as
+    a bare number and never called an independent vulnerability classifier."""
+    p = os.path.join(PROJECT_ROOT, "reports/triage-classifier-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    top3 = sorted(data.get("class_probabilities", {}).items(), key=lambda kv: -kv[1])[:3]
+    top3_str = ", ".join(f"{k}={v:.2f}" for k, v in top3)
+    return [{
+        "title": f"ML triage hint: {data.get('predicted_category')} (most-similar DASP category)",
+        "description": f"Top-3 category likelihoods: {top3_str}. {data.get('caveat', '')}",
+        "severity": "Info",
+    }]
+
+
 def build_rugpull_findings():
     """One finding per real FAILING rug-pull check from
     src/defi/rugpull_detector.py's reports/rugpull-findings.json (Section C).
@@ -414,6 +433,7 @@ def main():
             ("sar-draft", build_sar_findings),
             ("consensus-attack", build_consensus_attack_findings),
             ("flashloan-detector", build_flashloan_findings),
+            ("triage-classifier", build_triage_findings),
             ("rugpull-detector", build_rugpull_findings),
             ("echidna", build_echidna_findings),
             ("vyper-check", build_vyper_findings),
