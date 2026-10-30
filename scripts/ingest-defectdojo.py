@@ -219,6 +219,29 @@ def build_ofac_findings():
     return out
 
 
+def build_kyc_findings():
+    """One finding per real OpenSanctions sanctions/PEP match from this run's
+    KYC name screening (CONFIRMED and INCONCLUSIVE both surface here -- an
+    INCONCLUSIVE match is exactly the ambiguous case a reviewer needs to see,
+    not one to quietly drop)."""
+    p = os.path.join(PROJECT_ROOT, "reports/kyc-screening-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    out = []
+    for row in data.get("screened", []):
+        if not row.get("flagged"):
+            continue
+        severity = "Critical" if row.get("confidence") == "CONFIRMED" else "Medium"
+        out.append({
+            "title": f"OpenSanctions KYC match ({row.get('confidence')}): "
+                     f"{row.get('entity') or 'unknown entity'}",
+            "description": row.get("reason") or "",
+            "severity": severity,
+        })
+    return out
+
+
 def build_sar_findings():
     """One finding for the real draft SAR this run produced (only exists when
     the real pipeline verdict was HALT -- see scripts/generate-sar-draft.py)."""
@@ -387,6 +410,7 @@ def main():
             ("avs-consensus", build_avs_findings),
             ("swarm", build_swarm_findings),
             ("ofac-screening", build_ofac_findings),
+            ("kyc-screening", build_kyc_findings),
             ("sar-draft", build_sar_findings),
             ("consensus-attack", build_consensus_attack_findings),
             ("flashloan-detector", build_flashloan_findings),

@@ -159,6 +159,7 @@ function buildRealStatus(root: string, commitSha: string): StatusJsonOutput {
   const verdict = readJsonSafe(root, "reports/verdict.json") || {};
   const sast = readJsonSafe(root, "reports/sast-symbolic-report.json");
   const ofac = readJsonSafe(root, "reports/ofac-screening-report.json");
+  const kyc = readJsonSafe(root, "reports/kyc-screening-report.json");
   const avs = readJsonSafe(root, "reports/avs-consensus-report.json");
   const swarmScanner = readJsonSafe(root, "reports/scanners/swarm.json");
   const presign = readJsonSafe(root, "reports/scanners/presign-sim.json");
@@ -196,6 +197,25 @@ function buildRealStatus(root: string, commitSha: string): StatusJsonOutput {
       description: row.reason || `${row.address} matched the OFAC SDN list.`,
       target: row.address,
       status: "VERIFIED",
+    });
+  });
+
+  // Real OpenSanctions KYC/AML name matches (CONFIRMED and INCONCLUSIVE both
+  // surface -- an INCONCLUSIVE match is the ambiguous case a human reviewer
+  // needs to see, not one to quietly drop). Never auto-gates anything; see
+  // src/compliance/kyc_verifier.py's DraftKycReview, which is the real HITL
+  // artifact for whichever human handles this finding.
+  (kyc?.screened || []).forEach((row: any, i: number) => {
+    if (!row.flagged) return;
+    findings.push({
+      id: `FIND-KYC-${String(i + 1).padStart(3, "0")}`,
+      rule_id: row.confidence === "CONFIRMED" ? "RULE-KYC-SANCTIONS-MATCH" : "RULE-KYC-SANCTIONS-AMBIGUOUS",
+      zone: "ZONE_8_COMPLIANCE",
+      severity: row.confidence === "CONFIRMED" ? "CRITICAL" : "MEDIUM",
+      title: `${row.confidence === "CONFIRMED" ? "Sanctioned/PEP name match" : "Ambiguous sanctions/PEP match"}: ${row.entity || "unknown entity"}`,
+      description: row.reason || `${row.queried_name} matched the OpenSanctions sanctions/PEP snapshot.`,
+      target: row.queried_name,
+      status: row.confidence === "CONFIRMED" ? "VERIFIED" : "OPEN",
     });
   });
 

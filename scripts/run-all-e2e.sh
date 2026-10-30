@@ -186,6 +186,13 @@ python3 src/consensus/chain_attack_monitor.py
 # TARGET_SCREEN_ADDRESS if set, else a documented demonstration canary.
 python3 scripts/run-ofac-screening.py
 
+# Real OpenSanctions KYC/AML name screening (writes reports/scanners/kyc-screening.json).
+# Screens TARGET_SCREEN_NAME if set, else a documented demonstration canary.
+# Same purely additive/informational posture as ofac-screening above -- NOT in
+# pipeline-verdict's REQUIRED list, and any flagged match only produces a
+# DraftKycReview for human review, never an auto-gate.
+python3 scripts/run-kyc-screening.py
+
 # Verdict is computed here: after every REQUIRED Zone 2 scanner (slither,
 # mythril, sast-canary, trivy, zap, sca, openscap, sonar, readiness) AND after
 # the real AVS consensus / LangGraph swarm signals it also reads, but BEFORE
