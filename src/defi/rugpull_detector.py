@@ -43,10 +43,27 @@ from scanner_result import ROOT, write_result  # noqa: E402
 from src.defi.flashloan_detector import get_ast, _iter_nodes, _collect_text, _function_defs, _param_names  # noqa: E402
 
 MINT_NAME_RE = re.compile(r"^mint", re.I)
+# "onlyowner" already matches OpenZeppelin's real Ownable modifier name
+# byte-for-byte (case-insensitive) -- confirmed empirically (Phase 4a): a
+# contract that does `contract X is Ownable { ... onlyOwner ... }` shows
+# "onlyOwner" in its own AST (the modifier reference lives in the
+# INHERITING contract's own function), so this already recognized real OZ
+# usage before any change here.
 OWNER_MODIFIER_RE = re.compile(r"onlyowner|onlyadmin|restricted|onlygovernance", re.I)
 OWNER_CHECK_RE = re.compile(r"owner", re.I)
 CAP_RE = re.compile(r"cap|maxsupply|totalsupply", re.I)
 RENOUNCE_RE = re.compile(r"renounceownership|renounce", re.I)
+# Confirmed empirically (Phase 4a) the opposite is NOT already covered:
+# `contract X is Ownable` shows "Ownable" in X's own AST (the inheritance
+# specifier's own name), but NOT "renounce" -- that function's declaration
+# lives in Ownable.sol's own, separate AST, which get_ast() now correctly
+# excludes (see that function's own bugfix note). A contract that merely
+# inherits Ownable/Ownable2Step genuinely DOES get a real, callable
+# renounceOwnership() once deployed, even though the word never appears in
+# its own file -- OWNABLE_INHERITANCE_RE makes that real capability count
+# as a real renounce path, the same way OWNER_MODIFIER_RE already does for
+# onlyOwner, rather than leaving this check blind to real OZ adoption.
+OWNABLE_INHERITANCE_RE = re.compile(r"\bownable2step\b|\bownable\b", re.I)
 TIMELOCK_RE = re.compile(r"timelock|delay|scheduledat|executeafter|executionwindow", re.I)
 LIQUIDITY_RE = re.compile(r"liquidity|\blp\b|addliquidity|removeliquidity", re.I)
 LOCK_RE = re.compile(r"\block\b|vesting|unlocktime|locked_until", re.I)
@@ -101,7 +118,7 @@ def check_ownership_protection(functions, contract_text):
                 "justification": "no function in this contract actually enforces an owner/admin "
                                  "check (an unused 'owner' variable, if declared, is not an "
                                  "enforced privilege and has nothing to renounce or time-lock)"}
-    has_renounce = bool(RENOUNCE_RE.search(contract_text))
+    has_renounce = bool(RENOUNCE_RE.search(contract_text)) or bool(OWNABLE_INHERITANCE_RE.search(contract_text))
     has_timelock = bool(TIMELOCK_RE.search(contract_text))
     if has_renounce or has_timelock:
         return {"check": "missing_ownership_protection", "result": "pass",

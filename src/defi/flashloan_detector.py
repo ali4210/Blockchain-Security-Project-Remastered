@@ -62,17 +62,50 @@ def _solc():
 
 def get_ast(target: Path):
     """Real solc AST for one contract file, via --combined-json ast (one process
-    call; not a Slither re-run, see HONEST SCOPE NOTE above)."""
+    call; not a Slither re-run, see HONEST SCOPE NOTE above).
+
+    REAL BUG FOUND AND FIXED (Phase 4a, verified empirically before any
+    contract migration): a target that imports e.g.
+    "@openzeppelin/contracts/access/Ownable.sol" failed outright without
+    --base-path/--include-path (plain solc does not do node_modules
+    resolution on its own) -- AND, once resolution is fixed,
+    data["sources"] gains one entry per real imported file (confirmed:
+    Ownable.sol, Context.sol, ... all appear as separate keys), so blindly
+    taking `next(iter(data["sources"]))` silently returned an IMPORTED
+    file's AST instead of the target's own whenever imports existed --
+    not an error, just silently wrong analysis. Fixed by resolving
+    node_modules (harmless no-op for a target with no imports) and
+    selecting the target's own entry by its real key instead of
+    positional order.
+    """
     solc = _solc()
     if not Path(solc).exists():
         raise RuntimeError("solc not found")
-    proc = subprocess.run([solc, "--combined-json", "ast", str(target)],
-                          capture_output=True, text=True, timeout=60)
+    proc = subprocess.run([solc, "--combined-json", "ast",
+                          "--base-path", str(ROOT), "--include-path", str(ROOT / "node_modules"),
+                          str(target)],
+                          capture_output=True, text=True, timeout=60, cwd=str(ROOT))
     if proc.returncode != 0:
         raise RuntimeError(f"solc failed: {proc.stderr.strip()[:300]}")
     data = json.loads(proc.stdout)
-    key = next(iter(data["sources"]))
-    return data["sources"][key]["AST"]
+    sources = data["sources"]
+    target_key = str(target)
+    if target_key not in sources:
+        # solc echoes back whatever path string was passed on the command
+        # line as the key; try the most common alternate shape (relative
+        # to ROOT) before falling back to the old, honestly-labelled
+        # best-effort behavior rather than silently guessing.
+        try:
+            rel_key = str(Path(target).resolve().relative_to(ROOT))
+        except ValueError:
+            rel_key = None
+        if rel_key in sources:
+            target_key = rel_key
+        else:
+            raise RuntimeError(f"get_ast(): target {target_key!r} not found in solc's own "
+                               f"sources keys {sorted(sources)} -- refusing to guess which "
+                               f"AST is the real target's")
+    return sources[target_key]["AST"]
 
 
 def _iter_nodes(node):

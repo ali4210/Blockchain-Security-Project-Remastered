@@ -8,8 +8,8 @@ const { verifySha256 } = require("./formal-tool-results.cjs");
 
 const MAX_BODY = 8 * 1024 * 1024;
 const EXPECTED = {
-  "package.json": "34dbc226472356351304b98c6467c260b6b003c5113c48b2fdf8d9a6d6de06ea",
-  "package-lock.json": "482d8ae664e29091632e0e2d21c7ebf4d8048a0c215bfa05dc3a419c15824aa9",
+  "package.json": "11bf2cba629b33dfb26f57c442112b1cccd63ee081e72c6135fdf28e87abc1ed",
+  "package-lock.json": "5297968c263e4d74ac40ef9305b7e4d4d9d69a4db3591593b58bb7602af57ca8",
   "requirements.txt": "ef5f065c8c5dbfe00b50fd834b5c372b278fb39fb950ed83b8f2493bbfbc7faa",
 };
 

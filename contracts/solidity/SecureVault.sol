@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 /// @title SecureVault
 /// @notice Same interface as VulnerableVault, but with the reentrancy flaw fixed.
 /// @dev Fix: checks-effects-interactions — the balance is decremented BEFORE the
 ///      external call, so a reentrant call sees an already-updated (zero/lower)
-///      balance and `require` rejects it. No external imports needed for this.
-contract SecureVault {
+///      balance and `require` rejects it.
+/// @dev Phase 4a: owner/access-control now uses OpenZeppelin's real, audited
+///      Ownable instead of a hand-rolled `owner` variable + manual require --
+///      same effective behavior (onlyOwner reverts exactly like the old
+///      `require(msg.sender == owner, ...)` did), but battle-tested code
+///      instead of a reimplementation, and it genuinely provides a real,
+///      callable renounceOwnership() this contract did not have before.
+contract SecureVault is Ownable {
     mapping(address => uint256) public balances;
 
     function deposit() external payable {
@@ -31,7 +39,6 @@ contract SecureVault {
     // double as documentation of "how to get a clean scan" against
     // src/defi/flashloan_detector.py and rugpull_detector.py's actual checks.
 
-    address public owner;
     uint256 public totalMinted;
     uint256 public constant MAX_SUPPLY = 1_000_000 ether;
     uint256 public reserve0 = 1 ether;
@@ -44,9 +51,7 @@ contract SecureVault {
     uint256 public mintExecuteAfter;
     uint256 public constant MINT_TIMELOCK_DELAY = 2 days;
 
-    constructor() {
-        owner = msg.sender;
-    }
+    constructor() Ownable(msg.sender) {}
 
     function transferFrom(address from, address to, uint256 amount) public returns (bool) {
         require(balances[from] >= amount, "insufficient balance");
@@ -93,16 +98,14 @@ contract SecureVault {
     /// MINT_TIMELOCK_DELAY has elapsed, giving depositors a real window to
     /// react before any new supply is actually created. No owner-only
     /// sweep/withdraw-all function exists anywhere in this contract.
-    function mintSchedule(address to, uint256 amount) external {
-        require(msg.sender == owner, "not owner");
+    function mintSchedule(address to, uint256 amount) external onlyOwner {
         require(totalMinted + amount <= MAX_SUPPLY, "cap exceeded");
         pendingMintTo = to;
         pendingMintAmount = amount;
         mintExecuteAfter = block.timestamp + MINT_TIMELOCK_DELAY;
     }
 
-    function mintExecute() external {
-        require(msg.sender == owner, "not owner");
+    function mintExecute() external onlyOwner {
         require(block.timestamp >= mintExecuteAfter, "timelock not elapsed");
         require(pendingMintAmount > 0, "nothing pending");
         balances[pendingMintTo] += pendingMintAmount;
