@@ -221,11 +221,25 @@ class AnvilNode:
 
 
 def build_harness(forge_bin):
-    """Compile the attacker + both vault fixtures into one temp Foundry project."""
+    """Compile the attacker + both vault fixtures into one temp Foundry project.
+
+    REAL BUG FOUND AND FIXED (Phase 4a, found live running the full real
+    pipeline after migrating SecureVault.sol to OpenZeppelin's Ownable):
+    this isolated temp project has no relationship to this repo's real
+    node_modules/ at all, and Foundry does not look there by default
+    regardless -- `forge build` failed outright on
+    "@openzeppelin/contracts/access/Ownable.sol" not found. Fixed with an
+    explicit remappings.txt pointing at this project's REAL, absolute
+    node_modules path (the temp dir itself is elsewhere, so a relative
+    remap would not resolve) -- the same real import Hardhat/Slither/
+    solc already resolve elsewhere in this pipeline, not a second,
+    different dependency.
+    """
     build_dir = Path(tempfile.mkdtemp(prefix="avs-build-"))
     (build_dir / "src").mkdir()
     (build_dir / "foundry.toml").write_text(
         '[profile.default]\nsrc = "src"\nout = "out"\nsolc_version = "0.8.24"\n')
+    (build_dir / "remappings.txt").write_text(f"@openzeppelin/={ROOT}/node_modules/@openzeppelin/\n")
     shutil.copy(HARNESS, build_dir / "src" / HARNESS.name)
     for sol in CONTRACTS_DIR.glob("*.sol"):
         shutil.copy(sol, build_dir / "src" / sol.name)

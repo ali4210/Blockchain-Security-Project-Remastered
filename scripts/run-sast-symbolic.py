@@ -38,6 +38,20 @@ def _res(status, detail, findings=None, **kw):
     return {"status": status, "detail": detail, "findings": findings or [], **kw}
 
 
+def _finding_touches_node_modules(d):
+    """True if ANY element of this Slither detector result is located
+    under node_modules/ (a real third-party library file, e.g.
+    OpenZeppelin's Ownable.sol/Context.sol once a target imports them) --
+    see this function's own caller for why such findings must never be
+    attributed to the real target being scanned."""
+    for el in d.get("elements", []):
+        sm = el.get("source_mapping") or {}
+        fname = sm.get("filename_relative") or sm.get("filename_short") or ""
+        if "node_modules" in fname:
+            return True
+    return False
+
+
 def slither_scan(target, tag):
     exe = shutil.which("slither") or str(Path.home() / ".local/bin/slither")
     if not Path(exe).exists():
@@ -46,7 +60,15 @@ def slither_scan(target, tag):
     jpath, spath = RAW / f"slither-{tag}.json", RAW / f"slither-{tag}.sarif"
     for p in (jpath, spath):
         p.unlink(missing_ok=True)
+    # --solc-remaps resolves node_modules-style imports (e.g.
+    # @openzeppelin/contracts/...) the same way Hardhat already does --
+    # harmless no-op for a target with no such import (verified: identical
+    # finding set with/without the flag on VulnerableVault.sol, which has
+    # none). Needed as of Phase 4a's real migration of SecureVault.sol to
+    # OpenZeppelin's Ownable -- without it, slither fails outright on any
+    # OZ-importing contract.
     cmd = [exe, str(target), "--solc-solcs-select", SOLC_VERSION,
+           "--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/",
            "--json", str(jpath), "--sarif", str(spath)]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=240, cwd=ROOT)
@@ -61,7 +83,21 @@ def slither_scan(target, tag):
     if not data.get("success"):
         return _res("error", f"slither reported failure: {str(data.get('error'))[:200]}")
     findings = []
+    excluded_library_findings = 0
     for d in (data.get("results") or {}).get("detectors", []):
+        # REAL BUG FOUND AND FIXED (Phase 4a, found live while migrating
+        # SecureVault.sol to OpenZeppelin): once an import resolves,
+        # Slither analyzes the WHOLE compilation unit, including
+        # Ownable.sol/Context.sol themselves -- confirmed empirically,
+        # 3 of SecureVault's 10 raw detector results were actually about
+        # those library files (pragma/dead-code/solc-version), not
+        # SecureVault's own code at all. Attributing a third-party
+        # library's own findings to the target being scanned would be
+        # exactly the kind of fabricated/misattributed result this
+        # pipeline's whole honesty model exists to prevent.
+        if _finding_touches_node_modules(d):
+            excluded_library_findings += 1
+            continue
         check = d.get("check", "unknown")
         findings.append({
             "engine": "Slither", "check": check,
@@ -69,7 +105,11 @@ def slither_scan(target, tag):
             "confidence": d.get("confidence", "Medium"),
             "description": (d.get("description") or "").strip().split("\n")[0],
             "owasp_category": OWASP.get(check, SC10), "target": str(target)})
-    return _res("ok", None, findings, sarif=spath if spath.is_file() else None)
+    detail = None
+    if excluded_library_findings:
+        detail = (f"{excluded_library_findings} real finding(s) about an imported library file "
+                  f"(e.g. OpenZeppelin) excluded -- not attributed to {Path(target).name}")
+    return _res("ok", detail, findings, sarif=spath if spath.is_file() else None)
 
 
 def _myth_backend():
@@ -97,7 +137,16 @@ def mythril_scan(target, tag):
     with tempfile.TemporaryDirectory(prefix="myth-") as tmp:
         os.chmod(tmp, 0o755)
         try:
-            comp = subprocess.run([solc, "--bin-runtime", "--overwrite", "-o", tmp, str(target)],
+            # --base-path/--include-path resolve node_modules-style imports
+            # (e.g. OpenZeppelin) the same way get_ast() in
+            # flashloan_detector.py now does -- harmless no-op for a target
+            # with none. The per-target bin-runtime selection just below
+            # already filters by stem (Path(target).stem), so it already
+            # correctly ignores any OTHER real .bin-runtime files this
+            # produces for imported library contracts (e.g. Ownable,
+            # Context) -- verified, no additional filtering needed here.
+            comp = subprocess.run([solc, "--base-path", str(ROOT), "--include-path", str(ROOT / "node_modules"),
+                                  "--bin-runtime", "--overwrite", "-o", tmp, str(target)],
                                   capture_output=True, text=True, timeout=120, cwd=ROOT)
         except Exception as exc:
             return _res("error", f"solc failed to run: {exc}")

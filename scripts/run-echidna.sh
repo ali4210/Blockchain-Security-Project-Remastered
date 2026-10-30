@@ -72,9 +72,18 @@ if ! docker image inspect ghcr.io/crytic/echidna/echidna:latest >/dev/null 2>&1;
 fi
 
 OUT=$(mktemp)
+# --crytic-args "--solc-remaps ..." resolves node_modules-style imports (e.g.
+# OpenZeppelin) the same real way Slither/Hardhat already do elsewhere in
+# this pipeline -- harmless no-op for a harness with no such import.
+# REAL BUG FOUND AND FIXED (Phase 4a, found live running the full pipeline
+# after migrating SecureVault.sol to OpenZeppelin's Ownable): without this,
+# echidna failed outright inside its own container with "Ownable.sol...
+# not found", since /code is this repo mounted into the container but
+# crytic-compile still needs an explicit remap to look in node_modules.
 docker run --rm -v "$PWD:/code" -w /code ghcr.io/crytic/echidna/echidna:latest \
   bash -c "solc-select install 0.8.24 >/dev/null 2>&1 && solc-select use 0.8.24 >/dev/null 2>&1 && \
            echidna $HARNESS_FILE --contract $HARNESS_CONTRACT \
+           --crytic-args '--solc-remaps @openzeppelin/=node_modules/@openzeppelin/' \
            --format text --test-limit 20000 --seq-len 20" > "$OUT" 2>&1
 
 # --format json's stdout snapshot does not reliably reflect the FINAL
