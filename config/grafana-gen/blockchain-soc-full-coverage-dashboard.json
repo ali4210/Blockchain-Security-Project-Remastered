@@ -1303,6 +1303,57 @@
       "options": {
         "showHeader": true
       }
+    },
+    {
+      "id": 28,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "title": "Real On-Chain Indexer (per-run event volume -- Part B, added 2026-10-31)",
+      "type": "row",
+      "collapsed": false
+    },
+    {
+      "id": 29,
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "title": "Indexed Document Count Over Time, by Type",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-default"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-default"
+          },
+          "expr": "blockchain_soc_indexer_documents_indexed",
+          "instant": false,
+          "format": "time_series",
+          "refId": "A",
+          "legendFormat": "{{doc_type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 40,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      }
     }
   ],
   "annotations": {

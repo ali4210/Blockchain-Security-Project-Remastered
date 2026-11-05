@@ -56,6 +56,25 @@ function gaugePanel(title, expr, max = 10) {
   });
 }
 
+function timeSeriesPanel(title, expr, legendFormat) {
+  // Real range query (instant: false) -- each pipeline run is one real
+  // Prometheus scrape, so this genuinely trends across runs over time,
+  // unlike every statPanel/gaugePanel above (which only show the latest
+  // scrape). Added for the on-chain indexer's event counts, which are the
+  // one new metric family this task added that is actually time-series-
+  // shaped (per-run event volume), not a single current-status value.
+  panels.push({
+    id: id++,
+    gridPos: { h: H, w: 24, x: 0, y: (y += (col === 0 ? 0 : H)) },
+    title,
+    type: "timeseries",
+    datasource: DS,
+    targets: [{ datasource: DS, expr, instant: false, format: "time_series", refId: "A", legendFormat }],
+    fieldConfig: { defaults: { custom: { drawStyle: "bars", fillOpacity: 40, stacking: { mode: "normal" } } } },
+  });
+  col = 0;
+}
+
 function tablePanel(title, expr) {
   panels.push({
     id: id++,
@@ -119,6 +138,10 @@ statPanel("DSOMM Activities Total (denominator)", "max(blockchain_soc_dsomm_acti
 tablePanel("DSOMM Level by Subdimension", "blockchain_soc_dsomm_level");
 tablePanel("DSOMM Coverage Ratio by Subdimension", "blockchain_soc_dsomm_coverage_ratio");
 tablePanel("LangGraph Swarm Agent Verdicts", "blockchain_soc_agent_verdict");
+
+row("Real On-Chain Indexer (per-run event volume -- Part B, added 2026-10-31)");
+timeSeriesPanel("Indexed Document Count Over Time, by Type",
+  "blockchain_soc_indexer_documents_indexed", "{{doc_type}}");
 
 if (col !== 0) y += H;
 

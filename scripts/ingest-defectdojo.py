@@ -373,6 +373,92 @@ def build_vyper_findings():
     return out
 
 
+def build_etherscan_findings():
+    """One informational finding per real Etherscan lookup this run, PLUS a
+    real High finding if the target address turned out to be unverified
+    (a real, security-relevant observation -- unverified source is a
+    legitimate audit concern, not just trivia). Never fabricates data for a
+    failed lookup (returns [] when the report file is absent)."""
+    p = os.path.join(PROJECT_ROOT, "reports/etherscan-lookup-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    mode_note = " (DEMONSTRATION canary: real public contract, not one of this project's own)" \
+        if data.get("mode") == "demonstration-canary" else ""
+    out = [{
+        "title": f"Etherscan lookup: {data.get('address')} (chain {data.get('chain_id')})",
+        "description": (f"verified={data.get('verified')}, contract_name={data.get('contract_name')}, "
+                        f"balance_wei={data.get('balance_wei')}, "
+                        f"{data.get('tx_count_fetched', 0)} recent tx(s), "
+                        f"{data.get('log_count_fetched', 0)} recent log(s){mode_note}"),
+        "severity": "Info",
+    }]
+    if data.get("verified") is False:
+        out.append({
+            "title": f"Unverified contract source: {data.get('address')}",
+            "description": "Etherscan has no verified source for this address -- real source-level "
+                           "SAST (Slither/Mythril) cannot be run against it until/unless verified.",
+            "severity": "High",
+        })
+    return out
+
+
+def build_indexer_findings():
+    """One informational finding per real on-chain indexing pass this run --
+    counts only, never fabricated event data. See src/onchain/indexer.py's
+    own HONEST SCOPE note for what this indexing pass does and doesn't
+    cover."""
+    p = os.path.join(PROJECT_ROOT, "reports/indexer-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    if data.get("status") != "ok":
+        return []
+    return [{
+        "title": f"On-chain indexer: {data.get('documents_indexed')} document(s) indexed",
+        "description": (f"{data.get('decoded_events', 0)} real decoded event(s) + "
+                        f"{data.get('transaction_activity_docs', 0)} real transaction-activity doc(s), "
+                        f"indexed into Elasticsearch index {data.get('es_index')} "
+                        f"(run_id={data.get('run_id')})."),
+        "severity": "Info",
+    }]
+
+
+def build_zk_attestation_findings():
+    """One informational finding per real attestation attempt this run
+    (generated+verified, or correctly refused for a sanctioned address) --
+    never fabricates proof data, and never includes the private witness.
+    Explicitly labels the scheme as simplified commitment-based, not a
+    zk-SNARK/STARK, in every finding title/description."""
+    p = os.path.join(PROJECT_ROOT, "reports/zk-attestation-report.json")
+    if not os.path.isfile(p):
+        return []
+    data = json.load(open(p))
+    out = []
+    for row in data.get("attestations", []):
+        addr = row.get("address")
+        if row.get("outcome") == "proof_generated":
+            proof = row.get("proof", {})
+            out.append({
+                "title": f"Simplified-ZK attestation generated: {proof.get('proof_id')}",
+                "description": (f"Commitment-based (Pedersen-style SHA-256 + Fiat-Shamir/HMAC) "
+                                f"compliance proof for a screened address -- NOT a zk-SNARK/STARK. "
+                                f"verified_with_witness={row.get('verified_with_witness')}, "
+                                f"verified_public_only={row.get('verified_public_only')}. "
+                                f"address_commitment={proof.get('address_commitment')}"),
+                "severity": "Info",
+            })
+        elif row.get("outcome") == "refused":
+            out.append({
+                "title": f"Simplified-ZK attestation correctly refused (sanctioned address)",
+                "description": (f"{row.get('refusal_reason', '')} -- the scheme's own "
+                                f"sanctioned-address invariant check working as designed, "
+                                f"not a scanner failure."),
+                "severity": "Info",
+            })
+    return out
+
+
 def upload_generic_findings(engagement_id, name, findings):
     """Write this run's real findings to DefectDojo's Generic Findings Import
     endpoint (verified live: scan_type="Generic Findings Import" accepts
@@ -437,6 +523,9 @@ def main():
             ("rugpull-detector", build_rugpull_findings),
             ("echidna", build_echidna_findings),
             ("vyper-check", build_vyper_findings),
+            ("etherscan-lookup", build_etherscan_findings),
+            ("indexer", build_indexer_findings),
+            ("zk-attestation", build_zk_attestation_findings),
         ]
         not_run, clean = [], []
         for name, builder in generic_scanners:

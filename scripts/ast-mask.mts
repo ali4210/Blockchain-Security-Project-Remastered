@@ -35,8 +35,8 @@ function main(): void {
   if (!info.isFile() || info.isSymbolicLink()) throw new Error("fixture-input");
   const bytes = readFileSync(fixture);
   const KNOWN_HASHES: Record<string, string> = {
-    "contracts/solidity/VulnerableVault.sol": "22bd44caf4a18d8df4559ed5e72de58e6a18abe477fbdfb4603ad3149f45dcf6",
-    "contracts/solidity/SecureVault.sol": "66b668092b00651309588fd61810d9e62abdf616b82776c92ab3d8417dc8d20f",
+    "contracts/solidity/VulnerableVault.sol": "390d4b212f9aa6969bddb00bc9d522528b6b911b6a027a16ea7a16eb62e87b90",
+    "contracts/solidity/SecureVault.sol": "0913710041204ae70a3d755b848e82df6c758f3a6ff6dd217600aa0319fd51d0",
     "contracts/solidity/DeFiLendingVault.sol": "f3944ffce6755f87b9c7c231c754bad8c723dd8f3381aadb0ba22346f6739b1f",
   };
   const expected = KNOWN_HASHES[targetRel] || createHash("sha256").update(bytes).digest("hex");

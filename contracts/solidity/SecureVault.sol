@@ -51,7 +51,9 @@ contract SecureVault is Ownable {
     uint256 public mintExecuteAfter;
     uint256 public constant MINT_TIMELOCK_DELAY = 2 days;
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) {
+        trustedModule = msg.sender;
+    }
 
     function transferFrom(address from, address to, uint256 amount) public returns (bool) {
         require(balances[from] >= amount, "insufficient balance");
@@ -111,5 +113,79 @@ contract SecureVault is Ownable {
         balances[pendingMintTo] += pendingMintAmount;
         totalMinted += pendingMintAmount;
         pendingMintAmount = 0;
+    }
+
+    // ===================== Phase 5 mitigations below =====================
+    // Mirrors VulnerableVault's Phase 5 additions with REAL fixes, same
+    // external shape where a mirror makes sense -- see each function's own
+    // comment for exactly which real VULN it closes and how.
+
+    uint256 public rewardMultiplier = 1;
+    address public feeCollector;
+    address public immutable trustedModule;
+
+    /// @dev FIX: mirrors VULN unchecked-low-level-call in VulnerableVault --
+    /// the call's success bool is checked and reverts the whole transaction
+    /// on failure instead of silently discarding it.
+    function refund(address payable to, uint256 amount) external onlyOwner {
+        (bool ok, ) = to.call{value: amount}("");
+        require(ok, "refund failed");
+    }
+
+    /// @dev FIX: mirrors VULN integer-overflow in VulnerableVault -- default
+    /// checked arithmetic (no `unchecked` block) reverts on overflow instead
+    /// of wrapping silently.
+    function boostReward(uint256 delta) external {
+        rewardMultiplier += delta;
+    }
+
+    /// @dev FIX: mirrors VULN tx-origin in VulnerableVault -- authorization
+    /// uses onlyOwner (msg.sender-based), which an intermediate malicious
+    /// contract cannot spoof the way tx.origin can be spoofed.
+    function claimOriginBonus() external onlyOwner {
+        balances[msg.sender] += 1 ether;
+        totalMinted += 1 ether;
+    }
+
+    /// @dev FIX: mirrors VULN missing-access-control in VulnerableVault --
+    /// the identical setter, now gated behind onlyOwner.
+    function setFeeCollector(address newCollector) external onlyOwner {
+        feeCollector = newCollector;
+    }
+
+    /// @dev FIX: mirrors VULN controlled-delegatecall in VulnerableVault --
+    /// no delegatecall anywhere in this contract. A regular (non-delegate)
+    /// external call to an immutable, constructor-fixed module address
+    /// instead, so even a compromised module can never corrupt this
+    /// contract's own storage the way a delegatecall callee could.
+    function executeModule(bytes calldata data) external onlyOwner {
+        (bool ok, ) = trustedModule.call(data);
+        require(ok, "module call failed");
+    }
+
+    /// @dev FIX: mirrors VULN suicidal in VulnerableVault -- no selfdestruct
+    /// capability exists anywhere in this contract; the real fix for an
+    /// unprotected self-destruct is not having one.
+
+    /// @dev FIX: mirrors VULN timestamp in VulnerableVault -- no time-based
+    /// branch in payout logic at all; the bonus is a fixed, deterministic
+    /// function of deposit size only, removing the manipulable
+    /// block.timestamp dependency entirely rather than merely gating it.
+    function luckyBlockBonus() external {
+        require(balances[msg.sender] > 0, "no deposit");
+        balances[msg.sender] += balances[msg.sender] / 20;
+    }
+
+    /// @dev FIX: mirrors VULN calls-loop/costly-loop in VulnerableVault --
+    /// the batch size is capped, bounding worst-case gas and the griefing
+    /// surface a single call-reverting recipient can cause.
+    uint256 public constant MAX_BATCH = 50;
+    function batchRefund(address[] calldata recipients, uint256[] calldata amounts) external onlyOwner {
+        require(recipients.length == amounts.length, "length mismatch");
+        require(recipients.length <= MAX_BATCH, "batch too large");
+        for (uint256 i = 0; i < recipients.length; i++) {
+            (bool ok, ) = recipients[i].call{value: amounts[i]}("");
+            require(ok, "refund failed");
+        }
     }
 }

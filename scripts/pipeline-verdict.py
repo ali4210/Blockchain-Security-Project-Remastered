@@ -144,8 +144,57 @@ def main():
     verdict = "HALT" if reasons else ("PASS" if health == "OK" else "UNKNOWN")
     gitops = health == "OK" and (verdict == "PASS" or os.getenv("ALLOW_GITOPS_ON_HALT") == "1")
 
+    # --- Additive per-contract verdict (does NOT feed `reasons`/`verdict`/
+    # `gitops` above in any way -- this is a SEPARATE, parallel computation
+    # over the exact same `results`, re-deriving only the subset of
+    # `reasons` that is genuinely specific to THIS run's TARGET_CONTRACT,
+    # as opposed to project-wide checks (trivy/sca/sonarqube/readiness) that
+    # fire identically regardless of which contract is under test. See
+    # docs/pipeline-status.md's classification table for why each of the
+    # 6 checks below is contract-scoped and the 5 others are not. ---
+    contract_reasons = []
+    if results.get("slither", {}).get("status") == "ok" and sast.is_file():
+        data = json.loads(sast.read_text(encoding="utf-8"))
+        hi = [f for f in data.get("findings", []) if f.get("impact") in ("HIGH", "CRITICAL")]
+        if hi:
+            kinds = sorted({f.get("check") or "unknown" for f in hi})
+            contract_reasons.append(
+                f"contract {data.get('target')}: {len(hi)} high/critical finding(s) "
+                f"(Slither+Mythril): {', '.join(kinds)}")
+    if results.get("avs-consensus", {}).get("status") == "ok" and results["avs-consensus"].get("supermajority_exploit"):
+        contract_reasons.append(f"avs-consensus: {results['avs-consensus'].get('final_verdict', 'EXPLOIT_PROVEN_HALT_DEPLOYMENT')} "
+                                f"({results['avs-consensus'].get('counts', {}).get('exploit_confirmed', '?')}/"
+                                f"{results['avs-consensus'].get('counts', {}).get('nodes', '?')} nodes)")
+    if results.get("swarm", {}).get("status") == "ok" and results["swarm"].get("decision") == "HALT_CONFIRMED":
+        contract_reasons.append(f"swarm: HALT_CONFIRMED "
+                                f"({results['swarm'].get('counts', {}).get('halt', '?')}/"
+                                f"{results['swarm'].get('counts', {}).get('agents', '?')} agents)")
+    if results.get("flashloan-detector", {}).get("status") == "ok":
+        n_flash = count("flashloan-detector", "flashloan_findings")
+        n_front = count("flashloan-detector", "frontrunning_findings")
+        if n_flash + n_front > 0:
+            contract_reasons.append(f"flashloan-detector: {n_flash} flash-loan-shape + "
+                                    f"{n_front} front-running finding(s)")
+    if results.get("rugpull-detector", {}).get("status") == "ok":
+        n = count("rugpull-detector", "failing_checks")
+        if n > 0:
+            contract_reasons.append(f"rugpull-detector: {n} failing rug-pull check(s)")
+    if results.get("echidna", {}).get("status") == "ok" and echidna_report_path.is_file():
+        echidna_data = json.loads(echidna_report_path.read_text(encoding="utf-8"))
+        balance_prop = next((p for p in echidna_data.get("properties", [])
+                             if p.get("name") == "echidna_internal_balance_never_exceeds_contract_eth"), None)
+        if balance_prop is not None and not balance_prop.get("passed", True):
+            contract_reasons.append("echidna: echidna_internal_balance_never_exceeds_contract_eth FALSIFIED "
+                                    "(real fuzzer-found insolvency counterexample)")
+    # PASS here only when every contract-scoped check that genuinely ran
+    # found nothing -- this does NOT require overall health==OK, since a
+    # project-wide infra hiccup (e.g. a missing scanner) says nothing about
+    # whether THIS contract itself is clean.
+    contract_verdict = "FAIL" if contract_reasons else "PASS"
+
     out = {"health": health, "verdict": verdict, "gitops_allowed": gitops,
            "health_problems": health_problems, "halt_reasons": reasons,
+           "contract_verdict": contract_verdict, "contract_halt_reasons": contract_reasons,
            "scanners": {n: {"status": s, "policy": p} for n, s, p, _ in rows},
            "target": os.getenv("TARGET_CONTRACT", "contracts/solidity/VulnerableVault.sol"),
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
@@ -162,6 +211,10 @@ def main():
     for r in reasons:
         print(f"      - {r}")
     print(f"    GITOPS : {'allowed' if gitops else 'BLOCKED'}")
+    print(f"    CONTRACT-SPECIFIC SECURITY VERDICT: {contract_verdict} "
+          f"(additive, independent of the overall gate above)")
+    for r in contract_reasons:
+        print(f"      - {r}")
     print("[+] ====================================================")
     sys.exit(0 if health == "OK" else 2)
 

@@ -552,6 +552,27 @@ def collect_events():
         except Exception as e:
             print(f"[!] Parsing {triage_file}: {e}")
 
+    # 16d. etherscan-lookup -- one real event per successful run's actual
+    # Etherscan V2 API lookup. Same "always emit, event not alert" shape as
+    # triage-classifier above: a real lookup always produces a real
+    # verified/unverified status, there is no "clean" state to filter on.
+    etherscan_file = "reports/etherscan-lookup-report.json"
+    if os.path.exists(etherscan_file) and scanner_ok("etherscan-lookup"):
+        try:
+            with open(etherscan_file) as f:
+                es_data = json.load(f)
+                events.append({
+                    "@timestamp": ts, "event_category": "etherscan-lookup", "event_kind": "event",
+                    "log_level": "INFO", "pipeline_run_id": run_id, "pipeline_target": target_name,
+                    "tool_name": "etherscan-v2-api", "lookup_address": es_data.get("address"),
+                    "chain_id": es_data.get("chain_id"), "verified": es_data.get("verified"),
+                    "tx_count_fetched": es_data.get("tx_count_fetched"),
+                    "message": f"Etherscan lookup: {es_data.get('address')} on chain {es_data.get('chain_id')} "
+                               f"(verified={es_data.get('verified')}, mode={es_data.get('mode')})"
+                })
+        except Exception as e:
+            print(f"[!] Parsing {etherscan_file}: {e}")
+
     # 17-21. Infra/attestation checks (vault-signing, k8s-k3s, wallet-presign,
     # llm-langfuse, hsm-signing, quorum-signing): these have no per-item
     # findings list -- a single real status IS the signal. A real FAILURE is

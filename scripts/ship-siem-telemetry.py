@@ -270,6 +270,21 @@ def export_prometheus_metrics(status_data, es_ok=False):
         f"{(echidna_res or {}).get('counts', {}).get('properties_failing', 0)}",
     ]
 
+    # Real on-chain indexer counts this run (src/onchain/indexer.py) -- a
+    # genuinely time-series-shaped metric (scraped once per pipeline run),
+    # unlike KYC/OFAC/triage-classifier's per-name/per-contract shape, which
+    # docs/dashboard-coverage.md documents as deliberately NOT exported here.
+    indexer_res = _read_json("reports/scanners/indexer.json")
+    metrics += [
+        "# HELP blockchain_soc_indexer_documents_indexed Real documents indexed into "
+        "Elasticsearch this run by the custom on-chain indexer, by document type",
+        "# TYPE blockchain_soc_indexer_documents_indexed gauge",
+        f'blockchain_soc_indexer_documents_indexed{{doc_type="decoded_event"}} '
+        f"{(indexer_res or {}).get('counts', {}).get('decoded_events', 0)}",
+        f'blockchain_soc_indexer_documents_indexed{{doc_type="transaction_activity"}} '
+        f"{(indexer_res or {}).get('counts', {}).get('transaction_activity_docs', 0)}",
+    ]
+
     for sub, data in (dsomm_res or {}).get("subdimensions", {}).items():
         sub_label = sub.replace('"', "")
         metrics.append(f'blockchain_soc_dsomm_level{{subdimension="{sub_label}"}} {data["level"]}')

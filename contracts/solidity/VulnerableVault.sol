@@ -108,4 +108,90 @@ contract VulnerableVault {
         require(msg.sender == owner, "not owner");
         to.transfer(address(this).balance);
     }
+
+    // ===================== Phase 5 additions below =====================
+    // Part 0 (EduQual L6 Topic 124 audit, 2026-10-31): a comprehensive,
+    // multi-class vulnerability set so every static/symbolic scanner phase
+    // in the live pipeline gets real, non-trivial signal, not just the
+    // reentrancy + flash-loan + rug-pull surface above. Each function below
+    // is isolated to exactly one real SWC/Slither class and does not alter
+    // the behavior of deposit()/withdraw()/balances or any function above
+    // this line -- those stay byte-for-byte identical (AVS consensus, both
+    // Echidna harnesses, and the sast-canary differential all depend on
+    // their exact existing semantics).
+
+    uint256 public rewardMultiplier = 1;
+    address public feeCollector;
+
+    /// @dev VULN: unchecked-low-level-call (SWC-104) -- the external call's
+    /// success bool is discarded; a failed refund silently "succeeds" from
+    /// the caller's point of view.
+    function refund(address payable to, uint256 amount) external {
+        require(msg.sender == owner, "not owner");
+        to.call{value: amount}("");
+    }
+
+    /// @dev VULN: integer-overflow (SWC-101) -- an explicit `unchecked` block
+    /// opts out of 0.8.x's default checked arithmetic, so this can wrap
+    /// silently back to a tiny value instead of reverting.
+    function boostReward(uint256 delta) external {
+        unchecked {
+            rewardMultiplier += delta;
+        }
+    }
+
+    /// @dev VULN: tx-origin (SWC-115) -- authorization uses tx.origin, which
+    /// a malicious intermediate contract can spoof by getting `owner` to
+    /// call through it; msg.sender would not be fooled the same way.
+    function claimOriginBonus() external {
+        require(tx.origin == owner, "not owner");
+        balances[tx.origin] += 1 ether;
+        totalMinted += 1 ether;
+    }
+
+    /// @dev VULN: missing-access-control (SWC-105-adjacent) -- a privileged-
+    /// looking administrative setter with NO modifier and NO require check
+    /// of any kind; any address can call this.
+    function setFeeCollector(address newCollector) external {
+        feeCollector = newCollector;
+    }
+
+    /// @dev VULN: controlled-delegatecall (SWC-112) -- `module` is a caller-
+    /// supplied, unvalidated address; delegatecall executes the callee's
+    /// code in THIS contract's own storage context, so an untrusted module
+    /// can overwrite any state variable here (owner, balances, anything).
+    function executeModule(address module, bytes calldata data) external {
+        require(msg.sender == owner, "not owner");
+        (bool ok, ) = module.delegatecall(data);
+        require(ok, "module call failed");
+    }
+
+    /// @dev VULN: suicidal (SWC-106) -- selfdestruct is reachable with no
+    /// access control at all; any address can permanently destroy this
+    /// contract and redirect its remaining ETH.
+    function closeVault(address payable recipient) external {
+        selfdestruct(recipient);
+    }
+
+    /// @dev VULN: timestamp (SWC-116) -- critical payout logic branches on
+    /// block.timestamp, which a miner/validator has some latitude to
+    /// manipulate, making the "bonus" outcome gameable.
+    function luckyBlockBonus() external {
+        require(balances[msg.sender] > 0, "no deposit");
+        if (block.timestamp % 2 == 0) {
+            balances[msg.sender] += balances[msg.sender] / 10;
+        }
+    }
+
+    /// @dev VULN: calls-loop / costly-loop -- iterates an unbounded, caller-
+    /// controlled array with an external call per iteration: a gas-griefing
+    /// and DoS surface (one bad recipient can block the whole batch; a long
+    /// enough array can exceed the block gas limit entirely).
+    function batchRefund(address[] calldata recipients, uint256[] calldata amounts) external {
+        require(msg.sender == owner, "not owner");
+        for (uint256 i = 0; i < recipients.length; i++) {
+            (bool ok, ) = recipients[i].call{value: amounts[i]}("");
+            require(ok, "refund failed");
+        }
+    }
 }

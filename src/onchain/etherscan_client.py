@@ -157,6 +157,66 @@ def get_bytecode(address: str, chain_id: str = DEFAULT_CHAIN_ID) -> "tuple[Optio
     return code, None
 
 
+def get_balance(address: str, chain_id: str = DEFAULT_CHAIN_ID) -> "tuple[Optional[int], Optional[str]]":
+    """Real call to module=account&action=balance. Returns (balance_wei,
+    None) or (None, detail). Zero balance is a real, reportable result, not
+    folded into an error."""
+    data, error = _get({"chainid": chain_id, "module": "account",
+                        "action": "balance", "address": address, "tag": "latest"})
+    if error:
+        return None, error
+    if data.get("status") != "1":
+        return None, f"etherscan balance error: {data.get('result') or data.get('message')}"
+    try:
+        return int(data.get("result")), None
+    except (TypeError, ValueError):
+        return None, f"unparseable balance result: {data.get('result')!r}"
+
+
+def get_tx_list(address: str, chain_id: str = DEFAULT_CHAIN_ID,
+                 limit: int = 10) -> "tuple[Optional[list], Optional[str]]":
+    """Real call to module=account&action=txlist (most recent `limit`
+    transactions, sorted desc). Returns (list_of_tx_dicts, None) or
+    (None, detail). An address with zero transactions returns ([], None) --
+    a real empty history, not an error."""
+    data, error = _get({"chainid": chain_id, "module": "account", "action": "txlist",
+                        "address": address, "page": "1", "offset": str(limit),
+                        "sort": "desc"})
+    if error:
+        return None, error
+    result = data.get("result")
+    if data.get("status") != "1":
+        # Etherscan returns status="0" + message="No transactions found" for a
+        # real, legitimately-empty history -- that is success, not an error.
+        if isinstance(result, str) or not result:
+            if "no transactions found" in str(data.get("message", "")).lower():
+                return [], None
+            return None, f"etherscan txlist error: {data.get('result') or data.get('message')}"
+    return result or [], None
+
+
+def get_event_logs(address: str, chain_id: str = DEFAULT_CHAIN_ID,
+                    limit: int = 25) -> "tuple[Optional[list], Optional[str]]":
+    """Real call to module=logs&action=getLogs over the full historical
+    block range for this address (most recent `limit` entries). Returns
+    (list_of_log_dicts, None) or (None, detail). Raw topics/data are
+    returned undecoded -- this client has no contract ABI to decode
+    against for an arbitrary externally-fetched address, unlike
+    src/onchain/indexer.py, which decodes logs from contracts it deployed
+    itself and therefore has the real ABI for."""
+    data, error = _get({"chainid": chain_id, "module": "logs", "action": "getLogs",
+                        "address": address, "fromBlock": "0", "toBlock": "latest",
+                        "page": "1", "offset": str(limit)})
+    if error:
+        return None, error
+    result = data.get("result")
+    if data.get("status") != "1":
+        if "no records found" in str(data.get("message", "")).lower():
+            return [], None
+        return None, f"etherscan getLogs error: {result or data.get('message')}"
+    return result or [], None
+
+
 _MULTI_FILE_RE = re.compile(r"^\s*\{")
 
 

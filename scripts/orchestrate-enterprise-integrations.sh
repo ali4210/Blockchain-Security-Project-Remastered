@@ -61,6 +61,16 @@ else
   [ -n "${LANGFUSE_SECRET_KEY:-}" ] && seed_if_missing langfuse \
     "{\"data\":{\"public_key\":\"${LANGFUSE_PUBLIC_KEY:-}\",\"secret_key\":\"${LANGFUSE_SECRET_KEY}\",\"password\":\"${LANGFUSE_PASSWORD:-}\"}}" secret_key
 
+  # Etherscan lives at secret/data/soc/etherscan (soc/ prefix, like Jira) --
+  # a single real API key, re-seeded from this seed file whenever empty,
+  # same "only if missing" semantics as the five seed_if_missing calls above.
+  if [ -n "${ETHERSCAN_API_KEY:-}" ] && \
+     [ -z "$(curl -s -m 5 -H "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/secret/data/soc/etherscan" | jq -r '.data.data.api_key // empty')" ]; then
+    echo "    [*] [VAULT AUTO-HEAL] Re-seeding secret/data/soc/etherscan..."
+    curl -s -o /dev/null -X POST -H "X-Vault-Token: ${VAULT_TOKEN}" -H "Content-Type: application/json" \
+      -d "{\"data\":{\"api_key\":\"${ETHERSCAN_API_KEY}\"}}" "${VAULT_ADDR}/v1/secret/data/soc/etherscan"
+  fi
+
   # Jira lives at secret/data/soc/jira (not secret/data/<name> like the five
   # above), and its real credentials come from the project .env rather than
   # this seed file, so it re-seeds via the existing provisioning script
