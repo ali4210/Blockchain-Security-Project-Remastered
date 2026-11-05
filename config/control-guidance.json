@@ -68,5 +68,89 @@
     "shortTitle": "Software, Firmware, and Information Integrity",
     "guidance": "NIST SI-7 calls for tools that detect unauthorized changes to software, firmware, or data, such as checksums or cryptographic hashing. Lynis's FINT-4350 finding here only checks whether a file-integrity tool (e.g. AIDE) is installed and configured -- it doesn't verify monitoring coverage or alerting, so additional review is needed before claiming full SI-7 coverage.",
     "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "IA-5",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Authenticator Management",
+    "guidance": "NIST IA-5 covers the full lifecycle of authenticators (passwords, keys, tokens), including strength, complexity, and expiration requirements. Lynis's password hashing-round, PAM strength-library, and password-aging checks each confirm one narrow mechanism is present and configured -- they don't establish that the organization's full password policy (length, history, lockout) is actually enforced.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "AC-6",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Least Privilege",
+    "guidance": "NIST AC-6 requires that users and processes operate with only the access they genuinely need. Lynis's umask, home-directory, and general file-permission checks confirm restrictive defaults exist on a sample of the filesystem -- they don't review every security-relevant file or verify role-based access decisions elsewhere on the system.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "AC-8",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "System Use Notification",
+    "guidance": "NIST AC-8 requires a system-use notification (banner) be displayed before granting access, informing users of monitoring and legal terms. Lynis's banner checks confirm /etc/issue and /etc/issue.net contain text matching a fixed keyword list -- they don't verify the banner's exact legal wording was reviewed or approved by counsel.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "AC-3",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Access Enforcement",
+    "guidance": "NIST AC-3 requires the system to enforce approved authorizations for logical access. AppArmor-enabled status and GRUB boot-password presence are each one specific enforcement mechanism being present -- they don't verify AppArmor's actual profile coverage/enforcement mode, or that physical/boot-time access is otherwise controlled.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "CM-6",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Configuration Settings",
+    "guidance": "NIST CM-6 requires establishing and enforcing secure configuration settings for information system components. Lynis's sysctl, PHP allow_url_fopen, and systemd-analyze security checks each confirm one specific setting matches a hardened baseline -- they don't constitute a full configuration-management program with documented baselines and change control.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "SC-5",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Denial of Service Protection",
+    "guidance": "NIST SC-5 requires protecting against or limiting the effects of denial-of-service attacks. Separate /tmp,/home,/var mount points and Apache's evasive module each address one specific disk-fill or request-flood scenario -- they don't cover network-layer DoS (e.g. volumetric attacks), which requires separate infrastructure.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "CM-7",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Least Functionality",
+    "guidance": "NIST CM-7 requires configuring systems to provide only essential capabilities, prohibiting unnecessary functions, ports, protocols, and services. Lynis's legacy-service-absence checks (rsh, TFTP), compiler-permission check, and network-protocol inventory each confirm one specific unnecessary capability is restricted -- they don't constitute a full least-functionality review of every installed service.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "SI-3",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Malicious Code Protection",
+    "guidance": "NIST SI-3 requires implementing malicious code protection mechanisms at system entry/exit points. Lynis's malware-scanner-presence check only confirms a scanner binary exists -- it doesn't verify the scanner is scheduled, its signatures are current, or it actually scans the relevant entry points.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "SC-7",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Boundary Protection",
+    "guidance": "NIST SC-7 requires monitoring and controlling communications at external/internal system boundaries. Apache's security-module presence is a loose proxy for this -- a WAF-like module existing says nothing about its rule set, whether it's actually enabled, or how the boundary is otherwise segmented.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "SC-8",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Transmission Confidentiality and Integrity",
+    "guidance": "NIST SC-8 requires protecting the confidentiality and integrity of transmitted information. The nginx SSL/TLS configuration check confirms TLS is configured on this one web server -- it doesn't re-verify cipher strength, certificate validity, or that all other network services also enforce encryption in transit.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "MP-7",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Media Use",
+    "guidance": "NIST MP-7 restricts or prohibits the use of specific types of system media (e.g. removable storage). Lynis's USB-storage and FireWire-storage disabled checks each confirm one specific media-driver type is blocked -- they don't cover every removable-media interface, nor verify an organizational media-use policy exists.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+  },
+  {
+    "id": "SI-2",
+    "framework": "NIST SP 800-53 Rev. 5",
+    "shortTitle": "Flaw Remediation",
+    "guidance": "NIST SI-2 requires identifying, reporting, and correcting system flaws (patch management). Lynis's package-audit-tool and auto-upgrade-toolkit presence checks confirm the right tooling exists -- they don't confirm the tools are actually run on a schedule, that flagged packages get patched, or that patches are tested before deployment.",
+    "sourceUrl": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
   }
 ]

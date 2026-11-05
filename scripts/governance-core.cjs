@@ -5,7 +5,9 @@ const crypto = require("node:crypto");
 const path = require("node:path");
 const { TextDecoder } = require("node:util");
 
-const POLICY_HASH = "7de534c7fb32284e5c0fec30aa4cc95ea13a4722d993188fe446c7fdd1c76684";
+const POLICY_HASH = "ae511b5990597b0eb7a6404e50bc20fcc45344890a1d46daa93e21cc42e76369";
+// Raised from 8192 to accommodate expanded NIST SP 800-53 control mappings (32 entries added 2026-11-06)
+const MAX_POLICY_BYTES = 16 * 1024;
 const MAX_REPORT_BYTES = 2 * 1024 * 1024;
 const MAX_METADATA_BYTES = 32 * 1024;
 const MAX_OUTPUT_BYTES = 256 * 1024;
@@ -133,9 +135,9 @@ function strictJson(bytes, limit) {
 }
 
 function parsePolicyBytes(bytes) {
-  if (!Buffer.isBuffer(bytes) || bytes.length > 8192 ||
+  if (!Buffer.isBuffer(bytes) || bytes.length > MAX_POLICY_BYTES ||
       sha256(bytes) !== POLICY_HASH) invalid();
-  const policy = strictJson(bytes, 8192);
+  const policy = strictJson(bytes, MAX_POLICY_BYTES);
   if (policy.schemaVersion !== 1 ||
       policy.framework.officialCrosswalk !== false ||
       policy.framework.fullCatalogAssessed !== false ||
@@ -168,7 +170,7 @@ function readBounded(filename, limit) {
 
 function readPolicyBytes() {
   return readBounded(
-    path.resolve(__dirname, "../config/governance-policy.json"), 8192
+    path.resolve(__dirname, "../config/governance-policy.json"), MAX_POLICY_BYTES
   );
 }
 
@@ -380,6 +382,6 @@ function normalize(reportBytes, metadataBytes, policyBytes) {
 }
 
 module.exports = Object.freeze({
-  POLICY_HASH, MAX_REPORT_BYTES, MAX_METADATA_BYTES,
+  POLICY_HASH, MAX_POLICY_BYTES, MAX_REPORT_BYTES, MAX_METADATA_BYTES,
   sha256, strictJson, parsePolicyBytes, readBounded, readPolicyBytes, normalize,
 });

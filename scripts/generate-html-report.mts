@@ -1072,13 +1072,13 @@ function renderLynisSection(): string {
       <td>${badge(f.kind.toUpperCase(), f.kind === "warning" ? "red" : "amber")}</td>
       <td class="mono dim2 detail-cell">${escapeHtml(f.testId)}</td>
       <td class="mono">${f.occurrences}</td>
-      <td class="dim detail-cell">${f.relatedNistControls.length ? escapeHtml(f.relatedNistControls.join(", ")) : `<span class="dim2">unmapped</span>`}</td>
+      <td class="dim detail-cell">${f.relatedNistControls.length ? `${escapeHtml(f.relatedNistControls.join(", "))} <a href="#lynis-control-${escapeHtml(f.testId)}" style="font-size:11px; margin-left:6px;">&rarr; see guidance below</a>` : `<span class="dim2">unmapped</span>`}</td>
     </tr>`)
     .join("");
 
   const controlRows = (r.controlEvidence || [])
     .map((c: any) => `
-    <tr>
+    <tr id="lynis-control-${escapeHtml(c.relatedTestId)}">
       <td class="mono">${escapeHtml(c.controlId)}</td>
       <td>${escapeHtml(c.title)}</td>
       <td>${badge(c.status.toUpperCase(), c.status === "needs-review" ? "amber" : "gray")}</td>
