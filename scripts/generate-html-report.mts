@@ -741,6 +741,23 @@ function renderZkOfacSection(): string {
     </div>`;
 }
 
+function loadControlGuidance(): any[] {
+  try {
+    return JSON.parse(readFileSync(resolve(process.cwd(), "config/control-guidance.json"), "utf-8"));
+  } catch {
+    return [];
+  }
+}
+const CONTROL_GUIDANCE = loadControlGuidance();
+
+function guidanceFor(id: string, frameworkFallbackName: string): string {
+  const entry = CONTROL_GUIDANCE.find((g: any) => g.id === id);
+  if (!entry) {
+    return `<span class="dim2">see ${escapeHtml(frameworkFallbackName)}'s official reference</span>`;
+  }
+  return `<span class="dim2"><b>${escapeHtml(entry.shortTitle)}:</b> ${escapeHtml(entry.guidance)}</span> <a href="${escapeHtml(entry.sourceUrl)}" target="_blank" rel="noopener">[ref]</a>`;
+}
+
 function renderGovernanceEnrichmentSection(): string {
   const p = resolve(process.cwd(), "reports/enriched-findings-report.json");
   if (!existsSync(p)) {
@@ -763,15 +780,20 @@ function renderGovernanceEnrichmentSection(): string {
       <td class="mono">${escapeHtml(f.governance.mitreAttack.techniqueId)} <span class="dim2">(${escapeHtml(f.governance.mitreAttack.tactic)})</span></td>
       <td class="mono">${escapeHtml(f.governance.cisControls.controlId)}</td>
       <td class="mono">${escapeHtml(f.governance.iso27001.controlId)}</td>
+      <td style="font-size:11.5px; max-width:360px;">
+        <div style="margin-bottom:4px;"><b class="dim2">ATT&CK:</b> ${guidanceFor(f.governance.mitreAttack.techniqueId, "MITRE ATT&CK")}</div>
+        <div style="margin-bottom:4px;"><b class="dim2">CIS:</b> ${guidanceFor(f.governance.cisControls.controlId, "CIS Controls v8")}</div>
+        <div><b class="dim2">ISO:</b> ${guidanceFor(f.governance.iso27001.controlId, "ISO/IEC 27001")}</div>
+      </td>
     </tr>`)
     .join("");
   return `
     <div id="governance-enrichment" class="section-card">
       <div class="section-title"><span class="title-icon">${ICON.shield}</span>Governance Framework Mapping (MITRE ATT&CK / CIS v8 / ISO 27001)</div>
-      <div class="section-sub">Keyword-heuristic mapping (scripts/enrich-findings.mts) from this run's own real SAST/symbolic findings to MITRE ATT&CK technique IDs, CIS Controls v8, and ISO/IEC 27001:2022 controls -- informational metadata only, never a security gate. ${r.enriched.length} finding(s) mapped.</div>
+      <div class="section-sub">Keyword-heuristic mapping (scripts/enrich-findings.mts) from this run's own real SAST/symbolic findings to MITRE ATT&CK technique IDs, CIS Controls v8, and ISO/IEC 27001:2022 controls -- informational metadata only, never a security gate. ${r.enriched.length} finding(s) mapped. Mitigation Guidance is original project commentary (config/control-guidance.json), never official framework text.</div>
       <div class="table-scroll"><table>
-        <thead><tr><th>Finding</th><th>Severity</th><th>ATT&CK Technique</th><th>CIS v8</th><th>ISO 27001</th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="5" class="empty-note">No findings enriched this run.</td></tr>`}</tbody>
+        <thead><tr><th>Finding</th><th>Severity</th><th>ATT&CK Technique</th><th>CIS v8</th><th>ISO 27001</th><th>Mitigation Guidance</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="6" class="empty-note">No findings enriched this run.</td></tr>`}</tbody>
       </table></div>
     </div>`;
 }
@@ -1061,6 +1083,7 @@ function renderLynisSection(): string {
       <td>${escapeHtml(c.title)}</td>
       <td>${badge(c.status.toUpperCase(), c.status === "needs-review" ? "amber" : "gray")}</td>
       <td class="dim detail-cell">${escapeHtml(c.relationship)}${refFor(c.relatedTestId) ? ` <a href="${escapeHtml(refFor(c.relatedTestId))}" target="_blank" rel="noopener">[remediation ref]</a>` : ""}</td>
+      <td style="font-size:11.5px; max-width:360px;">${guidanceFor(c.controlId, "NIST SP 800-53")}</td>
     </tr>`)
     .join("");
 
@@ -1076,10 +1099,10 @@ function renderLynisSection(): string {
         <thead><tr><th>Kind</th><th>Test ID</th><th>Occurrences</th><th>Related NIST Control</th></tr></thead>
         <tbody>${findingRows || `<tr><td colspan="4" class="empty-note">No findings this run.</td></tr>`}</tbody>
       </table></div>
-      <div class="section-sub" style="margin-top:10px;">Control evidence (partial, needs-review only -- never a pass/fail compliance verdict):</div>
+      <div class="section-sub" style="margin-top:10px;">Control evidence (partial, needs-review only -- never a pass/fail compliance verdict). Mitigation Guidance is original project commentary (config/control-guidance.json), never official NIST text:</div>
       <div class="table-scroll"><table>
-        <thead><tr><th>Control</th><th>Title</th><th>Status</th><th>Relationship / Remediation</th></tr></thead>
-        <tbody>${controlRows || `<tr><td colspan="4" class="empty-note">No control evidence this run.</td></tr>`}</tbody>
+        <thead><tr><th>Control</th><th>Title</th><th>Status</th><th>Relationship / Remediation</th><th>Mitigation Guidance</th></tr></thead>
+        <tbody>${controlRows || `<tr><td colspan="5" class="empty-note">No control evidence this run.</td></tr>`}</tbody>
       </table></div>
     </div>`;
 }
