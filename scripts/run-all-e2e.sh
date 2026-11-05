@@ -40,6 +40,24 @@ echo -e "\n[+] [ZONE 1] Validating Manifest Topologies & Asset Maps..."
 ./node_modules/.bin/tsx --no-cache scripts/ingest-manifests.mts
 ./scripts/run-secret-scan.sh
 
+echo -e "\n[+] [ZONE 1] Etherscan V2 API lookup for deployed artifact..."
+# Real live Etherscan client (src/onchain/etherscan_client.py): verification
+# status + source, creation metadata, balance, recent tx/log history for a
+# real deployed address. Key read from Vault only -- see the script's own
+# HONEST SCOPE note for why the default target is a real public contract
+# rather than one of this project's own fixtures. Purely additive/
+# informational -- NOT in pipeline-verdict's REQUIRED list.
+python3 scripts/run-etherscan-lookup.py
+
+echo -e "\n[+] [ZONE 1] Real on-chain indexer (short-lived per-run Anvil + Elasticsearch)..."
+# Real custom blockchain indexer (src/onchain/indexer.py): deploys fresh
+# copies of the vault fixtures to its own ephemeral Anvil, generates real
+# transactions, decodes real emitted events, and indexes real documents into
+# a dedicated Elasticsearch index. See that module's own HONEST SCOPE note
+# for exactly what "continuous monitoring" does and doesn't mean here.
+# Purely additive/informational -- NOT in pipeline-verdict's REQUIRED list.
+python3 scripts/run-indexer.py
+
 # Step 2: Zone 2 AST Sanitization, Trivy Scanner & Security Gate
 echo -e "\n[+] [ZONE 2] Running Multi-Tier SAST & Symbolic Analysis..."
 python3 scripts/run-sast-symbolic.py
@@ -197,6 +215,13 @@ python3 src/consensus/chain_attack_monitor.py
 # Real OFAC SDN screening (writes reports/scanners/ofac-screening.json). Screens
 # TARGET_SCREEN_ADDRESS if set, else a documented demonstration canary.
 python3 scripts/run-ofac-screening.py
+
+# Real simplified-ZK compliance attestation (writes reports/scanners/zk-attestation.json)
+# over THIS run's own OFAC-screened addresses (reports/ofac-screening-report.json just
+# written above) -- commitment/Merkle/challenge-response scheme, NOT a zk-SNARK/STARK;
+# see scripts/run-zk-attestation.py's own HONEST SCOPE note. Purely additive/
+# informational -- NOT in pipeline-verdict's REQUIRED list.
+python3 scripts/run-zk-attestation.py
 
 # Real OpenSanctions KYC/AML name screening (writes reports/scanners/kyc-screening.json).
 # Screens TARGET_SCREEN_NAME if set, else a documented demonstration canary.
@@ -369,6 +394,32 @@ python3 scripts/ingest-defectdojo.py || true
 # (reports/scanners/defectdojo.json is one of its real signals) and before
 # ship-siem-telemetry.py / generate-html-report.mts, which both read its output.
 python3 scripts/compute-dsomm-maturity.py
+
+# Governance-framework enrichment (MITRE ATT&CK / CIS Controls v8 / ISO 27001),
+# mapped from this run's own real SAST/symbolic findings. Purely additive
+# reporting metadata -- NOT in pipeline-verdict.py's REQUIRED list, cannot
+# affect PASS/HALT, and fails loud (not_run/error, never silent) per its own
+# honest-failure note. Must run after SAST/symbolic (Zone 2), SCA, and DAST
+# have all produced their results, and before the HTML report is generated.
+echo -e "\n[+] [ZONE 9] Mapping findings to governance frameworks (ATT&CK / CIS v8 / ISO 27001)..."
+./node_modules/.bin/tsx --no-cache scripts/run-enrichment.mts || true
+
+# STRIDE coverage scorecard: self-verifying check that the file:line evidence
+# in config/stride-coverage-map.json still exists/is current, plus drift
+# detection against config/stride-known-files.json. Purely additive scoring
+# metadata -- NOT in pipeline-verdict.py's REQUIRED list, cannot affect
+# PASS/HALT, fails loud per its own honest-failure note.
+echo -e "\n[+] [ZONE 9] Verifying STRIDE coverage scorecard..."
+./node_modules/.bin/tsx --no-cache scripts/verify-stride-coverage.mts || true
+
+# DREAD scoring (5-factor vector), computed from this run's own real
+# SAST/symbolic findings via normalize-reports.mts's computeDreadScore().
+# Purely additive reporting metadata -- NOT in pipeline-verdict.py's REQUIRED
+# list, cannot affect PASS/HALT, fails loud per its own honest-failure note.
+# A separate, simpler severity-based DREAD proxy already feeds Grafana
+# (Zone 3's IMPACT_DREAD lookup -> ship-siem-telemetry.py) and is untouched.
+echo -e "\n[+] [ZONE 9] Computing DREAD scoring vectors..."
+./node_modules/.bin/tsx --no-cache scripts/run-dread-scoring.mts || true
 
 # Step 8: Zone 9 Status Aggregator & HTML Report Compilation
 echo -e "\n[+] [ZONE 9] Aggregating Cross-Zone Status & Generating Report..."

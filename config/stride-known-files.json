@@ -1,0 +1,870 @@
+{
+  "src/agents/agent_a_auditor.py": {
+    "mtimeMs": 1791728822542.0833,
+    "size": 5950
+  },
+  "src/agents/agent_b_threat_hunter.py": {
+    "mtimeMs": 1791525213746.8142,
+    "size": 4984
+  },
+  "src/agents/agent_c_compliance_judge.py": {
+    "mtimeMs": 1791525213747.6868,
+    "size": 4522
+  },
+  "src/agents/agent_d_red_teamer.py": {
+    "mtimeMs": 1791728822542.327,
+    "size": 6195
+  },
+  "src/agents/agent_e_incident_commander.py": {
+    "mtimeMs": 1791728822544.8904,
+    "size": 6333
+  },
+  "src/agents/agent_f_deep_logic.py": {
+    "mtimeMs": 1785868004000,
+    "size": 294
+  },
+  "src/agents/agent_f_logic_analyzer.py": {
+    "mtimeMs": 1791525213749.0813,
+    "size": 4414
+  },
+  "src/agents/agent_g_guardrail.py": {
+    "mtimeMs": 1791525213749.37,
+    "size": 4393
+  },
+  "src/agents/agent_g_guardrail_watchdog.py": {
+    "mtimeMs": 1785868004000,
+    "size": 302
+  },
+  "src/agents/graph.py": {
+    "mtimeMs": 1791525695581.4358,
+    "size": 4068
+  },
+  "src/agents/state.py": {
+    "mtimeMs": 1791524343687.7166,
+    "size": 909
+  },
+  "src/agents/swarm_memory.py": {
+    "mtimeMs": 1793310350537.206,
+    "size": 10527
+  },
+  "src/agents/swarm_orchestrator.py": {
+    "mtimeMs": 1793309302442.5786,
+    "size": 13354
+  },
+  "src/agents/upgrade5_defi_attacks.py": {
+    "mtimeMs": 1791447891251.0198,
+    "size": 11650
+  },
+  "src/compliance/__init__.py": {
+    "mtimeMs": 1790335693000,
+    "size": 65
+  },
+  "src/compliance/address_screener.py": {
+    "mtimeMs": 1792622869281.1372,
+    "size": 7010
+  },
+  "src/compliance/aml_detector.py": {
+    "mtimeMs": 1791812004481.2305,
+    "size": 8317
+  },
+  "src/compliance/aml_patterns.py": {
+    "mtimeMs": 1790335693000,
+    "size": 468
+  },
+  "src/compliance/compliance_mcp.py": {
+    "mtimeMs": 1792623390069.8591,
+    "size": 8972
+  },
+  "src/compliance/compliance_policy.py": {
+    "mtimeMs": 1791818153544.9731,
+    "size": 4178
+  },
+  "src/compliance/graph_integrator.py": {
+    "mtimeMs": 1791816613796.181,
+    "size": 5075
+  },
+  "src/compliance/kyc_verifier.py": {
+    "mtimeMs": 1793352399339.5164,
+    "size": 15179
+  },
+  "src/compliance/report_generator.py": {
+    "mtimeMs": 1790335693000,
+    "size": 448
+  },
+  "src/compliance/sar_generator.py": {
+    "mtimeMs": 1791814958286.9395,
+    "size": 5762
+  },
+  "src/compliance/zk_attestation.py": {
+    "mtimeMs": 1791814190089.314,
+    "size": 5778
+  },
+  "src/consensus/__init__.py": {
+    "mtimeMs": 1791698787389.636,
+    "size": 67
+  },
+  "src/consensus/agent_consensus_client.py": {
+    "mtimeMs": 1791710780965.6465,
+    "size": 4916
+  },
+  "src/consensus/anvil_sandbox.py": {
+    "mtimeMs": 1791542583783.9119,
+    "size": 5194
+  },
+  "src/consensus/avs_consensus.py": {
+    "mtimeMs": 1793346717301.0737,
+    "size": 16232
+  },
+  "src/consensus/avs_gate.py": {
+    "mtimeMs": 1791557989288.2776,
+    "size": 12504
+  },
+  "src/consensus/avs_router.py": {
+    "mtimeMs": 1791709671971.8855,
+    "size": 4791
+  },
+  "src/consensus/bls_aggregation.py": {
+    "mtimeMs": 1791557061840.6135,
+    "size": 6828
+  },
+  "src/consensus/chain_attack_monitor.py": {
+    "mtimeMs": 1792834630836.0632,
+    "size": 18428
+  },
+  "src/consensus/concentration_tracker.py": {
+    "mtimeMs": 1791705048641.5117,
+    "size": 5856
+  },
+  "src/consensus/consensus_mcp.py": {
+    "mtimeMs": 1791707156459.3801,
+    "size": 8150
+  },
+  "src/consensus/consensus_policy.py": {
+    "mtimeMs": 1791710261682.2878,
+    "size": 5748
+  },
+  "src/consensus/eclipse_detector.py": {
+    "mtimeMs": 1791706971994.788,
+    "size": 5694
+  },
+  "src/consensus/exploit_harness/ReentrancyAttacker.sol": {
+    "mtimeMs": 1792621332248.7515,
+    "size": 1524
+  },
+  "src/consensus/forensic_event_emitter.py": {
+    "mtimeMs": 1791562491046.2327,
+    "size": 4236
+  },
+  "src/consensus/graph_enricher.py": {
+    "mtimeMs": 1791707397506.549,
+    "size": 12435
+  },
+  "src/consensus/p2p_listener.py": {
+    "mtimeMs": 1791698787393.636,
+    "size": 7135
+  },
+  "src/consensus/reorg_monitor.py": {
+    "mtimeMs": 1791704884458.1482,
+    "size": 6989
+  },
+  "src/consensus/selfish_mining_detector.py": {
+    "mtimeMs": 1791706237465.6514,
+    "size": 6217
+  },
+  "src/consensus/validator_node.py": {
+    "mtimeMs": 1791540456891.8079,
+    "size": 3157
+  },
+  "src/consensus_security/__init__.py": {
+    "mtimeMs": 1790335668000,
+    "size": 70
+  },
+  "src/consensus_security/concentration_tracker.py": {
+    "mtimeMs": 1790335668000,
+    "size": 344
+  },
+  "src/consensus_security/eclipse_detector.py": {
+    "mtimeMs": 1790335668000,
+    "size": 370
+  },
+  "src/consensus_security/p2p_listener.py": {
+    "mtimeMs": 1790335668000,
+    "size": 575
+  },
+  "src/consensus_security/reorg_monitor.py": {
+    "mtimeMs": 1790335668000,
+    "size": 366
+  },
+  "src/consensus_security/selfish_mining_detector.py": {
+    "mtimeMs": 1790335668000,
+    "size": 390
+  },
+  "src/defi/flashloan_detector.py": {
+    "mtimeMs": 1793316977346.8337,
+    "size": 11577
+  },
+  "src/defi/rugpull_detector.py": {
+    "mtimeMs": 1793317023975.4531,
+    "size": 12316
+  },
+  "src/deployment/consensus_deployer.py": {
+    "mtimeMs": 1791565465145.5288,
+    "size": 5603
+  },
+  "src/deployment/forensic_staging_snapshot.py": {
+    "mtimeMs": 1791618259125.4744,
+    "size": 4738
+  },
+  "src/deployment/gitlab_mr_workflow.py": {
+    "mtimeMs": 1791572087375.8772,
+    "size": 4851
+  },
+  "src/deployment/patch_sandbox.py": {
+    "mtimeMs": 1791570706783.6975,
+    "size": 4784
+  },
+  "src/deployment/readiness_policy_gate.py": {
+    "mtimeMs": 1791569720572.2864,
+    "size": 6575
+  },
+  "src/deployment/vault_secret_store.py": {
+    "mtimeMs": 1791565456956.512,
+    "size": 5239
+  },
+  "src/drills/drill_relayer_key_compromise.py": {
+    "mtimeMs": 1791810290999.376,
+    "size": 4593
+  },
+  "src/forensics/__init__.py": {
+    "mtimeMs": 1790314268000,
+    "size": 84
+  },
+  "src/forensics/acquisition.py": {
+    "mtimeMs": 1790314268000,
+    "size": 973
+  },
+  "src/forensics/chain_of_custody.py": {
+    "mtimeMs": 1790314268000,
+    "size": 807
+  },
+  "src/forensics/collector.py": {
+    "mtimeMs": 1791698030183.389,
+    "size": 4553
+  },
+  "src/forensics/disk_forensics.py": {
+    "mtimeMs": 1790314268000,
+    "size": 515
+  },
+  "src/forensics/evidence_db.py": {
+    "mtimeMs": 1791695840758.6472,
+    "size": 9667
+  },
+  "src/forensics/evidence_sanitizer.py": {
+    "mtimeMs": 1790314268000,
+    "size": 663
+  },
+  "src/forensics/evidence_sealer.py": {
+    "mtimeMs": 1792626347745.7197,
+    "size": 3118
+  },
+  "src/forensics/evidence_vault.py": {
+    "mtimeMs": 1790314268000,
+    "size": 836
+  },
+  "src/forensics/hasher.py": {
+    "mtimeMs": 1791698383609.4705,
+    "size": 3347
+  },
+  "src/forensics/integrity.py": {
+    "mtimeMs": 1790314268000,
+    "size": 950
+  },
+  "src/forensics/memory_forensics.py": {
+    "mtimeMs": 1790314268000,
+    "size": 458
+  },
+  "src/forensics/merkle_manifest.py": {
+    "mtimeMs": 1791695478402.6736,
+    "size": 4963
+  },
+  "src/forensics/onchain_forensics.py": {
+    "mtimeMs": 1790314268000,
+    "size": 478
+  },
+  "src/forensics/policy_evaluator.py": {
+    "mtimeMs": 1791697159102.7854,
+    "size": 3488
+  },
+  "src/forensics/report_generator.py": {
+    "mtimeMs": 1790314268000,
+    "size": 589
+  },
+  "src/forensics/report_packager.py": {
+    "mtimeMs": 1791698299891.6936,
+    "size": 5307
+  },
+  "src/forensics/sanitizer.py": {
+    "mtimeMs": 1791697381522.5383,
+    "size": 4911
+  },
+  "src/forensics/stix_exporter.py": {
+    "mtimeMs": 1792626370925.0408,
+    "size": 5133
+  },
+  "src/forensics/timeline.py": {
+    "mtimeMs": 1790314268000,
+    "size": 361
+  },
+  "src/forensics/vault.py": {
+    "mtimeMs": 1791696074093.5728,
+    "size": 5957
+  },
+  "src/incident/jira_dispatcher.py": {
+    "mtimeMs": 1792747266240.611,
+    "size": 9940
+  },
+  "src/incident/safe_pause_builder.py": {
+    "mtimeMs": 1791906617003.8076,
+    "size": 1443
+  },
+  "src/llm_client/ollama_client.py": {
+    "mtimeMs": 1791964002458.6416,
+    "size": 6585
+  },
+  "src/mcp_middleware/agent_g_guardrail.py": {
+    "mtimeMs": 1791697703766.2559,
+    "size": 3181
+  },
+  "src/mcp_middleware/anvil_sandbox.py": {
+    "mtimeMs": 1791451824234.1726,
+    "size": 4835
+  },
+  "src/mcp_middleware/compliance_screen.py": {
+    "mtimeMs": 1790335693000,
+    "size": 415
+  },
+  "src/mcp_middleware/consensus_monitor.py": {
+    "mtimeMs": 1790335668000,
+    "size": 548
+  },
+  "src/mcp_middleware/forensic_tools.py": {
+    "mtimeMs": 1790314268000,
+    "size": 682
+  },
+  "src/mcp_middleware/host_forensics.py": {
+    "mtimeMs": 1791452300588.4956,
+    "size": 8847
+  },
+  "src/mcp_middleware/opa_guardrail.py": {
+    "mtimeMs": 1791647371857.6675,
+    "size": 5236
+  },
+  "src/mcp_middleware/telemetry.py": {
+    "mtimeMs": 1791453028695.456,
+    "size": 5284
+  },
+  "src/mcp_middleware/wallet_audit.py": {
+    "mtimeMs": 1790335681000,
+    "size": 618
+  },
+  "src/mitigation/egress_gateway.py": {
+    "mtimeMs": 1785868031000,
+    "size": 479
+  },
+  "src/mitigation/mirror_gate.py": {
+    "mtimeMs": 1791654982832.6404,
+    "size": 3021
+  },
+  "src/mitigation/quarantine_staging.py": {
+    "mtimeMs": 1791653995116.9849,
+    "size": 6674
+  },
+  "src/ml/feature_extraction.py": {
+    "mtimeMs": 1793391067588.0815,
+    "size": 13611
+  },
+  "src/ml/triage_classifier.py": {
+    "mtimeMs": 1793374210989.1414,
+    "size": 6421
+  },
+  "src/monitoring/contract_watcher.py": {
+    "mtimeMs": 1793863354719.6377,
+    "size": 17155
+  },
+  "src/observability/fast_path_mitigation.py": {
+    "mtimeMs": 1791643957182.9492,
+    "size": 6304
+  },
+  "src/observability/lifecycle_telemetry.py": {
+    "mtimeMs": 1791643248849.8481,
+    "size": 6221
+  },
+  "src/observability/rasp_router.py": {
+    "mtimeMs": 1791626890475.0981,
+    "size": 5913
+  },
+  "src/observability/rasp_shield.py": {
+    "mtimeMs": 1791625188370.2317,
+    "size": 7974
+  },
+  "src/observability/shadow_fork_verifier.py": {
+    "mtimeMs": 1791625882269.1216,
+    "size": 7985
+  },
+  "src/observability/telemetry_client.py": {
+    "mtimeMs": 1791624244304.382,
+    "size": 8988
+  },
+  "src/observability/telemetry_stack.py": {
+    "mtimeMs": 1791623571723.9478,
+    "size": 5331
+  },
+  "src/observability/threat_intel.py": {
+    "mtimeMs": 1792623238190.2593,
+    "size": 4373
+  },
+  "src/onchain/etherscan_client.py": {
+    "mtimeMs": 1793436433219.848,
+    "size": 15442
+  },
+  "src/onchain/indexer.py": {
+    "mtimeMs": 1793436597948.7366,
+    "size": 13116
+  },
+  "src/reporting/__init__.py": {
+    "mtimeMs": 1790401462000,
+    "size": 66
+  },
+  "src/storage/attack_path_graph.py": {
+    "mtimeMs": 1791450253867.9065,
+    "size": 7600
+  },
+  "src/storage/benchmark_suite.py": {
+    "mtimeMs": 1791875880091.1152,
+    "size": 8896
+  },
+  "src/storage/broker_store.py": {
+    "mtimeMs": 1791454184522.4077,
+    "size": 7706
+  },
+  "src/wallet/hsm_emulator.py": {
+    "mtimeMs": 1791713557932.2021,
+    "size": 9942
+  },
+  "src/wallet/hsm_signer.py": {
+    "mtimeMs": 1793299063612.0403,
+    "size": 7403
+  },
+  "src/wallet/hsm_signer_interface.py": {
+    "mtimeMs": 1791713781299.9695,
+    "size": 5112
+  },
+  "src/wallet/mpc_joint_signer.py": {
+    "mtimeMs": 1791714262474.2844,
+    "size": 5943
+  },
+  "src/wallet/mpc_relayer_cluster.py": {
+    "mtimeMs": 1791714011842.4746,
+    "size": 7480
+  },
+  "src/wallet/presign_simulator.py": {
+    "mtimeMs": 1791714504385.3547,
+    "size": 4748
+  },
+  "src/wallet/quorum_signer.py": {
+    "mtimeMs": 1793299041025.2803,
+    "size": 7274
+  },
+  "src/wallet/shamir_engine.py": {
+    "mtimeMs": 1791713335269.0894,
+    "size": 5922
+  },
+  "src/wallet/wallet_audit_mcp.py": {
+    "mtimeMs": 1791726783101.3086,
+    "size": 9148
+  },
+  "src/wallet/wallet_policy.py": {
+    "mtimeMs": 1791730000224.3765,
+    "size": 5492
+  },
+  "src/wallet_security/__init__.py": {
+    "mtimeMs": 1790335681000,
+    "size": 63
+  },
+  "src/wallet_security/hsm_client.py": {
+    "mtimeMs": 1790335681000,
+    "size": 414
+  },
+  "src/wallet_security/mpc_relayer.py": {
+    "mtimeMs": 1790335681000,
+    "size": 340
+  },
+  "src/wallet_security/presign_simulator.py": {
+    "mtimeMs": 1790335681000,
+    "size": 413
+  },
+  "src/wallet_security/shamir.py": {
+    "mtimeMs": 1790335681000,
+    "size": 612
+  },
+  "scripts/aggregate-infra-status.py": {
+    "mtimeMs": 1792654523719.5554,
+    "size": 7076
+  },
+  "scripts/aggregate-status.mts": {
+    "mtimeMs": 1793352560285.1106,
+    "size": 17185
+  },
+  "scripts/ast-mask-core.cjs": {
+    "mtimeMs": 1791357844562.8416,
+    "size": 12051
+  },
+  "scripts/ast-mask.mts": {
+    "mtimeMs": 1793442648147.8257,
+    "size": 5504
+  },
+  "scripts/audit-completion-gate.py": {
+    "mtimeMs": 1792615554761.4788,
+    "size": 1596
+  },
+  "scripts/audit-egress-barriers.sh": {
+    "mtimeMs": 1791656895516.1716,
+    "size": 1235
+  },
+  "scripts/bootstrap-langfuse.py": {
+    "mtimeMs": 1792698950766.8826,
+    "size": 5381
+  },
+  "scripts/bootstrap-thehive-enterprise.py": {
+    "mtimeMs": 1792688455954.6587,
+    "size": 3524
+  },
+  "scripts/build-offline-index.cjs": {
+    "mtimeMs": 1792794382233.4832,
+    "size": 3554
+  },
+  "scripts/compute-dsomm-maturity.py": {
+    "mtimeMs": 1792689697508.5427,
+    "size": 8988
+  },
+  "scripts/deploy-soc-demo.py": {
+    "mtimeMs": 1791876437701.9026,
+    "size": 3068
+  },
+  "scripts/dispatch-jira-incident.py": {
+    "mtimeMs": 1792406011040.4202,
+    "size": 2725
+  },
+  "scripts/enrich-findings.mts": {
+    "mtimeMs": 1791451093326.1445,
+    "size": 7154
+  },
+  "scripts/export-public-dashboard.mts": {
+    "mtimeMs": 1791876446785.9092,
+    "size": 2014
+  },
+  "scripts/exporter-daemon.py": {
+    "mtimeMs": 1791914402070.7717,
+    "size": 1146
+  },
+  "scripts/fetch-etherscan-contract.py": {
+    "mtimeMs": 1793312188294.3147,
+    "size": 2688
+  },
+  "scripts/formal-tool-results.cjs": {
+    "mtimeMs": 1791351807422.6997,
+    "size": 3801
+  },
+  "scripts/generate-html-report.mts": {
+    "mtimeMs": 1793886616171.3386,
+    "size": 96686
+  },
+  "scripts/generate-sar-draft.py": {
+    "mtimeMs": 1793304448728.736,
+    "size": 5858
+  },
+  "scripts/governance-core.cjs": {
+    "mtimeMs": 1791389366307.2231,
+    "size": 12917
+  },
+  "scripts/iast-trace.cjs": {
+    "mtimeMs": 1792752131727.3196,
+    "size": 10974
+  },
+  "scripts/incident-orchestrator.mts": {
+    "mtimeMs": 1791646147892.0654,
+    "size": 8725
+  },
+  "scripts/ingest-defectdojo.py": {
+    "mtimeMs": 1793447556427.9028,
+    "size": 24807
+  },
+  "scripts/ingest-granular-siem.py": {
+    "mtimeMs": 1793436766608.5508,
+    "size": 32683
+  },
+  "scripts/ingest-manifests.mts": {
+    "mtimeMs": 1793442641419.6438,
+    "size": 25169
+  },
+  "scripts/ingest-thehive-incident.py": {
+    "mtimeMs": 1792697434319.2383,
+    "size": 8121
+  },
+  "scripts/init-run.sh": {
+    "mtimeMs": 1792615554798.3003,
+    "size": 288
+  },
+  "scripts/langfuse_tracer.py": {
+    "mtimeMs": 1792706521362.0078,
+    "size": 10611
+  },
+  "scripts/launch-soc-ui.sh": {
+    "mtimeMs": 1792395535460.5486,
+    "size": 2760
+  },
+  "scripts/lib/scanner_result.py": {
+    "mtimeMs": 1792615554798.3003,
+    "size": 3180
+  },
+  "scripts/lib/thehive_case.py": {
+    "mtimeMs": 1792750000255.754,
+    "size": 6792
+  },
+  "scripts/mirror-nvd.sh": {
+    "mtimeMs": 1792615554798.3003,
+    "size": 1394
+  },
+  "scripts/mirror-ofac.py": {
+    "mtimeMs": 1792622653313.5742,
+    "size": 4249
+  },
+  "scripts/mirror-opensanctions.py": {
+    "mtimeMs": 1793352117807.335,
+    "size": 6061
+  },
+  "scripts/mirror-release-gate.sh": {
+    "mtimeMs": 1791655924572.6897,
+    "size": 1209
+  },
+  "scripts/normalize-reports.mts": {
+    "mtimeMs": 1791449657656.6052,
+    "size": 6270
+  },
+  "scripts/notify-gmail.py": {
+    "mtimeMs": 1792615554762.1487,
+    "size": 3159
+  },
+  "scripts/notify-slack.py": {
+    "mtimeMs": 1792616303683.9177,
+    "size": 4441
+  },
+  "scripts/orchestrate-enterprise-integrations.sh": {
+    "mtimeMs": 1793436630435.3237,
+    "size": 6848
+  },
+  "scripts/pipeline-verdict.py": {
+    "mtimeMs": 1793447743694.386,
+    "size": 13557
+  },
+  "scripts/production-readiness.cjs": {
+    "mtimeMs": 1791363584978.1785,
+    "size": 5395
+  },
+  "scripts/provision-jira-vault.py": {
+    "mtimeMs": 1792745780106.9912,
+    "size": 2343
+  },
+  "scripts/provision-quorum-shares.py": {
+    "mtimeMs": 1793298988348.0352,
+    "size": 3061
+  },
+  "scripts/provision-thehive-vault.py": {
+    "mtimeMs": 1792688488716.7092,
+    "size": 4173
+  },
+  "scripts/run-all-e2e.sh": {
+    "mtimeMs": 1793886600367.1914,
+    "size": 21856
+  },
+  "scripts/run-dast.sh": {
+    "mtimeMs": 1792615554798.5115,
+    "size": 2170
+  },
+  "scripts/run-dread-scoring.mts": {
+    "mtimeMs": 1793886593883.1309,
+    "size": 3860
+  },
+  "scripts/run-echidna.sh": {
+    "mtimeMs": 1793349497792.6123,
+    "size": 7012
+  },
+  "scripts/run-enrichment.mts": {
+    "mtimeMs": 1793861471149.5422,
+    "size": 3603
+  },
+  "scripts/run-etherscan-lookup.py": {
+    "mtimeMs": 1793436463839.1846,
+    "size": 6805
+  },
+  "scripts/run-formal-tools.cjs": {
+    "mtimeMs": 1793442653331.966,
+    "size": 12895
+  },
+  "scripts/run-governance.cjs": {
+    "mtimeMs": 1791389088702.4412,
+    "size": 847
+  },
+  "scripts/run-iast.cjs": {
+    "mtimeMs": 1792752154059.5952,
+    "size": 11972
+  },
+  "scripts/run-incident-abort.py": {
+    "mtimeMs": 1792747283576.9026,
+    "size": 6436
+  },
+  "scripts/run-indexer.py": {
+    "mtimeMs": 1793436568294.685,
+    "size": 1837
+  },
+  "scripts/run-kyc-screening.py": {
+    "mtimeMs": 1793390771487.456,
+    "size": 5773
+  },
+  "scripts/run-ofac-screening.py": {
+    "mtimeMs": 1792623257247.2405,
+    "size": 3873
+  },
+  "scripts/run-openscap-audit.py": {
+    "mtimeMs": 1792653755564.0483,
+    "size": 5893
+  },
+  "scripts/run-readiness-gate.sh": {
+    "mtimeMs": 1792615554798.5596,
+    "size": 957
+  },
+  "scripts/run-sast-symbolic.py": {
+    "mtimeMs": 1793317430184.6836,
+    "size": 14158
+  },
+  "scripts/run-sca-gate.py": {
+    "mtimeMs": 1792615554798.5596,
+    "size": 2508
+  },
+  "scripts/run-sca.cjs": {
+    "mtimeMs": 1793317273594.6963,
+    "size": 13494
+  },
+  "scripts/run-sca.sh": {
+    "mtimeMs": 1791354859946.0947,
+    "size": 220
+  },
+  "scripts/run-secret-scan.sh": {
+    "mtimeMs": 1793377840576.7185,
+    "size": 2156
+  },
+  "scripts/run-sonar.sh": {
+    "mtimeMs": 1792616561266.6,
+    "size": 2845
+  },
+  "scripts/run-triage-classifier.py": {
+    "mtimeMs": 1793390762035.53,
+    "size": 7834
+  },
+  "scripts/run-trivy.sh": {
+    "mtimeMs": 1792615554798.6292,
+    "size": 1790
+  },
+  "scripts/run-vyper-check.py": {
+    "mtimeMs": 1792800619109.5789,
+    "size": 5448
+  },
+  "scripts/run-zk-attestation.py": {
+    "mtimeMs": 1793447514675.347,
+    "size": 9565
+  },
+  "scripts/sca-inventory.cjs": {
+    "mtimeMs": 1791354613573.6091,
+    "size": 4719
+  },
+  "scripts/sca-lookup.cjs": {
+    "mtimeMs": 1791354730818.0303,
+    "size": 6541
+  },
+  "scripts/ship-siem-telemetry.py": {
+    "mtimeMs": 1793436932642.449,
+    "size": 19084
+  },
+  "scripts/sync-defectdojo-metrics.py": {
+    "mtimeMs": 1792690775872.4453,
+    "size": 11400
+  },
+  "scripts/sync-thehive-vault.py": {
+    "mtimeMs": 1792688517249.6177,
+    "size": 3909
+  },
+  "scripts/test-ollama-chat.py": {
+    "mtimeMs": 1791456063036.4478,
+    "size": 1369
+  },
+  "scripts/train-triage-classifier.py": {
+    "mtimeMs": 1793382995163.3418,
+    "size": 16493
+  },
+  "scripts/vault-hive-pipeline.py": {
+    "mtimeMs": 1792676977461.6514,
+    "size": 8385
+  },
+  "scripts/verify-enrichment.mts": {
+    "mtimeMs": 1791450959103.394,
+    "size": 2218
+  },
+  "scripts/verify-formal-tools.mts": {
+    "mtimeMs": 1791220324228.3804,
+    "size": 2625
+  },
+  "scripts/verify-mask-fixture.cjs": {
+    "mtimeMs": 1791360071802.1843,
+    "size": 10358
+  },
+  "scripts/verify-normalization.mts": {
+    "mtimeMs": 1791449785555.8357,
+    "size": 1902
+  },
+  "scripts/verify-pipeline-entrypoints.mts": {
+    "mtimeMs": 1791219048466.3826,
+    "size": 2051
+  },
+  "scripts/verify-stride-coverage.mts": {
+    "mtimeMs": 1793863308055.427,
+    "size": 7715
+  },
+  "scripts/watch-contracts.py": {
+    "mtimeMs": 1793315054226.9136,
+    "size": 2532
+  },
+  "contracts/solidity/DeFiLendingVault.sol": {
+    "mtimeMs": 1792403253135.0754,
+    "size": 1518
+  },
+  "contracts/solidity/PromptInjectionFixture.sol": {
+    "mtimeMs": 1791360071802.096,
+    "size": 967
+  },
+  "contracts/solidity/RandomTestVault.sol": {
+    "mtimeMs": 1792779148521.8262,
+    "size": 1061
+  },
+  "contracts/solidity/SecureVault.sol": {
+    "mtimeMs": 1793442613866.8987,
+    "size": 8925
+  },
+  "contracts/solidity/StakingRewardsVault.sol": {
+    "mtimeMs": 1792483025572.453,
+    "size": 3351
+  },
+  "contracts/solidity/VulnerableVault.sol": {
+    "mtimeMs": 1793442610850.8171,
+    "size": 9211
+  }
+}

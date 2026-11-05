@@ -1,0 +1,77 @@
+{
+  "_comment": "Maintained manually. Each entry is a real, verified file:line reference, re-checked every pipeline run by scripts/verify-stride-coverage.mts for staleness. Do not add an entry unless it has been read and confirmed live in the repo. An empty category list is honest and intentional, not an oversight.",
+  "categories": {
+    "Spoofing": [
+      {
+        "file": "src/compliance/address_screener.py",
+        "line": 145,
+        "description": "AddressScreener.screen() -- real OFAC SDN sanctioned-identity screening. Wired, Zone 3 (ofac-screening scanner, runs every cycle)."
+      },
+      {
+        "file": "contracts/solidity/VulnerableVault.sol",
+        "line": 146,
+        "description": "claimOriginBonus() authorizes via tx.origin (SWC-115): an attacker's intermediate contract can spoof the legitimate caller's identity. Fixed at contracts/solidity/SecureVault.sol:145 with onlyOwner."
+      }
+    ],
+    "Tampering": [
+      {
+        "file": "scripts/run-sast-symbolic.py",
+        "line": 254,
+        "description": "Live check that Slither's reentrancy-eth detector actually fired this run -- unauthorized state tampering via reentrant calls. Wired, Zone 2 SAST."
+      },
+      {
+        "file": "test/echidna/VaultEchidnaHarness.sol",
+        "line": 54,
+        "description": "echidna_withdraw_never_reentered() -- wired Echidna invariant, genuinely falsified with a real counterexample on VulnerableVault."
+      }
+    ],
+    "Repudiation": [
+      {
+        "file": "scripts/pipeline-verdict.py",
+        "line": 196,
+        "description": "Writes the immutable, timestamped reports/verdict.json audit trail (halt_reasons, contract_halt_reasons, generated_at) every run. Wired, always runs."
+      },
+      {
+        "file": "src/incident/jira_dispatcher.py",
+        "line": 77,
+        "description": "dispatch_sev1_ticket() -- creates a permanent, timestamped external Jira record of exactly what was detected and when. Wired via run-incident-abort.py on the HALT path."
+      }
+    ],
+    "Information Disclosure": [
+      {
+        "file": "scripts/run-secret-scan.sh",
+        "line": 23,
+        "description": "Real `gitleaks detect` invocation scanning committed source for disclosed secrets/credentials. Wired, Zone 1, always runs."
+      },
+      {
+        "file": "scripts/run-zk-attestation.py",
+        "line": 150,
+        "description": "Attestation report object constructed here; the private witness (blinding factors) is never included in it -- see this file's own HONEST SCOPE docstring. Wired, Zone 3."
+      }
+    ],
+    "Denial of Service": [
+      {
+        "file": "contracts/solidity/VulnerableVault.sol",
+        "line": 190,
+        "description": "batchRefund() has an unbounded loop with no cap on recipients.length (gas-griefing DoS). Flagged live by Slither's calls-loop check."
+      },
+      {
+        "file": "contracts/solidity/SecureVault.sol",
+        "line": 182,
+        "description": "MAX_BATCH = 50 -- the real fix capping batchRefund()'s loop bound."
+      }
+    ],
+    "Elevation of Privilege": [
+      {
+        "file": "src/defi/rugpull_detector.py",
+        "line": 108,
+        "description": "check_ownership_protection() -- wired, Zone 2/3 rugpull detector, flags privileged functions with no ownership protection (missing_ownership_protection=fail confirmed live)."
+      },
+      {
+        "file": "contracts/solidity/VulnerableVault.sol",
+        "line": 155,
+        "description": "setFeeCollector() has zero access control -- the real example the above check flags."
+      }
+    ]
+  }
+}

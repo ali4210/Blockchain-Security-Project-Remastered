@@ -640,6 +640,88 @@ function renderEchidnaSection(): string {
     </div>`;
 }
 
+function renderEtherscanSection(): string {
+  const p = resolve(process.cwd(), "reports/etherscan-lookup-report.json");
+  if (!existsSync(p) || !scannerOk("etherscan-lookup")) {
+    return `<div id="etherscan" class="section-card"><div class="section-title"><span class="title-icon">${ICON.server}</span>Etherscan V2 API Lookup</div><div class="empty-note">Not run this cycle, or this run's own etherscan-lookup scanner result was not ok -- see reports/scanners/etherscan-lookup.json (most commonly: ETHERSCAN_API_KEY not seeded in Vault).</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  const modeNote = r.mode === "demonstration-canary"
+    ? "DEMONSTRATION canary: a real, well-known, long-verified public contract -- NOT one of this project's own fixtures (see scripts/run-etherscan-lookup.py's own HONEST SCOPE note)."
+    : "operator-supplied address.";
+  const txRows = (r.recent_transactions || []).slice(0, 5)
+    .map((tx: any) => `<tr><td class="mono dim2 detail-cell">${escapeHtml(tx.hash)}</td><td class="mono">${escapeHtml(tx.blockNumber)}</td><td class="mono dim2">${escapeHtml(tx.value)}</td></tr>`)
+    .join("");
+  return `
+    <div id="etherscan" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.server}</span>Etherscan V2 API Lookup</div>
+      <div class="section-sub">${escapeHtml(modeNote)} Address <code>${escapeHtml(r.address)}</code> on chain ${escapeHtml(String(r.chain_id))}.</div>
+      <div class="infra-row"><div class="infra-name">Verified source</div>${badge(r.verified ? "VERIFIED" : "UNVERIFIED", r.verified ? "green" : "amber")}</div>
+      <div class="infra-detail" style="text-align:left; max-width:100%;">${escapeHtml(r.contract_name || "")}${r.compiler_version ? " (" + escapeHtml(r.compiler_version) + ")" : ""}</div>
+      <div class="infra-row" style="margin-top:8px;"><div class="infra-name">Balance</div><span class="mono dim2">${escapeHtml(String(r.balance_wei ?? "unknown"))} wei</span></div>
+      <div class="section-sub" style="margin-top:10px;">Recent transactions (${r.tx_count_fetched ?? 0} fetched):</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Tx Hash</th><th>Block</th><th>Value (wei)</th></tr></thead>
+        <tbody>${txRows || `<tr><td colspan="3" class="empty-note">No transactions fetched.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderIndexerSection(): string {
+  const p = resolve(process.cwd(), "reports/indexer-report.json");
+  if (!existsSync(p) || !scannerOk("indexer")) {
+    return `<div id="indexer" class="section-card"><div class="section-title"><span class="title-icon">${ICON.cube}</span>Real On-Chain Indexer</div><div class="empty-note">Not run this cycle, or this run's own indexer scanner result was not ok -- see reports/scanners/indexer.json.</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  const rows = (r.sample_documents || [])
+    .map((d: any) => `
+    <tr>
+      <td class="mono dim2">${escapeHtml(d.target_contract)}</td>
+      <td>${badge(d.doc_type === "decoded_event" ? (d.event_name || "EVENT") : "TX ACTIVITY", d.doc_type === "decoded_event" ? "green" : "gray")}</td>
+      <td class="mono">${escapeHtml(String(d.block_number))}</td>
+      <td class="mono dim2 detail-cell">${escapeHtml(d.tx_hash)}</td>
+    </tr>`)
+    .join("");
+  return `
+    <div id="indexer" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.cube}</span>Real On-Chain Indexer</div>
+      <div class="section-sub">A short-lived, per-run indexing pass against its own dedicated ephemeral Anvil instance -- NOT a persistent standing daemon, and NOT a subscription to avs_consensus.py's own (already torn-down) nodes. See <code>src/onchain/indexer.py</code>'s own HONEST SCOPE note. ${r.decoded_events ?? 0} real decoded event(s) (DeFiLendingVault/StakingRewardsVault) + ${r.transaction_activity_docs ?? 0} real transaction-activity doc(s) (VulnerableVault/SecureVault emit no events) indexed into Elasticsearch index <code>${escapeHtml(r.es_index || "")}</code>.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Contract</th><th>Type</th><th>Block</th><th>Tx Hash</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="4" class="empty-note">No documents indexed this run.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderZkAttestationSection(): string {
+  const p = resolve(process.cwd(), "reports/zk-attestation-report.json");
+  if (!existsSync(p) || !scannerOk("zk-attestation")) {
+    return `<div id="zk-attestation" class="section-card"><div class="section-title"><span class="title-icon">${ICON.lock}</span>Simplified-ZK Compliance Attestation</div><div class="empty-note">Not run this cycle, or this run's own zk-attestation scanner result was not ok -- see reports/scanners/zk-attestation.json (most commonly: this run's OFAC screening report is missing).</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  const rows = (r.attestations || [])
+    .map((a: any) => {
+      const generated = a.outcome === "proof_generated";
+      return `
+    <tr>
+      <td class="mono dim2 detail-cell">${escapeHtml(a.address)}</td>
+      <td>${badge(generated ? "PROOF GENERATED" : "CORRECTLY REFUSED", generated ? "green" : "amber")}</td>
+      <td class="mono dim2 detail-cell">${generated ? escapeHtml(a.proof?.proof_id || "") : escapeHtml(a.refusal_reason || "")}</td>
+      <td>${generated ? badge(a.verified_with_witness && a.verified_public_only ? "VERIFIED" : "VERIFY FAILED", a.verified_with_witness && a.verified_public_only ? "green" : "red") : `<span class="dim">n/a</span>`}</td>
+    </tr>`;
+    })
+    .join("");
+  return `
+    <div id="zk-attestation" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.lock}</span>Simplified-ZK Compliance Attestation</div>
+      <div class="section-sub"><strong>${escapeHtml(r.scheme_honest_label || "")}</strong>. Real commitment/challenge-response proofs over this run's own OFAC-screened addresses (${r.sanctioned_universe_size ?? "?"}-address real OFAC SDN universe, snapshot ${escapeHtml(r.ofac_snapshot_meta?.downloaded_at || "unknown")}). Volume/threshold are a documented demonstration canary (${escapeHtml(r.mode || "")}) -- this fixture pipeline has no real transaction volume data. The private witness (blinding factors) is never written to this or any report file.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Address</th><th>Outcome</th><th>Proof ID / Refusal Reason</th><th>Re-Verification</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="4" class="empty-note">No attestations attempted this run.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
 function renderZkOfacSection(): string {
   const p = resolve(process.cwd(), "test/zk-ofac/zk-ofac-summary.json");
   if (!existsSync(p)) {
@@ -656,6 +738,114 @@ function renderZkOfacSection(): string {
       <div class="infra-row"><div class="infra-name">Flagged-address proof attempt</div>${badge(r.flagged_address_proof.witness_generation_result, "red")}</div>
       <div class="infra-detail" style="text-align:left; max-width:100%;">${escapeHtml(r.flagged_address_proof.failure_reason)}</div>
       <div class="dim" style="font-size:11.5px; margin-top:10px;">Reproducible from <code class="mono">${escapeHtml(r.circuit.file)}</code> and the setup commands in its own comments.</div>
+    </div>`;
+}
+
+function renderGovernanceEnrichmentSection(): string {
+  const p = resolve(process.cwd(), "reports/enriched-findings-report.json");
+  if (!existsSync(p)) {
+    return `<div id="governance-enrichment" class="section-card"><div class="section-title"><span class="title-icon">${ICON.shield}</span>Governance Framework Mapping (MITRE ATT&CK / CIS v8 / ISO 27001)</div><div class="empty-note">Not run this cycle -- see reports/scanners/governance-enrichment.json.</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  if (r.status !== "ok") {
+    return `
+    <div id="governance-enrichment" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.shield}</span>Governance Framework Mapping (MITRE ATT&CK / CIS v8 / ISO 27001)</div>
+      <div class="infra-row"><div class="infra-name">Enrichment status</div>${badge("NOT RUN", "amber")}</div>
+      <div class="empty-note">Enrichment unavailable this run: ${escapeHtml(r.reason || "unknown reason")}.</div>
+    </div>`;
+  }
+  const rows = (r.enriched || []).slice(0, 25)
+    .map((f: any) => `
+    <tr>
+      <td class="mono dim2 detail-cell">${escapeHtml(f.title)}</td>
+      <td>${badge(f.severity, f.severity === "HIGH" || f.severity === "CRITICAL" ? "red" : f.severity === "MEDIUM" ? "amber" : "gray")}</td>
+      <td class="mono">${escapeHtml(f.governance.mitreAttack.techniqueId)} <span class="dim2">(${escapeHtml(f.governance.mitreAttack.tactic)})</span></td>
+      <td class="mono">${escapeHtml(f.governance.cisControls.controlId)}</td>
+      <td class="mono">${escapeHtml(f.governance.iso27001.controlId)}</td>
+    </tr>`)
+    .join("");
+  return `
+    <div id="governance-enrichment" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.shield}</span>Governance Framework Mapping (MITRE ATT&CK / CIS v8 / ISO 27001)</div>
+      <div class="section-sub">Keyword-heuristic mapping (scripts/enrich-findings.mts) from this run's own real SAST/symbolic findings to MITRE ATT&CK technique IDs, CIS Controls v8, and ISO/IEC 27001:2022 controls -- informational metadata only, never a security gate. ${r.enriched.length} finding(s) mapped.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Finding</th><th>Severity</th><th>ATT&CK Technique</th><th>CIS v8</th><th>ISO 27001</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="5" class="empty-note">No findings enriched this run.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderStrideCoverageSection(): string {
+  const p = resolve(process.cwd(), "reports/scanners/stride-coverage.json");
+  if (!existsSync(p)) {
+    return `<div id="stride-coverage" class="section-card"><div class="section-title"><span class="title-icon">${ICON.shield}</span>STRIDE Coverage Scorecard</div><div class="empty-note">Not run this cycle.</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  const letters = ["Spoofing", "Tampering", "Repudiation", "Information Disclosure", "Denial of Service", "Elevation of Privilege"];
+  const rows = letters.map((cat) => {
+    const catData = r.categories?.[cat];
+    const entries = (catData?.entries || []).filter((e: any) => !e.stale);
+    const covered = entries.length > 0;
+    const evidence = entries
+      .map((e: any) => `<div class="mono dim2 detail-cell" style="margin-top:2px;">${escapeHtml(e.file)}:${e.line} — ${escapeHtml(e.description)}</div>`)
+      .join("");
+    return `
+    <div class="infra-row" style="align-items:flex-start;">
+      <div class="infra-name">${badge(cat.split(" ")[0].toUpperCase(), covered ? "green" : "amber")} ${escapeHtml(cat)}</div>
+      <div style="text-align:left; max-width:70%;">${covered ? evidence : `<span class="dim2">not covered -- no real control in this repo maps to this category</span>`}</div>
+    </div>`;
+  }).join("");
+  const unreviewed: string[] = r.unreviewed_files || [];
+  const unreviewedNote = r.baseline_established
+    ? `<div class="section-sub" style="margin-top:8px;">First run: this is the baseline snapshot for drift detection. Unreviewed-file tracking starts from the next run.</div>`
+    : unreviewed.length > 0
+      ? `<div class="infra-row" style="margin-top:8px;"><div class="infra-name">${badge(`UNREVIEWED FILES: ${unreviewed.length}`, "amber")}</div><span class="dim2">new/changed since last snapshot, not yet referenced anywhere in the STRIDE map</span></div>`
+      : `<div class="section-sub" style="margin-top:8px;">No new or changed files outside the existing STRIDE map since the last run.</div>`;
+  return `
+    <div id="stride-coverage" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.shield}</span>STRIDE Coverage Scorecard: ${r.categories_covered ?? 0}/6</div>
+      <div class="section-sub">${r.status !== "ok" ? `Self-verification status: ${escapeHtml(r.status)} (${(r.stale_entries || []).length} stale entry/entries).` : "All evidence file:line references re-verified against the live repo this run."} Source of truth: <code>config/stride-coverage-map.json</code>, kept in sync with <code>docs/STRIDE-CROSSWALK.md</code>.</div>
+      ${rows}
+      ${unreviewedNote}
+    </div>`;
+}
+
+function renderDreadScoringSection(): string {
+  const p = resolve(process.cwd(), "reports/dread-scoring-report.json");
+  if (!existsSync(p)) {
+    return `<div id="dread-scoring" class="section-card"><div class="section-title"><span class="title-icon">${ICON.alert}</span>DREAD Risk Scoring (5-Factor Vector)</div><div class="empty-note">Not run this cycle -- see reports/scanners/dread-scoring.json.</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  if (r.status !== "ok") {
+    return `
+    <div id="dread-scoring" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.alert}</span>DREAD Risk Scoring (5-Factor Vector)</div>
+      <div class="infra-row"><div class="infra-name">Scoring status</div>${badge("NOT RUN", "amber")}</div>
+      <div class="empty-note">DREAD scoring unavailable this run: ${escapeHtml(r.reason || "unknown reason")}.</div>
+    </div>`;
+  }
+  const rows = (r.scored || []).slice(0, 25)
+    .map((f: any) => `
+    <tr>
+      <td class="mono dim2 detail-cell">${escapeHtml(f.title)}</td>
+      <td>${badge(f.severity, f.severity === "HIGH" || f.severity === "CRITICAL" ? "red" : f.severity === "MEDIUM" ? "amber" : "gray")}</td>
+      <td class="mono">${f.dread.damage}</td>
+      <td class="mono">${f.dread.reproducibility}</td>
+      <td class="mono">${f.dread.exploitability}</td>
+      <td class="mono">${f.dread.affectedUsers}</td>
+      <td class="mono">${f.dread.discoverability}</td>
+      <td class="mono"><b>${f.dread.score}</b></td>
+    </tr>`)
+    .join("");
+  return `
+    <div id="dread-scoring" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.alert}</span>DREAD Risk Scoring (5-Factor Vector)</div>
+      <div class="section-sub">Real 5-factor DREAD vectors (Damage / Reproducibility / Exploitability / Affected Users / Discoverability, scripts/normalize-reports.mts) computed per-finding from this run's own real SAST/symbolic findings -- informational metadata only, never a security gate. ${r.scored.length} finding(s) scored. A separate, simpler per-run severity-based DREAD proxy also feeds this project's Grafana dashboard ("DREAD Risk Score" panel, via scripts/ship-siem-telemetry.py); the two are intentionally not reconciled here -- they answer different questions (per-finding 5-factor breakdown vs. a single coarse per-run number) and are computed by different, independently-tested code paths.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Finding</th><th>Severity</th><th>Dmg</th><th>Repro</th><th>Exploit</th><th>Affected</th><th>Discov</th><th>Score</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="8" class="empty-note">No findings scored this run.</td></tr>`}</tbody>
+      </table></div>
     </div>`;
 }
 
@@ -1220,6 +1410,12 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       ${renderEchidnaSection()}
       ${renderZkOfacSection()}
       ${renderNvdMirrorSection()}
+      ${renderEtherscanSection()}
+      ${renderIndexerSection()}
+      ${renderZkAttestationSection()}
+      ${renderGovernanceEnrichmentSection()}
+      ${renderStrideCoverageSection()}
+      ${renderDreadScoringSection()}
 
       <div id="wallet" class="section-card">
         <details class="collapsible" open>
