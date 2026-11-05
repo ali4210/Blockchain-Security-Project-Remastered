@@ -1492,6 +1492,39 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 18px; }
     .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; margin-bottom: 22px; }
     .chart-box { position: relative; height: 240px; max-width: 100%; }
+
+    /* --- Universal search/filter bar: presentation-layer only --- */
+    .search-bar-wrap {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color); border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .search-bar-wrap input[type="text"] {
+      flex: 1; min-width: 200px; background: var(--bg-card); color: var(--text-main);
+      border: 1px solid var(--border-color); border-radius: 7px; padding: 8px 12px; font-size: 13px;
+    }
+    .search-bar-wrap input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    .search-bar-wrap button {
+      background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main);
+      border-radius: 7px; padding: 7px 12px; cursor: pointer; font-size: 13px;
+    }
+    .search-bar-wrap button:hover { border-color: #334155; }
+    .search-dropdown {
+      position: absolute; top: 100%; left: 14px; right: 14px; margin-top: 6px;
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;
+      max-height: 340px; overflow-y: auto; z-index: 60;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .search-dropdown-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
+    .search-dropdown-item:last-child { border-bottom: none; }
+    .search-dropdown-item:hover, .search-dropdown-item:focus { background: rgba(255,255,255,0.05); outline: none; }
+    .search-dropdown-item .sd-title { font-weight: 700; font-size: 13px; color: #fff; }
+    .search-dropdown-item .sd-snippet { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+    .search-dropdown-empty { padding: 14px; font-size: 12.5px; color: var(--text-muted); }
+    .search-flash { outline: 2px solid var(--accent) !important; outline-offset: 3px; transition: outline-color 0.3s; }
+    mark.search-hl { background: #fde047; color: #1a1500; border-radius: 3px; padding: 0 2px; }
     .empty-note { font-size: 12px; color: var(--text-muted); padding: 10px 0; }
     details.collapsible summary {
       cursor: pointer; font-size: 15px; font-weight: 700; list-style: none;
@@ -1603,6 +1636,165 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         </div>
         <p>${execSummary}</p>
       </div>
+
+      <div class="search-bar-wrap">
+        <input type="text" id="globalSearch" placeholder="Search this report (e.g. SCA, reentrancy, OFAC)..." autocomplete="off">
+        <button id="clearSearchBtn" type="button" title="Clear search">&#10005;</button>
+      </div>
+      <script>
+        (function () {
+          var input = document.getElementById("globalSearch");
+          var clearBtn = document.getElementById("clearSearchBtn");
+          var wrap = document.querySelector(".search-bar-wrap");
+          var dropdown = document.createElement("div");
+          dropdown.className = "search-dropdown";
+          dropdown.style.display = "none";
+          wrap.appendChild(dropdown);
+
+          var MAX_RESULTS = 15;
+          var SNIPPET_LEN = 80;
+
+          function buildSnippet(text, term) {
+            var lower = text.toLowerCase();
+            var idx = lower.indexOf(term);
+            if (idx === -1) return text.slice(0, SNIPPET_LEN).trim() + "...";
+            var start = Math.max(0, idx - Math.floor(SNIPPET_LEN / 2));
+            var end = Math.min(text.length, start + SNIPPET_LEN);
+            var snippet = text.slice(start, end).replace(/\s+/g, " ").trim();
+            return (start > 0 ? "..." : "") + snippet + (end < text.length ? "..." : "");
+          }
+
+          function closeDropdown() {
+            dropdown.style.display = "none";
+            dropdown.innerHTML = "";
+          }
+
+          function clearHighlights() {
+            document.querySelectorAll("mark.search-hl").forEach(function (mark) {
+              var parent = mark.parentNode;
+              if (!parent) return;
+              while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+              parent.removeChild(mark);
+              parent.normalize();
+            });
+          }
+
+          function highlightInSection(section, term) {
+            if (!term) return;
+            var walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+              acceptNode: function (node) {
+                var tag = node.parentNode && node.parentNode.nodeName;
+                if (tag === "SCRIPT" || tag === "STYLE") return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+              }
+            });
+            var textNodes = [];
+            var n;
+            while ((n = walker.nextNode())) textNodes.push(n);
+
+            var lowerTerm = term.toLowerCase();
+            textNodes.forEach(function (node) {
+              var text = node.nodeValue;
+              var lower = text.toLowerCase();
+              var idx = lower.indexOf(lowerTerm);
+              if (idx === -1) return;
+
+              var frag = document.createDocumentFragment();
+              var cursor = 0;
+              while (idx !== -1) {
+                if (idx > cursor) frag.appendChild(document.createTextNode(text.slice(cursor, idx)));
+                var mark = document.createElement("mark");
+                mark.className = "search-hl";
+                mark.textContent = text.slice(idx, idx + term.length);
+                frag.appendChild(mark);
+                cursor = idx + term.length;
+                idx = lower.indexOf(lowerTerm, cursor);
+              }
+              if (cursor < text.length) frag.appendChild(document.createTextNode(text.slice(cursor)));
+              node.parentNode.replaceChild(frag, node);
+            });
+          }
+
+          function jumpTo(id) {
+            var target = document.getElementById(id);
+            if (!target) { closeDropdown(); return; }
+            clearHighlights();
+            var term = input.value.trim();
+            if (term) highlightInSection(target, term);
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            target.classList.add("search-flash");
+            setTimeout(function () { target.classList.remove("search-flash"); }, 1500);
+            closeDropdown();
+          }
+
+          function renderResults(term) {
+            var results = [];
+            document.querySelectorAll(".section-card").forEach(function (card) {
+              if (!card.id) return; // only jumpable sections with a real nav anchor
+              var rawText = card.textContent || "";
+              if (rawText.toLowerCase().indexOf(term) === -1) return;
+              var titleEl = card.querySelector(".section-title");
+              var title = titleEl ? titleEl.textContent.trim() : card.id;
+              var flat = rawText.replace(/\s+/g, " ").trim();
+              results.push({ id: card.id, title: title, snippet: buildSnippet(flat, term) });
+            });
+
+            dropdown.innerHTML = "";
+            if (results.length === 0) {
+              var empty = document.createElement("div");
+              empty.className = "search-dropdown-empty";
+              empty.textContent = "No matching sections.";
+              dropdown.appendChild(empty);
+              dropdown.style.display = "block";
+              return;
+            }
+
+            results.slice(0, MAX_RESULTS).forEach(function (r) {
+              var item = document.createElement("div");
+              item.className = "search-dropdown-item";
+              item.tabIndex = 0;
+              var titleDiv = document.createElement("div");
+              titleDiv.className = "sd-title";
+              titleDiv.textContent = r.title;
+              var snippetDiv = document.createElement("div");
+              snippetDiv.className = "sd-snippet";
+              snippetDiv.textContent = r.snippet;
+              item.appendChild(titleDiv);
+              item.appendChild(snippetDiv);
+              item.addEventListener("click", function () { jumpTo(r.id); });
+              item.addEventListener("keydown", function (e) { if (e.key === "Enter") jumpTo(r.id); });
+              dropdown.appendChild(item);
+            });
+
+            if (results.length > MAX_RESULTS) {
+              var more = document.createElement("div");
+              more.className = "search-dropdown-empty";
+              more.textContent = (results.length - MAX_RESULTS) + " more match(es) not shown -- refine your search.";
+              dropdown.appendChild(more);
+            }
+
+            dropdown.style.display = "block";
+          }
+
+          function applyFilter() {
+            clearHighlights();
+            var term = input.value.trim().toLowerCase();
+            if (!term) { closeDropdown(); return; }
+            renderResults(term);
+          }
+
+          input.addEventListener("input", applyFilter);
+          input.addEventListener("focus", function () { if (input.value.trim()) applyFilter(); });
+          clearBtn.addEventListener("click", function () { input.value = ""; closeDropdown(); clearHighlights(); });
+
+          document.addEventListener("click", function (e) {
+            if (!wrap.contains(e.target)) closeDropdown();
+          });
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeDropdown();
+          });
+        })();
+      </script>
 
       ${renderCriticalFindingsGlance(v104)}
 
