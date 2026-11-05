@@ -882,6 +882,19 @@ function kpiDreadScoredCount(): string | number {
   }
 }
 
+function kpiLynisHardeningIndex(): string | number {
+  const p = resolve(process.cwd(), "reports/scanners/lynis.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    if (r.status !== "ok") return "N/A";
+    const idx = r.counts?.hardening_index;
+    return typeof idx === "number" ? idx : "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
 function kpiGitleaksCount(): string | number {
   const p = resolve(process.cwd(), "reports/gitleaks-report.json");
   if (!existsSync(p) || !scannerOk("gitleaks")) return "N/A";
@@ -986,6 +999,60 @@ function renderCriticalFindingsGlance(v104: any): string {
       <div class="table-scroll"><table>
         <thead><tr><th>Finding</th><th>Status</th><th>Detail</th></tr></thead>
         <tbody>${rows.join("")}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderLynisSection(): string {
+  const p = resolve(process.cwd(), "reports/lynis-governance-report.json");
+  if (!existsSync(p) || !scannerOk("lynis")) {
+    return `<div id="lynis" class="section-card"><div class="section-title"><span class="title-icon">${ICON.server}</span>Lynis Host-Compliance Audit</div><div class="empty-note">Not run this cycle, or this run's own lynis scanner result was not ok -- see reports/scanners/lynis.json.</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  let policyMappings: any[] = [];
+  try {
+    policyMappings = JSON.parse(readFileSync(resolve(process.cwd(), "config/governance-policy.json"), "utf-8")).mappings || [];
+  } catch {
+    // reference URLs become unavailable, not fatal
+  }
+  const refFor = (testId: string) => policyMappings.find((m: any) => m.testId === testId)?.providerReference;
+
+  const findingRows = (r.findings || [])
+    .map((f: any) => `
+    <tr>
+      <td>${badge(f.kind.toUpperCase(), f.kind === "warning" ? "red" : "amber")}</td>
+      <td class="mono dim2 detail-cell">${escapeHtml(f.testId)}</td>
+      <td class="mono">${f.occurrences}</td>
+      <td class="dim detail-cell">${f.relatedNistControls.length ? escapeHtml(f.relatedNistControls.join(", ")) : `<span class="dim2">unmapped</span>`}</td>
+    </tr>`)
+    .join("");
+
+  const controlRows = (r.controlEvidence || [])
+    .map((c: any) => `
+    <tr>
+      <td class="mono">${escapeHtml(c.controlId)}</td>
+      <td>${escapeHtml(c.title)}</td>
+      <td>${badge(c.status.toUpperCase(), c.status === "needs-review" ? "amber" : "gray")}</td>
+      <td class="dim detail-cell">${escapeHtml(c.relationship)}${refFor(c.relatedTestId) ? ` <a href="${escapeHtml(refFor(c.relatedTestId))}" target="_blank" rel="noopener">[remediation ref]</a>` : ""}</td>
+    </tr>`)
+    .join("");
+
+  return `
+    <div id="lynis" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.server}</span>Lynis Host-Compliance Audit</div>
+      <div class="section-sub">${badge("REVIEW-REQUIRED -- NOT A COMPLIANCE/CERTIFICATION CLAIM", "amber")} Non-root, no-plugins audit of this host (provider ${escapeHtml(r.provider?.name)} ${escapeHtml(r.provider?.programVersion)}). Partial, project-authored NIST SP 800-53 Rev. 5 crosswalk for 2 controls only -- not an official crosswalk, not a full catalog assessment, no automatic remediation, no certification claim (see config/governance-policy.json's own scope block).</div>
+      <div class="infra-row"><div class="infra-name">Hardening Index</div><span class="mono dim2">${r.providerMetric?.hardeningIndex ?? "?"} / 100</span></div>
+      <div class="infra-row"><div class="infra-name">Tests Run</div><span class="mono dim2">${r.summary?.providerTestsDone ?? "?"}</span></div>
+      <div class="infra-row"><div class="infra-name">Warning / Suggestion Records</div><span class="mono dim2">${r.summary?.warningRecords ?? 0} / ${r.summary?.suggestionRecords ?? 0}</span></div>
+      <div class="section-sub" style="margin-top:10px;">Individual findings (real Lynis test IDs; host field values and raw finding text are intentionally never retained):</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Kind</th><th>Test ID</th><th>Occurrences</th><th>Related NIST Control</th></tr></thead>
+        <tbody>${findingRows || `<tr><td colspan="4" class="empty-note">No findings this run.</td></tr>`}</tbody>
+      </table></div>
+      <div class="section-sub" style="margin-top:10px;">Control evidence (partial, needs-review only -- never a pass/fail compliance verdict):</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Control</th><th>Title</th><th>Status</th><th>Relationship / Remediation</th></tr></thead>
+        <tbody>${controlRows || `<tr><td colspan="4" class="empty-note">No control evidence this run.</td></tr>`}</tbody>
       </table></div>
     </div>`;
 }
@@ -1426,6 +1493,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       <a href="#stride-coverage">STRIDE Coverage</a>
       <a href="#dread-scoring">DREAD Scoring</a>
       <a href="#nvd-mirror">NVD Offline Mirror</a>
+      <a href="#lynis">Lynis Audit</a>
       <a href="#wallet">Wallet Simulation</a>
       <a href="#forensics">Forensics &amp; Custody</a>
       <a href="#incidents">Incident Response</a>
@@ -1467,6 +1535,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         <a href="#stride-coverage" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "STRIDE Coverage", kpiStrideCoverageLabel(), "Click to view category evidence", "#eab308")}</a>
         <a href="#dread-scoring" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.alert, "DREAD Scored", kpiDreadScoredCount(), "Click to view per-finding vectors", "#f43f5e")}</a>
         <a href="#gitleaks" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.lock, "Gitleaks Secrets Found", kpiGitleaksCount(), "Click to view detections", "#dc2626")}</a>
+        <a href="#lynis" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.server, "Lynis Hardening Index", kpiLynisHardeningIndex(), "Click to view host-compliance findings", "#0ea5e9")}</a>
       </div>
 
       <div id="charts" class="section-card">
@@ -1584,6 +1653,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       ${renderEchidnaSection()}
       ${renderZkOfacSection()}
       ${renderNvdMirrorSection()}
+      ${renderLynisSection()}
       ${renderEtherscanSection()}
       ${renderIndexerSection()}
       ${renderZkAttestationSection()}

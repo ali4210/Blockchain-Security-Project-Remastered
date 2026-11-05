@@ -576,8 +576,8 @@
     "size": 3801
   },
   "scripts/generate-html-report.mts": {
-    "mtimeMs": 1793893368069.9797,
-    "size": 105720
+    "mtimeMs": 1793899335600.885,
+    "size": 110295
   },
   "scripts/generate-sar-draft.py": {
     "mtimeMs": 1793304448728.736,
@@ -684,8 +684,8 @@
     "size": 4173
   },
   "scripts/run-all-e2e.sh": {
-    "mtimeMs": 1793886600367.1914,
-    "size": 21856
+    "mtimeMs": 1793895565624.579,
+    "size": 22374
   },
   "scripts/run-dast.sh": {
     "mtimeMs": 1792615554798.5115,
@@ -730,6 +730,10 @@
   "scripts/run-kyc-screening.py": {
     "mtimeMs": 1793390771487.456,
     "size": 5773
+  },
+  "scripts/run-lynis-audit.py": {
+    "mtimeMs": 1793895560652.5051,
+    "size": 5814
   },
   "scripts/run-ofac-screening.py": {
     "mtimeMs": 1792623257247.2405,

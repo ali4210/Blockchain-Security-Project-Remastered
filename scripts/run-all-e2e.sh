@@ -121,6 +121,15 @@ python3 scripts/run-sca-gate.py
 
 python3 scripts/run-openscap-audit.py
 
+# Real Lynis host-compliance audit, normalized through the existing
+# governance-core.cjs validator (cryptographically pinned to the exact
+# binary/profile/policy already proven in docs/CHECKLIST.md's P03-008).
+# Purely additive/informational -- NOT in pipeline-verdict.py's REQUIRED
+# list, cannot affect PASS/HALT, fails loud (not_run/error) per its own
+# honest-failure note, never silently passed if the policy's pinned hashes
+# no longer match the live binary/profile.
+python3 scripts/run-lynis-audit.py || true
+
 ./scripts/run-sonar.sh
 
 ./scripts/run-readiness-gate.sh
