@@ -849,6 +849,39 @@ function renderDreadScoringSection(): string {
     </div>`;
 }
 
+function kpiGovernanceEnrichedCount(): string | number {
+  const p = resolve(process.cwd(), "reports/enriched-findings-report.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    return r.status === "ok" ? (r.enriched || []).length : "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
+function kpiStrideCoverageLabel(): string {
+  const p = resolve(process.cwd(), "reports/scanners/stride-coverage.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    return typeof r.categories_covered === "number" ? `${r.categories_covered}/6` : "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
+function kpiDreadScoredCount(): string | number {
+  const p = resolve(process.cwd(), "reports/dread-scoring-report.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    return r.status === "ok" ? (r.scored || []).length : "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
 function renderNvdMirrorSection(): string {
   const p = resolve(process.cwd(), "reports/raw/sca-summary.json");
   if (!existsSync(p)) {
@@ -1258,6 +1291,9 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       <a href="#vyper">Vyper Check</a>
       <a href="#echidna">Echidna Fuzzing</a>
       <a href="#zk-ofac">ZK-OFAC Circuit</a>
+      <a href="#governance-enrichment">Governance Mapping</a>
+      <a href="#stride-coverage">STRIDE Coverage</a>
+      <a href="#dread-scoring">DREAD Scoring</a>
       <a href="#nvd-mirror">NVD Offline Mirror</a>
       <a href="#wallet">Wallet Simulation</a>
       <a href="#forensics">Forensics &amp; Custody</a>
@@ -1294,6 +1330,9 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         ${kpiCard(ICON.server, "Active Consensus Alerts", data.metrics.activeConsensusAlerts, undefined, "#f97316")}
         ${kpiCard(ICON.lock, "Forensic Cases Sealed (this run)", data.metrics.forensicCasesSealed, undefined, "#a78bfa")}
         ${kpiCard(ICON.flask, "DefectDojo Unique Flaws", ddj?.active_unique_findings ?? "N/A", "Across all historical runs — not this run's count.", "#38bdf8", "CUMULATIVE")}
+        <a href="#governance-enrichment" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "ATT&CK/CIS/ISO Mapped", kpiGovernanceEnrichedCount(), "Click to view mapped findings", "#14b8a6")}</a>
+        <a href="#stride-coverage" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "STRIDE Coverage", kpiStrideCoverageLabel(), "Click to view category evidence", "#eab308")}</a>
+        <a href="#dread-scoring" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.alert, "DREAD Scored", kpiDreadScoredCount(), "Click to view per-finding vectors", "#f43f5e")}</a>
       </div>
 
       <div id="charts" class="section-card">
