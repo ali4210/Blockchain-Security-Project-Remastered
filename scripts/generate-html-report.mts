@@ -882,6 +882,33 @@ function kpiDreadScoredCount(): string | number {
   }
 }
 
+function kpiDsommMaturity(): string {
+  const p = resolve(process.cwd(), "reports/scanners/dsomm.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    if (r.status !== "ok") return "N/A";
+    const assessed = r.counts?.activities_assessed;
+    const total = r.counts?.activities_total;
+    return (typeof assessed === "number" && typeof total === "number") ? `${assessed}/${total}` : "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
+function kpiZapFindings(): string | number {
+  const p = resolve(process.cwd(), "reports/scanners/zap.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    if (r.status !== "ok") return "N/A";
+    const c = r.counts || {};
+    return Number(c.high || 0) + Number(c.medium || 0) + Number(c.low || 0);
+  } catch {
+    return "N/A";
+  }
+}
+
 function kpiLynisHardeningIndex(): string | number {
   const p = resolve(process.cwd(), "reports/scanners/lynis.json");
   if (!existsSync(p)) return "N/A";
@@ -1477,6 +1504,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       <a href="#charts">Visual Overview</a>
       <a href="#gates">Gate-by-Gate Status</a>
       <a href="#subsystems">AVS / Swarm / Infra</a>
+      <a href="#dsomm">OWASP DSOMM Maturity</a>
       <a href="#consensus-attack">Consensus-Attack Detection</a>
       <a href="#flashloan">Flash-Loan / Front-Running</a>
       <a href="#gitleaks">Gitleaks Secret Scan</a>
@@ -1525,17 +1553,19 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       ${renderCriticalFindingsGlance(v104)}
 
       <div class="kpi-grid">
-        ${kpiCard(ICON.alert, "Total Findings (this run)", data.metrics.totalFindings, undefined, "#38bdf8")}
-        ${kpiCard(ICON.shield, "Critical &amp; High (this run)", data.metrics.criticalFindings + data.metrics.highFindings, undefined, "#ef4444")}
-        ${kpiCard(ICON.check, "Required Gates Passing", `${data.metrics.complianceScorePct}%`, undefined, data.metrics.complianceScorePct === 100 ? "#22c55e" : "#eab308", undefined, data.metrics.complianceScorePct)}
-        ${kpiCard(ICON.server, "Active Consensus Alerts", data.metrics.activeConsensusAlerts, undefined, "#f97316")}
-        ${kpiCard(ICON.lock, "Forensic Cases Sealed (this run)", data.metrics.forensicCasesSealed, undefined, "#a78bfa")}
+        <a href="#findings" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.alert, "Total Findings (this run)", data.metrics.totalFindings, undefined, "#38bdf8")}</a>
+        <a href="#findings" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "Critical &amp; High (this run)", data.metrics.criticalFindings + data.metrics.highFindings, undefined, "#ef4444")}</a>
+        <a href="#gates" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.check, "Required Gates Passing", `${data.metrics.complianceScorePct}%`, undefined, data.metrics.complianceScorePct === 100 ? "#22c55e" : "#eab308", undefined, data.metrics.complianceScorePct)}</a>
+        <a href="#subsystems" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.server, "Active Consensus Alerts", data.metrics.activeConsensusAlerts, undefined, "#f97316")}</a>
+        <a href="#forensics" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.lock, "Forensic Cases Sealed (this run)", data.metrics.forensicCasesSealed, undefined, "#a78bfa")}</a>
         ${kpiCard(ICON.flask, "DefectDojo Unique Flaws", ddj?.active_unique_findings ?? "N/A", "Across all historical runs — not this run's count.", "#38bdf8", "CUMULATIVE")}
+        <a href="#dsomm" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "DSOMM Maturity", kpiDsommMaturity(), "Click to view maturity breakdown", "#8b5cf6")}</a>
         <a href="#governance-enrichment" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "ATT&CK/CIS/ISO Mapped", kpiGovernanceEnrichedCount(), "Click to view mapped findings", "#14b8a6")}</a>
         <a href="#stride-coverage" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "STRIDE Coverage", kpiStrideCoverageLabel(), "Click to view category evidence", "#eab308")}</a>
         <a href="#dread-scoring" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.alert, "DREAD Scored", kpiDreadScoredCount(), "Click to view per-finding vectors", "#f43f5e")}</a>
         <a href="#gitleaks" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.lock, "Gitleaks Secrets Found", kpiGitleaksCount(), "Click to view detections", "#dc2626")}</a>
         <a href="#lynis" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.server, "Lynis Hardening Index", kpiLynisHardeningIndex(), "Click to view host-compliance findings", "#0ea5e9")}</a>
+        <a href="#gates" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.flask, "ZAP Findings", kpiZapFindings(), "High+Medium+Low alerts (excludes Info); click to view in Gate-by-Gate Status", "#06b6d4")}</a>
       </div>
 
       <div id="charts" class="section-card">
