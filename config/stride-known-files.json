@@ -420,8 +420,8 @@
     "size": 5331
   },
   "src/observability/threat_intel.py": {
-    "mtimeMs": 1792623238190.2593,
-    "size": 4373
+    "mtimeMs": 1793905185555.898,
+    "size": 6637
   },
   "src/onchain/etherscan_client.py": {
     "mtimeMs": 1793436433219.848,
@@ -576,8 +576,8 @@
     "size": 3801
   },
   "scripts/generate-html-report.mts": {
-    "mtimeMs": 1793903460042.347,
-    "size": 113598
+    "mtimeMs": 1793905217088.239,
+    "size": 115961
   },
   "scripts/generate-sar-draft.py": {
     "mtimeMs": 1793304448728.736,

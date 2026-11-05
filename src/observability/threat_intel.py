@@ -78,10 +78,56 @@ class LiveThreatIntelEngine:
 
 
 if __name__ == "__main__":
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "scripts" / "lib"))
+    from scanner_result import write_result  # noqa: E402
+
     intel = LiveThreatIntelEngine()
-    # Demonstration against a documented, verified OFAC-listed address (Lazarus
-    # Group / Ronin bridge). This is a capability demo, not a live counterparty.
-    demo = "0x098B716B8Aaf21512996dC57EB0615e2383E2f96"
-    res = intel.check_smart_contract_threat(demo)
-    print(f"[+] OFAC screen {demo[:12]}...: status={res['status']} "
-          f"flagged={res['flagged']} | {res.get('attribution') or res.get('detail')}")
+
+    # IP reputation (AbuseIPDB): DEMONSTRATION canary. 118.25.6.39 is
+    # AbuseIPDB's own documented example query target (used verbatim in their
+    # API docs' sample requests) -- this is NOT a claim that the address is
+    # malicious. It proves the real AbuseIPDB integration end-to-end and
+    # reports exactly whatever abuse score the live API returns today.
+    DEMO_IP = "118.25.6.39"
+    ip_result = intel.check_ip_reputation(DEMO_IP)
+    print(f"[+] AbuseIPDB check {DEMO_IP} (DEMONSTRATION canary -- AbuseIPDB's "
+          f"own documented example IP, not a claim of malice): "
+          f"status={ip_result['status']} flagged={ip_result.get('flagged')} | "
+          f"{ip_result.get('abuse_score', ip_result.get('detail'))}")
+
+    # Smart-contract address screening: DEMONSTRATION canary against the real
+    # OFAC SDN snapshot. Same address the real run-ofac-screening.py step
+    # screens for real elsewhere in the pipeline -- this call only exercises
+    # LiveThreatIntelEngine's second capability; it is not an independent
+    # compliance signal.
+    demo_addr = "0x098B716B8Aaf21512996dC57EB0615e2383E2f96"
+    addr_result = intel.check_smart_contract_threat(demo_addr)
+    print(f"[+] OFAC screen {demo_addr[:12]}...: status={addr_result['status']} "
+          f"flagged={addr_result['flagged']} | "
+          f"{addr_result.get('attribution') or addr_result.get('detail')}")
+
+    if ip_result["status"] == "ok":
+        overall = "ok"
+    elif ip_result["status"] == "not_run":
+        overall = "not_run"
+    else:
+        overall = "error"
+
+    write_result(
+        "osint", "threat_intel.py", overall,
+        counts={"ip_checked": 0 if ip_result["status"] == "not_run" else 1,
+                "ip_flagged": int(bool(ip_result.get("flagged"))),
+                "address_checked": 1,
+                "address_flagged": int(bool(addr_result.get("flagged")))},
+        detail=(f"AbuseIPDB DEMONSTRATION canary ({DEMO_IP}, AbuseIPDB's own "
+                f"documented example query target -- not a claim this address "
+                f"is malicious): status={ip_result['status']}, "
+                f"flagged={ip_result.get('flagged')}"
+                + (f", abuse_score={ip_result.get('abuse_score')}"
+                   if ip_result["status"] == "ok"
+                   else f" ({ip_result.get('detail')})")),
+        extra={"ip_reputation": ip_result, "smart_contract_threat": addr_result,
+               "mode": "demonstration-canary"},
+    )

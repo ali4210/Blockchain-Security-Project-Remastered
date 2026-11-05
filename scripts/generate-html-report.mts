@@ -1107,6 +1107,36 @@ function renderLynisSection(): string {
     </div>`;
 }
 
+function renderOsintSection(): string {
+  const p = resolve(process.cwd(), "reports/scanners/osint.json");
+  if (!existsSync(p)) {
+    return `<div id="osint" class="section-card"><div class="section-title"><span class="title-icon">${ICON.server}</span>OSINT Threat Intel (AbuseIPDB + OFAC)</div><div class="empty-note">Not run this cycle.</div></div>`;
+  }
+  const r = JSON.parse(readFileSync(p, "utf-8"));
+  const ip = r.ip_reputation || {};
+  const addr = r.smart_contract_threat || {};
+  return `
+    <div id="osint" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.server}</span>OSINT Threat Intel (AbuseIPDB + OFAC)</div>
+      <div class="section-sub">${badge("DEMONSTRATION CANARY -- NOT LIVE PRODUCTION TRAFFIC", "amber")} src/observability/threat_intel.py's LiveThreatIntelEngine, exercised against fixed demonstration targets, not real inbound traffic.</div>
+      <div class="infra-row"><div class="infra-name">AbuseIPDB: 118.25.6.39 (AbuseIPDB's own documented example IP)</div>${badge(ip.status ? ip.status.toUpperCase() : "NOT RUN", ip.status === "ok" ? (ip.flagged ? "red" : "green") : "amber")}</div>
+      <div class="infra-detail" style="text-align:left; max-width:100%;">${ip.status === "ok" ? `abuse_score=${ip.abuse_score}, country=${escapeHtml(ip.country || "?")}` : escapeHtml(ip.detail || "")}</div>
+      <div class="infra-row" style="margin-top:8px;"><div class="infra-name">OFAC SDN: Lazarus Group demo address</div>${badge(addr.flagged ? "FLAGGED" : "CLEAN", addr.flagged ? "red" : "green")}</div>
+      <div class="infra-detail" style="text-align:left; max-width:100%;">${escapeHtml(addr.attribution || addr.detail || "")} -- duplicates the real run-ofac-screening.py step; not an independent signal.</div>
+    </div>`;
+}
+
+function kpiOsintStatus(): string {
+  const p = resolve(process.cwd(), "reports/scanners/osint.json");
+  if (!existsSync(p)) return "N/A";
+  try {
+    const r = JSON.parse(readFileSync(p, "utf-8"));
+    return (r.status || "N/A").toUpperCase();
+  } catch {
+    return "N/A";
+  }
+}
+
 function renderNvdMirrorSection(): string {
   const p = resolve(process.cwd(), "reports/raw/sca-summary.json");
   if (!existsSync(p)) {
@@ -1549,6 +1579,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       <a href="#forensics">Forensics &amp; Custody</a>
       <a href="#incidents">Incident Response</a>
       <a href="#compliance">OFAC Compliance</a>
+      <a href="#osint">OSINT Threat Intel</a>
       <a href="#trend">Run History</a>
       <a href="#findings">Findings Register</a>
     </nav>
@@ -1589,6 +1620,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         <a href="#gitleaks" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.lock, "Gitleaks Secrets Found", kpiGitleaksCount(), "Click to view detections", "#dc2626")}</a>
         <a href="#lynis" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.server, "Lynis Hardening Index", kpiLynisHardeningIndex(), "Click to view host-compliance findings", "#0ea5e9")}</a>
         <a href="#gates" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.flask, "ZAP Findings", kpiZapFindings(), "High+Medium+Low alerts (excludes Info); click to view in Gate-by-Gate Status", "#06b6d4")}</a>
+        <a href="#osint" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.server, "OSINT Check (Demo)", kpiOsintStatus(), "AbuseIPDB demonstration canary; click to view", "#0ea5e9")}</a>
       </div>
 
       <div id="charts" class="section-card">
@@ -1756,6 +1788,8 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           <tbody>${complianceRows || `<tr><td colspan="4" class="empty-note">No addresses screened this run.</td></tr>`}</tbody>
         </table></div>
       </div>
+
+      ${renderOsintSection()}
 
       <div id="trend" class="section-card">
         <div class="section-title"><span class="title-icon">${ICON.pulse}</span>Run History / Trend</div>
