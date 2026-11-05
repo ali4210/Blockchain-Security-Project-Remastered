@@ -882,6 +882,114 @@ function kpiDreadScoredCount(): string | number {
   }
 }
 
+function kpiGitleaksCount(): string | number {
+  const p = resolve(process.cwd(), "reports/gitleaks-report.json");
+  if (!existsSync(p) || !scannerOk("gitleaks")) return "N/A";
+  try {
+    const leaks = JSON.parse(readFileSync(p, "utf-8")) || [];
+    return Array.isArray(leaks) ? leaks.length : "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
+function renderCriticalFindingsGlance(v104: any): string {
+  function row(id: string, label: string, status: string, tone: Tone, detail: string): string {
+    return `
+    <tr>
+      <td><a href="#${id}" style="color:inherit; text-decoration:none;"><b>${escapeHtml(label)}</b></a></td>
+      <td>${badge(status, tone)}</td>
+      <td class="dim detail-cell">${escapeHtml(detail)}</td>
+    </tr>`;
+  }
+
+  const rows: string[] = [];
+
+  const avs = v104.avs_consensus;
+  const avsIsHalt = avs?.decision?.includes("EXPLOIT") || avs?.decision?.includes("HALT");
+  rows.push(
+    avs
+      ? row("subsystems", "AVS Consensus (3-node exploit replay)", avs.decision, avsIsHalt ? "red" : "green", `${avs.agreement_ratio} node agreement -- real EVM execution trace, not simulated.`)
+      : row("subsystems", "AVS Consensus (3-node exploit replay)", "NOT RUN", "gray", "")
+  );
+
+  const swarm = v104.langgraph_swarm;
+  const swarmVotes = swarm?.votes || {};
+  rows.push(
+    swarm
+      ? row("subsystems", "LangGraph 7-Agent Swarm Vote", swarm.decision, swarm.decision === "HALT_CONFIRMED" ? "red" : "green", `${swarmVotes.halt || 0}/${swarm.agents_count || 7} agents voted HALT.`)
+      : row("subsystems", "LangGraph 7-Agent Swarm Vote", "NOT RUN", "gray", "")
+  );
+
+  const caPath = resolve(process.cwd(), "reports/consensus-attack-findings.json");
+  try {
+    if (existsSync(caPath)) {
+      const ca: any[] = JSON.parse(readFileSync(caPath, "utf-8"));
+      const triggeredList = ca.filter((f) => f.triggered);
+      rows.push(row("consensus-attack", "Consensus-Attack Monitor", `${triggeredList.length}/${ca.length} TRIGGERED`, triggeredList.length > 0 ? "red" : "green", triggeredList.map((f) => f.metric).join(", ")));
+    } else {
+      rows.push(row("consensus-attack", "Consensus-Attack Monitor", "NOT RUN", "gray", ""));
+    }
+  } catch {
+    rows.push(row("consensus-attack", "Consensus-Attack Monitor", "NOT RUN", "gray", ""));
+  }
+
+  const echPath = resolve(process.cwd(), "reports/echidna-report.json");
+  try {
+    if (existsSync(echPath)) {
+      const ech = JSON.parse(readFileSync(echPath, "utf-8"));
+      const reentered = (ech.properties || []).find((p: any) => p.name === "echidna_withdraw_never_reentered");
+      rows.push(
+        reentered
+          ? row("echidna", "Echidna Reentrancy Counterexample", reentered.passed ? "NOT FALSIFIED" : "FALSIFIED", reentered.passed ? "green" : "red", reentered.passed ? "No real counterexample found this run." : "A real counterexample was found -- see the Echidna Fuzzing section for the call sequence.")
+          : row("echidna", "Echidna Reentrancy Counterexample", "NOT RUN", "gray", "")
+      );
+    } else {
+      rows.push(row("echidna", "Echidna Reentrancy Counterexample", "NOT RUN", "gray", ""));
+    }
+  } catch {
+    rows.push(row("echidna", "Echidna Reentrancy Counterexample", "NOT RUN", "gray", ""));
+  }
+
+  const ofacPath = resolve(process.cwd(), "reports/ofac-screening-report.json");
+  try {
+    if (existsSync(ofacPath) && scannerOk("ofac-screening")) {
+      const ofac = JSON.parse(readFileSync(ofacPath, "utf-8"));
+      const screened: any[] = ofac.screened || [];
+      const flagged = screened.filter((s) => s.flagged);
+      rows.push(row("compliance", "OFAC Sanctions Screening", `${flagged.length}/${screened.length} FLAGGED`, flagged.length > 0 ? "red" : "green", flagged.map((f) => `${f.entity || f.address} (${f.risk_tier})`).join(", ")));
+    } else {
+      rows.push(row("compliance", "OFAC Sanctions Screening", "NOT RUN", "gray", ""));
+    }
+  } catch {
+    rows.push(row("compliance", "OFAC Sanctions Screening", "NOT RUN", "gray", ""));
+  }
+
+  const kycPath = resolve(process.cwd(), "reports/kyc-screening-report.json");
+  try {
+    if (existsSync(kycPath) && scannerOk("kyc-screening")) {
+      const kyc = JSON.parse(readFileSync(kycPath, "utf-8"));
+      const screened: any[] = kyc.screened || [];
+      const flagged = screened.filter((s) => s.flagged);
+      rows.push(row("kyc-screening", "KYC/AML Name Screening", `${flagged.length}/${screened.length} FLAGGED`, flagged.length > 0 ? "amber" : "green", flagged.map((f) => f.queried_name).join(", ")));
+    } else {
+      rows.push(row("kyc-screening", "KYC/AML Name Screening", "NOT RUN", "gray", ""));
+    }
+  } catch {
+    rows.push(row("kyc-screening", "KYC/AML Name Screening", "NOT RUN", "gray", ""));
+  }
+
+  return `
+    <div id="critical-glance" class="section-card">
+      <div class="section-title"><span class="title-icon">${ICON.alert}</span>Critical Findings At-a-Glance</div>
+      <div class="section-sub">Six real results already computed elsewhere in this report, shown together here for a fast skim. Click any row to jump to its full detail section below.</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Finding</th><th>Status</th><th>Detail</th></tr></thead>
+        <tbody>${rows.join("")}</tbody>
+      </table></div>
+    </div>`;
+}
+
 function renderNvdMirrorSection(): string {
   const p = resolve(process.cwd(), "reports/raw/sca-summary.json");
   if (!existsSync(p)) {
@@ -969,6 +1077,29 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
   }
   const zoneLabels = Object.keys(zoneCounts).sort();
   const zoneValues = zoneLabels.map((z) => zoneCounts[z]);
+
+  // --- MITRE ATT&CK technique frequency, for the Visual Overview chart ---
+  const attackPath = resolve(process.cwd(), "reports/enriched-findings-report.json");
+  let attackLabels: string[] = [];
+  let attackValues: number[] = [];
+  if (existsSync(attackPath)) {
+    try {
+      const enr = JSON.parse(readFileSync(attackPath, "utf-8"));
+      if (enr.status === "ok") {
+        const attackCounts: Record<string, number> = {};
+        for (const f of enr.enriched || []) {
+          const t = f.governance?.mitreAttack;
+          const key = t ? `${t.techniqueId} (${t.techniqueName})` : "unknown";
+          attackCounts[key] = (attackCounts[key] || 0) + 1;
+        }
+        const sorted = Object.entries(attackCounts).sort((a, b) => b[1] - a[1]);
+        attackLabels = sorted.map(([k]) => k);
+        attackValues = sorted.map(([, v]) => v);
+      }
+    } catch {
+      // leave empty -- chart renders its own empty-note below
+    }
+  }
 
   // --- Master findings table (searchable) ---
   const findingRows = (data.findings || [])
@@ -1323,6 +1454,8 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         <p>${execSummary}</p>
       </div>
 
+      ${renderCriticalFindingsGlance(v104)}
+
       <div class="kpi-grid">
         ${kpiCard(ICON.alert, "Total Findings (this run)", data.metrics.totalFindings, undefined, "#38bdf8")}
         ${kpiCard(ICON.shield, "Critical &amp; High (this run)", data.metrics.criticalFindings + data.metrics.highFindings, undefined, "#ef4444")}
@@ -1333,6 +1466,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
         <a href="#governance-enrichment" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "ATT&CK/CIS/ISO Mapped", kpiGovernanceEnrichedCount(), "Click to view mapped findings", "#14b8a6")}</a>
         <a href="#stride-coverage" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.shield, "STRIDE Coverage", kpiStrideCoverageLabel(), "Click to view category evidence", "#eab308")}</a>
         <a href="#dread-scoring" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.alert, "DREAD Scored", kpiDreadScoredCount(), "Click to view per-finding vectors", "#f43f5e")}</a>
+        <a href="#gitleaks" style="text-decoration:none; color:inherit; display:block;">${kpiCard(ICON.lock, "Gitleaks Secrets Found", kpiGitleaksCount(), "Click to view detections", "#dc2626")}</a>
       </div>
 
       <div id="charts" class="section-card">
@@ -1343,6 +1477,7 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
           <div><div class="dim" style="font-size:12px; margin-bottom:6px;">Findings by Zone</div><div class="chart-box"><canvas id="chartZone"></canvas></div></div>
           <div><div class="dim" style="font-size:12px; margin-bottom:6px;">Gate Status by Policy</div><div class="chart-box"><canvas id="chartGates"></canvas></div></div>
           <div><div class="dim" style="font-size:12px; margin-bottom:6px;">Run History Trend</div><div class="chart-box"><canvas id="chartTrend"></canvas></div></div>
+          <div><div class="dim" style="font-size:12px; margin-bottom:6px;">Findings by MITRE ATT&amp;CK Technique</div><div class="chart-box"><canvas id="chartAttack"></canvas></div></div>
         </div>
       </div>
 
@@ -1587,6 +1722,16 @@ export async function generateHtmlReport(statusJsonPath?: string): Promise<strin
       options: { plugins: { legend: { position: "bottom", labels: { color: "#cbd5e1", font: { size: 11 } } } }, scales: chartDefaults.scales }
     }));`
         : `document.getElementById("chartTrend").parentElement.innerHTML = '<div class="empty-note">No run history yet — tracked from here forward only.</div>';`
+    }
+
+    ${
+      attackLabels.length > 0
+        ? `chartInstances.push(new Chart(document.getElementById("chartAttack"), {
+      type: "bar",
+      data: { labels: ${JSON.stringify(attackLabels)}, datasets: [{ label: "Findings", data: ${JSON.stringify(attackValues)}, backgroundColor: "${TONE_HEX.amber}", borderRadius: 4 }] },
+      options: { indexAxis: "y", plugins: { legend: { display: false } }, scales: chartDefaults.scales }
+    }));`
+        : `document.getElementById("chartAttack").parentElement.innerHTML = '<div class="empty-note">Not run this cycle.</div>';`
     }
 
     // Chart.js canvases keep the pixel buffer they were drawn at on screen;
